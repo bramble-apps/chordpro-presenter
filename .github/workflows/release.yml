@@ -61,7 +61,7 @@ jobs:
             name: windows
             build: --win nsis
             bundle_python: true
-          - os: macos-14
+          - os: macos-15
             name: macos-arm64
             build: --mac dmg zip --arm64
             bundle_python: true
@@ -98,6 +98,8 @@ jobs:
           if [ "$RUNNER_OS" = Windows ]; then d="$(cygpath -u "$d")"; fi
           root="$(ls -d "$d"/cpython-"$PYTHON_VERSION".*-* | head -1)"
           rm -rf python && cp -R "$root" python
+          # (our own private copy: pip may install into it)
+          find python -name EXTERNALLY-MANAGED -delete
           ls python
       - name: Server libraries
         run: |
@@ -107,7 +109,6 @@ jobs:
             py=python3
           fi
           "$py" -m ensurepip --upgrade >/dev/null 2>&1 || true
-          "$py" -m pip install --upgrade pip
           "$py" -m pip install --target pylib -r requirements.txt
 
       - name: Flatpak tools
