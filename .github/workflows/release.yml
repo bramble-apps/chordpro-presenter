@@ -1,0 +1,138 @@
+# Builds ChordPro Presenter for the desktop: Windows (installer), macOS (Apple silicon and Intel:
+# dmg and zip), Linux (AppImage and Flatpak bundle). Pushing a tag such as v1.0.1 publishes a
+# GitHub release with every download, which the desktop apps update from. "Run workflow" (the
+# Actions tab) builds without publishing.
+#
+# The Android APK is signed with the Play upload key, which stays off GitHub: it's built and
+# attached to the release by hand (see RELEASING.md).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build web --release --no-web-resources-cdn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: build/web
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "ChordPro Presenter ${GITHUB_REF_NAME#v}" --generate-notes
+
+  desktop:
+    needs: [web, release]
+    # (runs for a plain "Run workflow" too, where there's no release job)
+    if: ${{ !cancelled() && needs.web.result == 'success' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            name: linux
+            build: --linux AppImage flatpak
+          - os: windows-latest
+            name: windows
+            build: --win nsis
+            bundle_python: true
+          - os: macos-14
+            name: macos-arm64
+            build: --mac dmg zip --arm64
+            bundle_python: true
+          - os: macos-15-intel
+            name: macos-x64
+            build: --mac dmg zip --x64
+            bundle_python: true
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop/electron
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: build/web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Bundle Python (Windows, macOS)
+        if: matrix.bundle_python
+        # A relocatable CPython (python-build-standalone, fetched by uv) goes inside the app, so the
+        # local server runs without Python installed on the computer.
+        run: |
+          pip install uv
+          uv python install "$PYTHON_VERSION"
+          d="$(uv python dir)"
+          if [ "$RUNNER_OS" = Windows ]; then d="$(cygpath -u "$d")"; fi
+          root="$(ls -d "$d"/cpython-"$PYTHON_VERSION".*-* | head -1)"
+          rm -rf python && cp -R "$root" python
+          ls python
+      - name: Server libraries
+        run: |
+          if [ -d python ] && ls python | grep -qv .gitkeep; then
+            case "$RUNNER_OS" in Windows) py=python/python.exe ;; *) py=python/bin/python3 ;; esac
+          else
+            py=python3
+          fi
+          "$py" -m ensurepip --upgrade >/dev/null 2>&1 || true
+          "$py" -m pip install --upgrade pip
+          "$py" -m pip install --target pylib -r requirements.txt
+
+      - name: Flatpak tools
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+
+      - run: npm ci
+      - name: Build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then publish=always; else publish=never; fi
+          npx electron-builder ${{ matrix.build }} --publish "$publish"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chordpro-presenter-${{ matrix.name }}
+          path: |
+            desktop/electron/dist/*.AppImage
+            desktop/electron/dist/*.flatpak
+            desktop/electron/dist/*.exe
+            desktop/electron/dist/*.dmg
+            desktop/electron/dist/*.zip
+          if-no-files-found: warn

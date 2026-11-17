@@ -1,0 +1,4 @@
+The built-in piano (piano.pad) is made from the Salamander Grand Piano V3
+by Alexander Holm (one velocity layer, mono, 32 kHz, shortened).
+Licence: Creative Commons Attribution 3.0 — http://creativecommons.org/licenses/by/3.0/
+Source: https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html

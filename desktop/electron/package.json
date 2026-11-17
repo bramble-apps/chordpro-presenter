@@ -1,0 +1,113 @@
+{
+  "name": "chordpro-presenter",
+  "productName": "ChordPro Presenter",
+  "version": "1.0.0",
+  "description": "Chord sheets, setlists and bilingual lyric projection for rehearsal and the stage",
+  "main": "main.js",
+  "desktopName": "chordpro-presenter.desktop",
+  "author": {
+    "name": "BrambleApps",
+    "email": "stephan.d@atomicmail.io"
+  },
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.chordpropresenter.app",
+    "productName": "ChordPro Presenter",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "smooth_scroll.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../../build/web",
+        "to": "web"
+      },
+      {
+        "from": "../../tools/serve.py",
+        "to": "server/serve.py"
+      },
+      {
+        "from": "pylib",
+        "to": "server/pylib"
+      },
+      {
+        "from": "python",
+        "to": "python",
+        "filter": [
+          "**/*",
+          "!.gitkeep"
+        ]
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "../../web/icons/Icon-512.png",
+      "category": "AudioVideo",
+      "executableName": "chordpro-presenter",
+      "artifactName": "ChordPro_Presenter-${arch}.${ext}",
+      "synopsis": "Chord sheets, setlists and lyric projection"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bramble-apps",
+        "repo": "chordpro-presenter",
+        "releaseType": "release"
+      }
+    ],
+    "flatpak": {
+      "runtimeVersion": "24.08",
+      "baseVersion": "24.08",
+      "finishArgs": [
+        "--share=network",
+        "--share=ipc",
+        "--socket=wayland",
+        "--socket=fallback-x11",
+        "--device=dri",
+        "--socket=pulseaudio",
+        "--filesystem=home",
+        "--talk-name=org.freedesktop.Notifications"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "../../web/icons/Icon-512.png",
+      "artifactName": "ChordPro_Presenter-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "../../web/icons/Icon-512.png",
+      "category": "public.app-category.music",
+      "identity": null,
+      "artifactName": "ChordPro_Presenter-${version}-mac-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "homepage": "https://github.com/bramble-apps/chordpro-presenter",
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  }
+}

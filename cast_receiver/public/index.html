@@ -1,0 +1,232 @@
+<!doctype html>
+<!--
+  ChordPro Presenter: the page a Chromecast / Google TV shows while casting.
+  Namespace: urn:x-cast:com.chordpropresenter.slides
+    {type:'put', id, i, n, mime, data}  piece i of n of slide id (base64
+                                        picture); kept here once complete
+    {type:'show', id, t}                crossfade to slide id over t seconds
+                                        (as soon as it has arrived)
+    {type:'clear'}                      fade to black
+    {type:'overlay', ar, items, h24, elapsedMs}
+                                        live text drawn over the slides (the
+                                        stage view's clock and time elapsed):
+                                        items [{kind, x, y, w, h, size, color,
+                                        alpha, bold, align}] in fractions of
+                                        the picture; [] for none
+    {type:'slide', v, t, i, n, data}    older apps: piece of a slide shown
+                                        as soon as complete
+    {type:'media', youtube}             play that YouTube video over the
+                                        slides (null: stop, back to them)
+    {type:'open', url}                  show that page instead (the web
+                                        version's live projector, served by
+                                        the computer on the local network)
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>ChordPro Presenter</title>
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+  /* The picture's frame (its shape fitted to the screen): slides and the
+     live text sit in it. */
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  #stage img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; opacity: 0;
+    transition-property: opacity; transition-timing-function: ease;
+  }
+  #media { position: absolute; inset: 0; background: #000; display: none; }
+  #media iframe { width: 100%; height: 100%; border: 0; }
+  .live {
+    position: absolute; white-space: nowrap; overflow: hidden;
+    font-family: Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+    font-variant-numeric: tabular-nums; line-height: 1.2;
+    transition: opacity 0.3s;
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="media"></div>
+<script>
+  'use strict';
+  var NS = 'urn:x-cast:com.chordpropresenter.slides';
+  var parts = {};    // id -> pieces still arriving
+  var ready = {};    // id -> object URL of a complete slide (decoded)
+  var order = [];    // ids, oldest first (to forget old ones)
+  var want = null;   // {id, t}: shown as soon as it arrives
+  var shown = null;  // the picture on screen
+  var showing = null;
+  var KEEP = 120;    // slides kept
+
+  function fadeIn(url, t) {
+    var img = new Image();
+    img.src = url;
+    var go = function () {
+      img.style.transitionDuration = t + 's';
+      stage.appendChild(img);
+      img.getBoundingClientRect(); // start the fade from transparent
+      img.style.opacity = 1;
+      var old = shown;
+      shown = img;
+      setTimeout(function () {
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+      }, t * 1000 + 100);
+    };
+    (img.decode ? img.decode() : Promise.resolve()).then(go, go);
+  }
+
+  function showId(id, t) {
+    if (!ready[id]) { want = { id: id, t: t }; return; }
+    want = null;
+    if (showing === id && shown && shown.style.opacity === '1') return;
+    showing = id;
+    fadeIn(ready[id], t);
+  }
+
+  function complete(id, mime, pieces) {
+    var bin = atob(pieces.join(''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    var url = URL.createObjectURL(new Blob([bytes], { type: mime || 'image/png' }));
+    // Decode now, so showing it later is instant.
+    var warm = new Image();
+    warm.src = url;
+    if (warm.decode) warm.decode().catch(function () {});
+    ready[id] = url;
+    order.push(id);
+    while (order.length > KEEP) {
+      var gone = order.shift();
+      if (gone !== showing) { URL.revokeObjectURL(ready[gone]); delete ready[gone]; }
+    }
+    if (want && want.id === id) showId(id, want.t);
+  }
+
+  function piece(id, m) {
+    var p = parts[id] = parts[id] || new Array(m.n);
+    p[m.i] = m.data;
+    for (var i = 0; i < m.n; i++) if (p[i] === undefined) return false;
+    delete parts[id];
+    complete(id, m.mime, p);
+    return true;
+  }
+
+  // ---- The picture's frame and the live text (clock, time elapsed) ----
+  var stage = document.getElementById('stage');
+  var ratio = 16 / 9;
+  var live = [];        // [{el, item}]
+  var since = 0;        // when the song came up (for time elapsed)
+  var h24 = false;
+  function fit() {
+    var w = innerWidth, h = innerHeight;
+    if (w / h > ratio) w = h * ratio; else h = w / ratio;
+    stage.style.width = w + 'px';
+    stage.style.height = h + 'px';
+    for (var i = 0; i < live.length; i++) {
+      live[i].el.style.fontSize = (live[i].item.size * h) + 'px';
+    }
+  }
+  addEventListener('resize', fit);
+  fit();
+  function two(v) { return (v < 10 ? '0' : '') + v; }
+  function tickLive() {
+    for (var i = 0; i < live.length; i++) {
+      var l = live[i];
+      if (l.item.kind === 'clock') {
+        l.el.textContent = new Date().toLocaleTimeString([], {
+          hour: 'numeric', minute: '2-digit', hour12: !h24 });
+      } else if (l.item.kind === 'elapsed') {
+        var s = Math.max(0, Math.floor((Date.now() - since) / 1000));
+        var hh = Math.floor(s / 3600), mm = Math.floor(s / 60) % 60;
+        l.el.textContent = 'Elapsed ' + (hh > 0 ? hh + ':' + two(mm) : mm) + ':' + two(s % 60);
+      }
+    }
+  }
+  setInterval(tickLive, 1000);
+  function setOverlay(m) {
+    for (var i = 0; i < live.length; i++) live[i].el.remove();
+    live = [];
+    if (m.ar) ratio = m.ar;
+    h24 = !!m.h24;
+    since = Date.now() - (m.elapsedMs || 0);
+    var items = m.items || [];
+    for (var j = 0; j < items.length; j++) {
+      var it = items[j], el = document.createElement('div');
+      el.className = 'live';
+      el.style.left = (it.x * 100) + '%';
+      el.style.top = (it.y * 100) + '%';
+      el.style.width = (it.w * 100) + '%';
+      el.style.height = (it.h * 100) + '%';
+      el.style.color = it.color;
+      el.style.opacity = it.alpha == null ? 1 : it.alpha;
+      el.style.fontWeight = it.bold ? '700' : '400';
+      el.style.textAlign = it.align || 'left';
+      stage.appendChild(el);
+      live.push({ el: el, item: it });
+    }
+    fit();
+    tickLive();
+  }
+  function liveVisible(on) {
+    for (var i = 0; i < live.length; i++) live[i].el.style.visibility = on ? '' : 'hidden';
+  }
+
+  // ---- YouTube from the media library ----
+  var media = document.getElementById('media');
+  var playing = null;
+  function setMedia(m) {
+    var id = typeof m.youtube === 'string' && /^[\w-]{6,20}$/.test(m.youtube) ? m.youtube : null;
+    if (id === playing) return;
+    playing = id;
+    media.innerHTML = '';
+    media.style.display = id ? 'block' : 'none';
+    if (!id) return;
+    var f = document.createElement('iframe');
+    f.allow = 'autoplay; encrypted-media';
+    f.src = 'https://www.youtube-nocookie.com/embed/' + id +
+      '?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0';
+    media.appendChild(f);
+  }
+
+  var lastV = 0;
+  function received(m) {
+    if (m.type === 'open' && /^https?:\/\//.test(m.url)) {
+      // A whole page (top-level, so a plain http:// address on the local
+      // network is allowed). The Cast session stays up meanwhile.
+      window.location.replace(m.url);
+      return;
+    }
+    if (m.type === 'put') { if (!ready[m.id]) piece(m.id, m); return; }
+    if (m.type === 'show') { showId(m.id, m.t || 0); liveVisible(true); return; }
+    if (m.type === 'overlay') { setOverlay(m); return; }
+    if (m.type === 'media') { setMedia(m); return; }
+    if (m.type === 'clear') {
+      want = null;
+      showing = null;
+      if (shown) { shown.style.transitionDuration = '0.3s'; shown.style.opacity = 0; }
+      liveVisible(false);
+      return;
+    }
+    if (m.type === 'slide') { // older apps
+      if (m.v < lastV) return;
+      lastV = m.v;
+      if (piece('v' + m.v, m)) showId('v' + m.v, m.t || 0);
+    }
+  }
+
+  var context = cast.framework.CastReceiverContext.getInstance();
+  context.addCustomMessageListener(NS, function (event) {
+    var m = event.data;
+    if (typeof m === 'string') m = JSON.parse(m);
+    received(m);
+  });
+  var options = new cast.framework.CastReceiverOptions();
+  options.disableIdleTimeout = true;   // slides can sit still for a long time
+  options.skipPlayersLoad = true;      // no video player needed
+  options.customNamespaces = {};
+  options.customNamespaces[NS] = cast.framework.system.MessageType.JSON;
+  context.start(options);
+</script>
+</body>
+</html>

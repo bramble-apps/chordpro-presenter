@@ -1,0 +1,55 @@
+ChordPro Presenter is your songbook for rehearsal and the stage. Keep every chord sheet in one library, play any song in any key, and have the tools you reach for mid-song just a tap away.
+
+YOUR SONG LIBRARY
+• Clean chord sheets with chords above the lyrics or inline
+• Import from OnSong, JustChords, SongbookPro, FreeShow, ChordPro and text files, or add PDFs and pictures
+• Find songs online, or paste chords-over-words and they're converted for you
+• Coloured tags, search, sorting and an icon for every song
+• Separate libraries (church, band, teaching), a trash bin and full backups
+
+CHORDS YOUR WAY
+• Transpose and capo in one tap, per song or per setlist
+• Guitar, ukulele and piano chord diagrams; tap any chord to see how to play it
+• Standard, Nashville numbers, Roman numerals or solfège, or two at once
+• Chord beats show how long each chord lasts, plus strum patterns
+• Song structure: build the arrangement from sections and add key changes
+
+QUICK ACTIONS, ONE TAP AWAY
+• Metronome set to the song's tempo and time signature
+• Autoscroll at the song's own pace
+• Chromatic tuner and sound level meter
+• Ambient pads that follow the song's key
+• Reference recordings and YouTube videos inside the song
+• Key and capo right on the bottom bar
+
+SETLISTS FOR EVERY SERVICE AND GIG
+• Dividers, labels and events between songs
+• Keys and arrangements just for that setlist, without changing the song
+• Band Sync: send the set to everyone's device on the same Wi-Fi
+• Control the app from a second device
+
+NOTES, TABS AND SHEET MUSIC
+• Sticky notes, pen and highlighter right on the chord sheet
+• Guitar tabs drawn cleanly, with playback
+• Melodies in sheet music, with playback
+• Sheet music scanner: photograph printed music to hear it, fix it and export MusicXML, MIDI, audio or PDF
+
+MADE FOR THE STAGE
+• Dark mode, OLED black and an e-ink mode for low light and e-readers
+• Colour themes, custom fonts, page or scroll view, and columns
+• Text styles and highlight colours for titles, chords, lyrics and notes
+
+WHEN THE ROOM NEEDS THE WORDS
+• Show lyrics on a second screen, projector or Chromecast, in one or two languages
+• Start a second language with a machine translation, then refine it
+• Scripture slides, countdown timer and blackout
+
+SHARE ANYTHING
+• PDF song sheets and songbooks, ChordPro, plain text
+• Slides as PDF, PowerPoint or a web page
+• FreeShow and JustChords exports, QR codes and copy-paste
+
+YOUR SONGS STAY YOURS
+• No account, no ads, no tracking
+• Your library lives on your device
+• Optional backup to your own cloud storage (WebDAV, such as Koofr or Nextcloud)

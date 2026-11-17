@@ -1,0 +1,226 @@
+<title>ChordPro Presenter Listing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a store-style listing column (banner, identity row, swipeable screenshot strip, about panel) with a lightbox over it. */
+:root {
+  --bg: #f7f6fa;
+  --surface: #ffffff;
+  --ink: #1f1d26;
+  --muted: #625e70;
+  --line: #e3e0ea;
+  --accent: #4b3f8f;      /* the app's violet, from the icon's slate */
+  --accent-ink: #ffffff;
+  --chip: #eeebf6;
+  --scrim: rgba(14, 12, 20, .86);
+  --display: "Rubik", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131218; --surface: #1c1a23; --ink: #ecebf2; --muted: #a8a3b8; --line: #2e2b38;
+    --accent: #a89bf0; --accent-ink: #17141f; --chip: #272433; --scrim: rgba(6, 5, 10, .9);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131218; --surface: #1c1a23; --ink: #ecebf2; --muted: #a8a3b8; --line: #2e2b38;
+  --accent: #a89bf0; --accent-ink: #17141f; --chip: #272433; --scrim: rgba(6, 5, 10, .9);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 56px; }
+.note { font-size: 13px; color: var(--muted); padding-block: 12px; text-align: center; }
+.banner { border-radius: 18px; overflow: hidden; background: #2a1466; aspect-ratio: 1024 / 500; max-height: 300px; width: 100%; display: grid; place-items: center; }
+.banner img { height: 100%; width: auto; max-width: 100%; display: block; }
+.ident { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: end; margin-top: -44px; padding-inline: 8px; }
+.ident img { width: 112px; height: 112px; border-radius: 26px; border: 4px solid var(--bg); background: var(--bg); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+h1 { font: 700 clamp(28px, 4.4vw, 44px)/1.1 var(--display); margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.dev { color: var(--accent); font-weight: 700; margin-top: 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 12px 36px; align-items: center; margin: 28px 8px 8px; }
+.stat b { display: block; font: 600 18px/1.2 var(--display); }
+.stat span { font-size: 13px; color: var(--muted); }
+.install { margin-left: auto; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; font: 600 17px var(--display); padding: 12px 40px; cursor: pointer; }
+.install:focus-visible, button:focus-visible, .shot:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.toast { min-height: 1.4em; font-size: 14px; color: var(--muted); margin: 4px 8px 0; text-align: right; }
+
+.strip-head { display: flex; align-items: center; justify-content: space-between; margin: 26px 8px 10px; gap: 12px; }
+h2 { font: 600 22px/1.2 var(--display); margin: 0; }
+.arrows { display: flex; gap: 8px; }
+.arrows button, .lb button { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.arrows button:disabled { opacity: .35; cursor: default; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(150px, 22vw, 210px); gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 4px 8px 14px; scrollbar-width: thin; }
+.shot { scroll-snap-align: start; border: 0; padding: 0; background: none; cursor: zoom-in; border-radius: 14px; overflow: hidden; aspect-ratio: 9 / 16; max-width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,.12); transition: transform .18s ease; }
+.shot:hover { transform: translateY(-3px); }
+.shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dots { display: flex; justify-content: center; gap: 6px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; margin-top: 28px; }
+@media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } .install { margin-left: 0; } .toast { text-align: left; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; min-width: 0; }
+.lead { font-size: 18px; margin: 10px 0 14px; }
+.desc { max-width: 66ch; overflow: hidden; position: relative; }
+.desc.clamped { max-height: 330px; }
+.desc.clamped::after { content: ""; position: absolute; inset: auto 0 0; height: 90px; background: linear-gradient(transparent, var(--surface)); }
+.desc h4 { font: 600 14px/1.3 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 20px 0 6px; }
+.desc ul { margin: 0; padding-left: 1.1em; }
+.desc li { margin: 3px 0; }
+.desc p { margin: 0 0 8px; }
+.more { margin-top: 10px; background: none; border: 0; color: var(--accent); font: 700 15px var(--body); cursor: pointer; padding: 6px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.chip { background: var(--chip); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+.side { display: grid; gap: 20px; align-content: start; }
+.side h3 { font: 600 18px var(--display); margin: 0 0 10px; }
+.row { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.row .ic { font: 700 15px var(--display); color: var(--accent); text-align: center; }
+.row small { display: block; color: var(--muted); font-size: 13px; }
+.contact code { font: 14px/1.4 ui-monospace, monospace; user-select: all; }
+.contact a { color: var(--accent); }
+
+.lb { position: fixed; inset: 0; background: var(--scrim); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 20; }
+.lb figure { margin: 0; display: grid; justify-items: center; gap: 10px; min-width: 0; }
+.lb img { max-height: calc(100vh - 140px); max-width: 100%; border-radius: 16px; }
+.lb figcaption { color: #f1eff7; text-align: center; font-size: 15px; max-width: 46ch; }
+.lb figcaption b { font: 600 18px var(--display); display: block; }
+.lb .close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 560px) { .lb { grid-template-columns: minmax(0, 1fr); } .lb .prev, .lb .next { display: none; } }
+@media (prefers-reduced-motion: reduce) { .strip { scroll-behavior: auto; } .shot { transition: none; } }
+</style>
+
+<div class="wrap">
+  <p class="note">Preview of the Google Play listing for ChordPro Presenter, built from the real screenshots and text. Not the live store page.</p>
+  <div class="banner"><img src="feature.jpg" alt="ChordPro Presenter feature graphic"></div>
+
+  <div class="ident">
+    <img src="icon.png" alt="App icon">
+    <div>
+      <h1>ChordPro Presenter</h1>
+      <div class="dev">BrambleApps</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <div class="stat"><b>Free</b><span>No ads, no account</span></div>
+    <div class="stat"><b>Music &amp; Audio</b><span>Category</span></div>
+    <div class="stat"><b>Rating pending</b><span>Content rating</span></div>
+    <button class="install" id="install" type="button">Install</button>
+  </div>
+  <div class="toast" id="toast" aria-live="polite"></div>
+
+  <div class="strip-head">
+    <h2>Screenshots</h2>
+    <div class="arrows">
+      <button id="back" type="button" aria-label="Scroll screenshots left">‹</button>
+      <button id="fwd" type="button" aria-label="Scroll screenshots right">›</button>
+    </div>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="dots" id="dots"></div>
+
+  <div class="cols">
+    <section class="panel">
+      <h2>About this app</h2>
+      <p class="lead">{{SHORT}}</p>
+      <div class="desc clamped" id="desc">
+{{DESC}}
+      </div>
+      <button class="more" id="more" type="button" aria-expanded="false" aria-controls="desc">Read full description</button>
+      <div class="chips">
+        <span class="chip">Chord sheets</span><span class="chip">Setlists</span><span class="chip">Transpose &amp; capo</span>
+        <span class="chip">Tuner</span><span class="chip">Metronome</span><span class="chip">Pads</span><span class="chip">Chord beats</span>
+        <span class="chip">Tabs</span><span class="chip">Sheet music</span><span class="chip">Band Sync</span><span class="chip">Bilingual</span>
+      </div>
+    </section>
+
+    <div class="side">
+      <section class="panel">
+        <h3>Data safety</h3>
+        <div class="row"><span class="ic">0</span><div>No data shared with third parties<small>The developer says this app doesn't share user data</small></div></div>
+        <div class="row"><span class="ic">1</span><div>App activity: song text<small>Optional, for translation and backups you turn on</small></div></div>
+        <div class="row"><span class="ic">!</span><div>Data isn't encrypted in transit<small>Band Sync and casting run over your local network</small></div></div>
+      </section>
+      <section class="panel contact">
+        <h3>Developer contact</h3>
+        <div class="row"><span class="ic">@</span><div><code>stephan.d@atomicmail.io</code><small>Email</small></div></div>
+        <div class="row"><span class="ic">§</span><div><a href="https://chordpro-presenter.web.app/privacy.html" target="_blank" rel="noopener">Privacy policy</a><small>chordpro-presenter.web.app</small></div></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Screenshot">
+  <button class="prev" id="lbPrev" type="button" aria-label="Previous screenshot">‹</button>
+  <figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure>
+  <button class="next" id="lbNext" type="button" aria-label="Next screenshot">›</button>
+  <button class="close" id="lbClose" type="button" aria-label="Close">×</button>
+</div>
+
+<script>
+const CAPS = {{CAPS}};
+const strip = document.getElementById('strip'), dots = document.getElementById('dots');
+CAPS.forEach(([h, s], i) => {
+  const b = document.createElement('button');
+  b.className = 'shot'; b.type = 'button'; b.setAttribute('aria-label', 'Open screenshot ' + (i + 1) + ': ' + h);
+  b.innerHTML = '<img loading="lazy" src="shot-' + (i + 1) + '.jpg" alt="">';
+  b.querySelector('img').alt = h + '. ' + s;
+  b.addEventListener('click', () => openLb(i));
+  strip.appendChild(b);
+  dots.appendChild(document.createElement('i'));
+});
+const back = document.getElementById('back'), fwd = document.getElementById('fwd');
+const step = () => strip.querySelector('.shot').getBoundingClientRect().width + 14;
+back.onclick = () => strip.scrollBy({ left: -step() * 2 });
+fwd.onclick = () => strip.scrollBy({ left: step() * 2 });
+function syncArrows() {
+  back.disabled = strip.scrollLeft < 4;
+  fwd.disabled = strip.scrollLeft + strip.clientWidth > strip.scrollWidth - 4;
+  const first = Math.round(strip.scrollLeft / step());
+  const shown = Math.max(1, Math.floor(strip.clientWidth / step()));
+  [...dots.children].forEach((d, i) => d.classList.toggle('on', i >= first && i < first + shown));
+}
+strip.addEventListener('scroll', syncArrows, { passive: true });
+addEventListener('resize', syncArrows);
+syncArrows();
+
+const lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg'), lbCap = document.getElementById('lbCap');
+let cur = 0, lastFocus = null;
+function show(i) {
+  cur = (i + CAPS.length) % CAPS.length;
+  lbImg.src = 'shot-' + (cur + 1) + '.jpg';
+  lbImg.alt = CAPS[cur][0];
+  lbCap.innerHTML = '';
+  const b = document.createElement('b'); b.textContent = (cur + 1) + ' / ' + CAPS.length + ' · ' + CAPS[cur][0];
+  lbCap.append(b, document.createTextNode(CAPS[cur][1]));
+}
+function openLb(i) { lastFocus = document.activeElement; show(i); lb.hidden = false; document.getElementById('lbClose').focus(); }
+function closeLb() { lb.hidden = true; lastFocus && lastFocus.focus(); }
+document.getElementById('lbPrev').onclick = () => show(cur - 1);
+document.getElementById('lbNext').onclick = () => show(cur + 1);
+document.getElementById('lbClose').onclick = closeLb;
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+addEventListener('keydown', e => {
+  if (lb.hidden) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft') show(cur - 1);
+  if (e.key === 'ArrowRight') show(cur + 1);
+});
+let sx = null;
+lb.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+lb.addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1)); sx = null; });
+
+const desc = document.getElementById('desc'), more = document.getElementById('more');
+more.onclick = () => {
+  const open = desc.classList.toggle('clamped') === false;
+  more.textContent = open ? 'Show less' : 'Read full description';
+  more.setAttribute('aria-expanded', String(open));
+};
+document.getElementById('install').onclick = () => {
+  document.getElementById('toast').textContent = 'Preview only: the app goes live after the closed test.';
+};
+</script>

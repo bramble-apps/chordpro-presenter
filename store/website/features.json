@@ -1,0 +1,848 @@
+{
+ "categories": [
+  {
+   "name": "Song library",
+   "blurb": "Every chord sheet in one place, easy to find.",
+   "features": [
+    {
+     "title": "ChordPro at the core",
+     "desc": "Songs are stored as standard ChordPro text, readable by other apps and by you."
+    },
+    {
+     "title": "Full song details",
+     "desc": "Artist, subtitle, composer, lyricist, copyright, CCLI numbers, tempo, time signature and duration."
+    },
+    {
+     "title": "Custom fields",
+     "desc": "Add your own named fields to any song, and search finds them too."
+    },
+    {
+     "title": "Smart search",
+     "desc": "Search titles, artists and lyrics at once, with the matching lines shown."
+    },
+    {
+     "title": "Sort and group",
+     "desc": "Sort by title, artist, key or newest, and group the list by letter."
+    },
+    {
+     "title": "A to Z scrubber",
+     "desc": "Jump through a long list by dragging along the alphabet at its edge."
+    },
+    {
+     "title": "Coloured tags",
+     "desc": "Tag songs with colours and filter the library by tag."
+    },
+    {
+     "title": "Hidden tags",
+     "desc": "Keep seasonal songs out of the list until you filter for them."
+    },
+    {
+     "title": "Song icons",
+     "desc": "Give a song a small icon to spot it at a glance in lists and setlists."
+    },
+    {
+     "title": "Multiple libraries",
+     "desc": "Keep separate libraries for church, band or teaching, and switch in a tap."
+    },
+    {
+     "title": "Trash bin",
+     "desc": "Deleted songs wait in the trash, ready to restore or delete for good."
+    },
+    {
+     "title": "Swipe between songs",
+     "desc": "Swipe sideways with a finger or two-finger trackpad gesture to the next song."
+    },
+    {
+     "title": "Drag and drop",
+     "desc": "Drop song files, PDFs, pictures or media onto the window to add them."
+    },
+    {
+     "title": "PDF and picture songs",
+     "desc": "Add a PDF or photo as a song of its own, or attach it to a ChordPro song."
+    },
+    {
+     "title": "PDF view options",
+     "desc": "Crop page margins, show whole pages, or tint sheets to match the theme."
+    },
+    {
+     "title": "Reference links",
+     "desc": "Attach a YouTube or audio link to each song and play it in a floating player."
+    },
+    {
+     "title": "Key detection",
+     "desc": "The song's key is worked out from its chords when you haven't set one."
+    },
+    {
+     "title": "Right-to-left lyrics",
+     "desc": "Hebrew, Arabic and other right-to-left lines read correctly, even mixed with left-to-right."
+    }
+   ]
+  },
+  {
+   "name": "Song editor",
+   "blurb": "Write and fix songs quickly, with tools made for chords.",
+   "features": [
+    {
+     "title": "ChordPro editor",
+     "desc": "Edit the song text with chords in brackets, plus a details tab and a chord beats tab."
+    },
+    {
+     "title": "Chord typing helpers",
+     "desc": "Buttons insert brackets, sharps, flats and slash chords without hunting for symbols."
+    },
+    {
+     "title": "Find and replace",
+     "desc": "Search the song text with match case, next and previous, and replace."
+    },
+    {
+     "title": "Paste chords over words",
+     "desc": "Paste a song copied from any website and the chords are placed into ChordPro for you."
+    },
+    {
+     "title": "Rewrite into key",
+     "desc": "Rewrite the chords permanently into another key with one action."
+    },
+    {
+     "title": "Written key and capo",
+     "desc": "Record the key the song is written in and the capo position."
+    },
+    {
+     "title": "Inline text styles",
+     "desc": "Make lyrics bold, italic, underlined, coloured, highlighted or larger with simple marks."
+    },
+    {
+     "title": "Strum patterns",
+     "desc": "Write a strum pattern in the song and it is drawn as up and down strokes."
+    },
+    {
+     "title": "Guitar and ukulele tabs",
+     "desc": "Tab blocks are drawn as clean strings with frets, or kept as typed."
+    },
+    {
+     "title": "Tab playback",
+     "desc": "Press play on a tab to hear it at the song's tempo, with a marker following."
+    },
+    {
+     "title": "ABC sheet music",
+     "desc": "Write a melody in ABC notation and see it engraved as real sheet music."
+    },
+    {
+     "title": "Melody playback",
+     "desc": "Play an ABC melody with a piano sound right from the chord sheet."
+    },
+    {
+     "title": "Keyboard save",
+     "desc": "Save the song with Ctrl+S without leaving the keyboard."
+    }
+   ]
+  },
+  {
+   "name": "Chords your way",
+   "blurb": "Play any song in any key, with the chord names you read best.",
+   "features": [
+    {
+     "title": "One-tap transpose",
+     "desc": "Transpose up or down by semitones, per song or per setlist entry."
+    },
+    {
+     "title": "Capo",
+     "desc": "Set a capo and the chord shapes change to match, right from the bottom bar."
+    },
+    {
+     "title": "Chord notations",
+     "desc": "Show chords as letters, Nashville numbers, Roman numerals or solfège."
+    },
+    {
+     "title": "Dual chords",
+     "desc": "Show a second notation beside each chord, such as G (1)."
+    },
+    {
+     "title": "Minor chord style",
+     "desc": "Write minors as m, mi, min, a dash or lower case."
+    },
+    {
+     "title": "Sharps or flats",
+     "desc": "Spell accidentals automatically, or always as sharps or always as flats."
+    },
+    {
+     "title": "Chords above or inline",
+     "desc": "Place chords above the lyrics or inline within the words."
+    },
+    {
+     "title": "Chord diagrams",
+     "desc": "Guitar, ukulele and piano diagrams for every chord in the song."
+    },
+    {
+     "title": "Tap a chord",
+     "desc": "Tap any chord in the sheet to see how to play it."
+    },
+    {
+     "title": "Hear a chord",
+     "desc": "Tap a diagram to hear the chord strummed or played on piano."
+    },
+    {
+     "title": "Strum speed",
+     "desc": "Choose a fast, medium or slow strum when chords play."
+    },
+    {
+     "title": "Finger numbers and zoom",
+     "desc": "Show or hide finger numbers and resize the diagrams."
+    },
+    {
+     "title": "Chord library",
+     "desc": "Browse every shape, choose your preferred voicing for each chord."
+    },
+    {
+     "title": "Make your own shape",
+     "desc": "Create custom chord shapes for frets or piano keys and save them."
+    },
+    {
+     "title": "Chord beats",
+     "desc": "Show how many beats each chord lasts, set by tapping chords."
+    },
+    {
+     "title": "Beat styles",
+     "desc": "Draw beats as dots, stacks, pills or a timeline, with bars per line."
+    }
+   ]
+  },
+  {
+   "name": "Setlists and arrangements",
+   "blurb": "Plan every service and gig, and build the order you actually play.",
+   "features": [
+    {
+     "title": "Setlists",
+     "desc": "Gather songs into setlists and reorder them by dragging."
+    },
+    {
+     "title": "Dates and notes",
+     "desc": "Give each setlist a name, event date and notes."
+    },
+    {
+     "title": "Dividers, labels and events",
+     "desc": "Mark moments like After Sermon or Maybe between songs."
+    },
+    {
+     "title": "Set-specific edits",
+     "desc": "Keys, capo and arrangements changed in a setlist stay in that setlist."
+    },
+    {
+     "title": "Nested songs",
+     "desc": "Nest a song under another so they play together as a medley."
+    },
+    {
+     "title": "Setlist-only songs",
+     "desc": "Hide a song from All Songs so it lives only in its setlist."
+    },
+    {
+     "title": "Media in setlists",
+     "desc": "Add pictures, videos, audio or YouTube links that play when the set reaches them."
+    },
+    {
+     "title": "Scripture in setlists",
+     "desc": "Save Bible passages into a setlist, ready to show in order."
+    },
+    {
+     "title": "Per-song backgrounds",
+     "desc": "Choose a different projector background for a song in a setlist."
+    },
+    {
+     "title": "Export a setlist",
+     "desc": "Export a whole setlist as a songbook, slides or for other apps."
+    },
+    {
+     "title": "Structure editor",
+     "desc": "Build the arrangement by tapping sections and dragging to reorder."
+    },
+    {
+     "title": "Repeat sections",
+     "desc": "Use a chorus or bridge as many times as the arrangement needs."
+    },
+    {
+     "title": "Key changes",
+     "desc": "Raise or lower any section by semitones for modulations."
+    },
+    {
+     "title": "Linked sections",
+     "desc": "Link two sections so they show together on one slide."
+    },
+    {
+     "title": "Follow arrangement",
+     "desc": "Play the sheet and slides in arrangement order, or as written."
+    },
+    {
+     "title": "Section labels",
+     "desc": "Labels like Verse 1 or Chorus are recognised and turned into sections."
+    },
+    {
+     "title": "Per-setlist arrangements",
+     "desc": "Give a song a different structure in one setlist without changing the song."
+    }
+   ]
+  },
+  {
+   "name": "Tools on stage",
+   "blurb": "The things you reach for mid-song, one tap away.",
+   "features": [
+    {
+     "title": "Metronome",
+     "desc": "Clicks at the song's tempo and time signature, with tap tempo."
+    },
+    {
+     "title": "Metronome control",
+     "desc": "Faster, slower, beats per bar and sound on or off."
+    },
+    {
+     "title": "Autoscroll",
+     "desc": "Scrolls the sheet over the song's duration, adjustable per song."
+    },
+    {
+     "title": "Chromatic tuner",
+     "desc": "A microphone tuner with adjustable reference pitch and a note to play."
+    },
+    {
+     "title": "Sound level meter",
+     "desc": "Shows how loud the room is in everyday decibels, with calibration."
+    },
+    {
+     "title": "Pro level methods",
+     "desc": "Sound techs can switch to dBFS, peak, RMS and other measurements."
+    },
+    {
+     "title": "Ambient pads",
+     "desc": "Hold a warm pad in the song's key, crossfading as you change songs."
+    },
+    {
+     "title": "Pad sounds",
+     "desc": "Three built-in pad sounds, with volume, tone, reverb, fade and octave."
+    },
+    {
+     "title": "SoundFont pads",
+     "desc": "Import .sf2 SoundFonts and use any sustained sound as a pad."
+    },
+    {
+     "title": "Floating player",
+     "desc": "Reference recordings and YouTube videos play in a movable picture-in-picture window."
+    },
+    {
+     "title": "Quick buttons",
+     "desc": "Choose which tools appear in the bottom bar."
+    },
+    {
+     "title": "Customizable toolbar",
+     "desc": "Reorder toolbar buttons or tuck them into the More menu."
+    },
+    {
+     "title": "Keyboard and pedal control",
+     "desc": "Arrow keys, Page Up/Down and Space step through parts; works with page-turner pedals."
+    },
+    {
+     "title": "Full screen tools",
+     "desc": "Open the tuner, levels meter or pads full screen."
+    }
+   ]
+  },
+  {
+   "name": "Notes, ink and pictures",
+   "blurb": "Mark up your charts the way you would on paper.",
+   "features": [
+    {
+     "title": "Sticky notes",
+     "desc": "Add coloured sticky notes with bold, italic and text size."
+    },
+    {
+     "title": "Pinned or floating notes",
+     "desc": "Pin a note to the page so it scrolls, or let it float over the app."
+    },
+    {
+     "title": "Pen and highlighter",
+     "desc": "Draw on the chord sheet or slides with pen and highlighter colours."
+    },
+    {
+     "title": "Eraser, undo and redo",
+     "desc": "Erase strokes, undo and redo while you annotate."
+    },
+    {
+     "title": "Move and resize ink",
+     "desc": "Select drawn strokes to move or resize them."
+    },
+    {
+     "title": "Pictures on the sheet",
+     "desc": "Place logos, diagrams or scanned snippets right on the chord sheet."
+    },
+    {
+     "title": "Picture tools",
+     "desc": "Tint, crop, mask the background or resize any placed picture."
+    }
+   ]
+  },
+  {
+   "name": "Sheet music scanner",
+   "blurb": "Photograph printed music, then hear it, fix it and export it.",
+   "features": [
+    {
+     "title": "Read printed music",
+     "desc": "Open a photo, picture or PDF and the notes are read offline on your device."
+    },
+    {
+     "title": "Playback",
+     "desc": "Play the scanned music from any point, with a count-in bar."
+    },
+    {
+     "title": "Instruments and mixer",
+     "desc": "Choose from 14 instruments and balance parts in a mixer."
+    },
+    {
+     "title": "Transposing instruments",
+     "desc": "Hear music written for B♭, E♭ or F instruments at concert pitch."
+    },
+    {
+     "title": "Swing and reverb",
+     "desc": "Play eighths with a swing feel and add a little room sound."
+    },
+    {
+     "title": "Pitch shift",
+     "desc": "Move playback up or down to two octaves by semitones."
+    },
+    {
+     "title": "Fix the notes",
+     "desc": "Correct notes, rests, ties, triplets, accidentals and a second voice."
+    },
+    {
+     "title": "Chords from the music",
+     "desc": "Get chord symbols worked out from the score, ready to paste into a song."
+    },
+    {
+     "title": "Score exports",
+     "desc": "Export MusicXML, MIDI, WAV audio, a redrawn PDF or ABC."
+    },
+    {
+     "title": "Scan library",
+     "desc": "Keep, rename and revisit all your scans."
+    }
+   ]
+  },
+  {
+   "name": "Projection",
+   "blurb": "Lyrics on any screen, in one language or two.",
+   "features": [
+    {
+     "title": "Second screen projector",
+     "desc": "Show lyrics on a projector, TV or second monitor while you control them."
+    },
+    {
+     "title": "Two languages at once",
+     "desc": "Show a verse and its translation together, stacked or side by side."
+    },
+    {
+     "title": "Machine translation",
+     "desc": "Start a second language with a machine translation in 65 languages, then refine it."
+    },
+    {
+     "title": "Section or whole song",
+     "desc": "Show one part at a time, or the whole song with the current part highlighted."
+    },
+    {
+     "title": "Auto-fitting text",
+     "desc": "Lyrics grow as large as they can while still fitting the screen."
+    },
+    {
+     "title": "Text styling",
+     "desc": "Font, size, colour, bold, italic, caps, shadow and line spacing."
+    },
+    {
+     "title": "Alignment and position",
+     "desc": "Align text left, centre or right, and place it top, middle or bottom."
+    },
+    {
+     "title": "Tidy lyrics",
+     "desc": "Removes stray dashes and double spaces from projected lyrics."
+    },
+    {
+     "title": "Colour and gradient backgrounds",
+     "desc": "Solid colours or gradients in any direction."
+    },
+    {
+     "title": "Picture and video backgrounds",
+     "desc": "Use a picture or looping video, fitted or filled."
+    },
+    {
+     "title": "Animated wallpapers",
+     "desc": "18 moving backgrounds such as Nebula, Lava Lamp and Ocean Floor, fully adjustable."
+    },
+    {
+     "title": "Background dimming",
+     "desc": "Darken or tint the background so the words stay readable."
+    },
+    {
+     "title": "Smooth transitions",
+     "desc": "Crossfade between slides and between backgrounds."
+    },
+    {
+     "title": "Title and blank slides",
+     "desc": "Open each song with a blank slide and a title slide, each optional."
+    },
+    {
+     "title": "Footer",
+     "desc": "Title, copyright, CCLI numbers and custom text on the first, last or every slide."
+    },
+    {
+     "title": "Logo",
+     "desc": "Place your logo in any corner at the size you choose."
+    },
+    {
+     "title": "Blackout",
+     "desc": "Black the screen instantly, or show a chosen picture instead of black."
+    },
+    {
+     "title": "Countdown timer",
+     "desc": "Show a countdown on the projector with its own position, size, colour and font."
+    },
+    {
+     "title": "Underscan",
+     "desc": "Shrink and move the picture for projectors that cut off the edges."
+    },
+    {
+     "title": "Stage view",
+     "desc": "A confidence monitor for musicians showing the whole chord sheet following along."
+    },
+    {
+     "title": "Modern stage layout",
+     "desc": "Current part large, next part beside it, parts list and clock."
+    },
+    {
+     "title": "Stage view options",
+     "desc": "Dark or light, text size, margins, header, footer and colour-coded parts."
+    },
+    {
+     "title": "Up next",
+     "desc": "See the next part or song coming up on the stage view."
+    },
+    {
+     "title": "Projector preview",
+     "desc": "Watch a live preview of what the projector shows."
+    }
+   ]
+  },
+  {
+   "name": "Presentation mode",
+   "blurb": "Run the whole service from one screen.",
+   "features": [
+    {
+     "title": "Slide grid",
+     "desc": "See every slide of the song as tiles and tap to show one."
+    },
+    {
+     "title": "Adjustable tiles",
+     "desc": "Make tiles bigger or smaller and change their font and size."
+    },
+    {
+     "title": "Media library",
+     "desc": "Pictures, videos, audio and YouTube links sorted into folders."
+    },
+    {
+     "title": "Play, overlay or background",
+     "desc": "Play media full screen, over the lyrics, or as the background."
+    },
+    {
+     "title": "Scripture tool",
+     "desc": "Pick a book and chapter or type a passage like John 3:16-18."
+    },
+    {
+     "title": "Two Bible versions",
+     "desc": "World English Bible and King James built in, shown alone or side by side."
+    },
+    {
+     "title": "Import Bibles",
+     "desc": "Add more versions from Bible XML files."
+    },
+    {
+     "title": "Scripture queue",
+     "desc": "Line up passages to show next, with verse numbers and references."
+    },
+    {
+     "title": "Verses per slide",
+     "desc": "Choose how many verses go on each Scripture slide."
+    },
+    {
+     "title": "Timer controls",
+     "desc": "Start, pause, reset and format the countdown from the operator screen."
+    }
+   ]
+  },
+  {
+   "name": "Casting and remote",
+   "blurb": "Reach every screen in the room, wired or not.",
+   "features": [
+    {
+     "title": "Chromecast and Google TV",
+     "desc": "Cast the projector to a Chromecast or Google TV, with smooth crossfades."
+    },
+    {
+     "title": "External displays",
+     "desc": "On Android, project to USB-C or HDMI screens and Samsung DeX."
+    },
+    {
+     "title": "Projector window",
+     "desc": "On desktop, open a projector window and drag it onto any display."
+    },
+    {
+     "title": "Any browser as a screen",
+     "desc": "Open a link on a smart TV, tablet or phone browser to show the lyrics."
+    },
+    {
+     "title": "Remote control",
+     "desc": "Control slides from a phone or tablet on the same Wi-Fi."
+    },
+    {
+     "title": "Edit from another device",
+     "desc": "Edit the library from any browser on your network, with changes appearing live."
+    },
+    {
+     "title": "QR code connect",
+     "desc": "Scan a QR code to open the remote on your phone."
+    },
+    {
+     "title": "Band Sync",
+     "desc": "One device leads a setlist and everyone else follows the song, section and scrolling."
+    },
+    {
+     "title": "Works with JustChords",
+     "desc": "Band Sync joins JustChords PlayTogether sessions on iPads and Macs."
+    },
+    {
+     "title": "Control links",
+     "desc": "Links like chordpropresenter://next let other tools drive the slides."
+    }
+   ]
+  },
+  {
+   "name": "Import and find songs",
+   "blurb": "Bring your songs in from wherever they live.",
+   "features": [
+    {
+     "title": "ChordPro files",
+     "desc": "Import .cho, .chopro, .chordpro, .crd and .pro files."
+    },
+    {
+     "title": "Plain text",
+     "desc": "Import text files with chords over words, converted automatically."
+    },
+    {
+     "title": "OnSong",
+     "desc": "Import OnSong songs and OnSong archives."
+    },
+    {
+     "title": "SongbookPro",
+     "desc": "Import SongbookPro songs and backups."
+    },
+    {
+     "title": "FreeShow",
+     "desc": "Import FreeShow shows, including their translations."
+    },
+    {
+     "title": "JustChords",
+     "desc": "Import JustChords library backups with setlists and tags."
+    },
+    {
+     "title": "Full backups",
+     "desc": "Restore a complete ChordPro Presenter backup with songs, setlists and PDFs."
+    },
+    {
+     "title": "Merge or replace",
+     "desc": "Choose to skip, update if newer or replace songs already in your library."
+    },
+    {
+     "title": "Find songs online",
+     "desc": "Search song sites from inside the app and add results to your library."
+    },
+    {
+     "title": "Your own song sites",
+     "desc": "Add your own search sites to the Find Songs list."
+    },
+    {
+     "title": "Share to the app",
+     "desc": "On Android, share a song page or text to the app to import it."
+    }
+   ]
+  },
+  {
+   "name": "Share and export",
+   "blurb": "Send songs to people, printers and other apps.",
+   "features": [
+    {
+     "title": "PDF song sheets",
+     "desc": "Export one song or a whole setlist as a PDF songbook."
+    },
+    {
+     "title": "PDF per song",
+     "desc": "Export a zip with a separate PDF for each song."
+    },
+    {
+     "title": "Page setup",
+     "desc": "Letter or A4, one to three columns, font and size, chords on or off."
+    },
+    {
+     "title": "ChordPro and text",
+     "desc": "Share songs as ChordPro or plain text, with or without chords."
+    },
+    {
+     "title": "Slides as PDF",
+     "desc": "Every slide as a full-page PDF, exactly as projected."
+    },
+    {
+     "title": "PowerPoint",
+     "desc": "Export slides as a PowerPoint deck."
+    },
+    {
+     "title": "Web page slides",
+     "desc": "Export slides as a single HTML page that plays full screen in any browser."
+    },
+    {
+     "title": "Slide pictures",
+     "desc": "Export each slide as a picture."
+    },
+    {
+     "title": "FreeShow export",
+     "desc": "Send songs and setlists to FreeShow with sections, layouts and translations."
+    },
+    {
+     "title": "JustChords export",
+     "desc": "Export songs, setlists or the whole library in JustChords' own format."
+    },
+    {
+     "title": "QR code sharing",
+     "desc": "Turn a song into a QR code any phone camera can read, no app needed."
+    },
+    {
+     "title": "Print or save codes",
+     "desc": "Save a song's QR code as a picture or print it."
+    },
+    {
+     "title": "Copy and paste",
+     "desc": "Copy a song's text straight to the clipboard."
+    },
+    {
+     "title": "Song usage report",
+     "desc": "See which songs were projected and how often, with CCLI numbers."
+    },
+    {
+     "title": "CSV for CCLI",
+     "desc": "Export song usage as CSV for reporting, kept only on your device."
+    }
+   ]
+  },
+  {
+   "name": "Look and layout",
+   "blurb": "Make the chord sheet look right, on stage, in daylight or on e-ink.",
+   "features": [
+    {
+     "title": "Light and dark",
+     "desc": "Follow the system, or choose light or dark."
+    },
+    {
+     "title": "OLED black",
+     "desc": "Pure black backgrounds for OLED screens and dark stages."
+    },
+    {
+     "title": "E-ink mode",
+     "desc": "Black and white, no animations, and lists that turn pages for e-readers."
+    },
+    {
+     "title": "Colour themes",
+     "desc": "Twelve colour themes such as Ocean, Forest, Sunset and Midnight."
+    },
+    {
+     "title": "Desktop styles",
+     "desc": "Look native with Material, Adwaita, Yaru, Breeze, Mint or elementary styles."
+    },
+    {
+     "title": "Theme the music",
+     "desc": "Apply theme colours to the chord sheet and PDFs, or keep them plain."
+    },
+    {
+     "title": "Floating sidebar",
+     "desc": "Keep the song list docked or let it float over the sheet."
+    },
+    {
+     "title": "Page or scroll view",
+     "desc": "Read songs as printed pages or as one long scrolling sheet."
+    },
+    {
+     "title": "Columns",
+     "desc": "Lay pages out in one, two or three columns."
+    },
+    {
+     "title": "Text styles",
+     "desc": "Set size, bold, italic, caps, underline and colour for each part of the sheet."
+    },
+    {
+     "title": "Highlight colours",
+     "desc": "Highlight titles, chords, lyrics or notes in any colour."
+    },
+    {
+     "title": "Hide elements",
+     "desc": "Hide chords, notes, details or any other sheet element."
+    },
+    {
+     "title": "Pinned header",
+     "desc": "Keep the title, key, capo and tempo pinned while you scroll."
+    },
+    {
+     "title": "Selected part style",
+     "desc": "Mark the current part with a bar, a tint, or both."
+    },
+    {
+     "title": "Per-song formatting",
+     "desc": "Give one song its own layout or beat settings without changing the rest."
+    },
+    {
+     "title": "Built-in fonts",
+     "desc": "Choose from bundled fonts including Atkinson Hyperlegible, Lato, Noto Sans and Ubuntu."
+    },
+    {
+     "title": "Your own fonts",
+     "desc": "Add .ttf or .otf fonts for the sheet, chords and projector."
+    }
+   ]
+  },
+  {
+   "name": "Your data, your devices",
+   "blurb": "Private by design, synced on your terms.",
+   "features": [
+    {
+     "title": "No account",
+     "desc": "Start using the app straight away, with no sign-up."
+    },
+    {
+     "title": "Stays on your device",
+     "desc": "Your library is stored locally, not on our servers."
+    },
+    {
+     "title": "WebDAV sync",
+     "desc": "Sync each library with your own WebDAV storage such as Koofr or Nextcloud."
+    },
+    {
+     "title": "Automatic backups",
+     "desc": "Back up automatically, or back up and sync now by hand."
+    },
+    {
+     "title": "Folder backup",
+     "desc": "On Linux, keep rolling backups in any folder, including Dropbox or Nextcloud folders."
+    },
+    {
+     "title": "Full backup export",
+     "desc": "Save everything as one zip with songs, setlists and PDFs."
+    },
+    {
+     "title": "Linux app",
+     "desc": "An installable Linux app, packaged as an AppImage."
+    },
+    {
+     "title": "Android app",
+     "desc": "A native Android app for phones, tablets and foldables."
+    }
+   ]
+  }
+ ]
+}
