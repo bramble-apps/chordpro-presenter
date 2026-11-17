@@ -254,8 +254,12 @@ p { margin: 0; }
 .empty { color: var(--muted); padding: 30px 0; }
 
 /* ---------- get it ---------- */
-.get { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 880px; }
-.get div { border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: var(--panel); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.get { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.get .dl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
+.get .obt img { height: 44px; width: auto; }
+.src { margin-top: 22px; color: var(--muted); }
+.src a { color: var(--fg); }
+.get > div { border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: var(--panel); display: grid; gap: 10px; align-content: start; min-width: 0; }
 .get h3 { font-size: var(--step-1); }
 .get p { color: var(--muted); font-size: 15px; }
 .get .soon { font: 600 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--chord); }
@@ -566,11 +570,15 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: 
   <!-- ======================= GET IT ======================= -->
   <section class="band" id="get" style="padding-top:0">
     <div class="wrap">
-      <div class="head rv"><span class="eyebrow">Get the app</span><h2>Free on Android and Linux</h2></div>
+      <div class="head rv"><span class="eyebrow">Get the app</span><h2>Free on Android, Windows, macOS and Linux</h2><p class="lede">Open source under the GPL. The desktop apps keep themselves up to date.</p></div>
       <div class="get">
-        <div class="rv"><span class="soon">Testing now</span><h3>Android</h3><p>On Google Play, starting with a closed test. The tester link is coming soon.</p></div>
-        <div class="rv"><span class="soon">Available</span><h3>Linux</h3><p>A desktop app (AppImage) that runs offline, with smooth 120 Hz scrolling. It casts to TVs and Chromecasts on your Wi-Fi.</p></div>
+        <div class="rv"><span class="soon">Testing on Google Play</span><h3>Android</h3><p>Install it with Obtainium, which keeps it up to date from the GitHub releases. Google Play is in closed testing.</p>
+          <div class="dl"><a class="obt" href="obtainium://add/https://github.com/bramble-apps/chordpro-presenter"><img src="img/badge-obtainium.png" width="188" height="56" alt="Get it on Obtainium"></a><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">APK on GitHub</a></div></div>
+        <div class="rv"><span class="soon">Installer</span><h3>Windows</h3><p>Windows 10 and 11. Updates itself in the background.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Windows</a></div></div>
+        <div class="rv"><span class="soon">Apple silicon and Intel</span><h3>macOS</h3><p>Not signed with an Apple certificate yet: the first time, right-click the app and choose Open. Tells you when there's an update.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Mac</a></div></div>
+        <div class="rv"><span class="soon">AppImage and Flatpak</span><h3>Linux</h3><p>Runs offline with smooth 120 Hz scrolling. The AppImage updates itself.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Linux</a></div></div>
       </div>
+      <p class="src"><a href="https://github.com/bramble-apps/chordpro-presenter" target="_blank" rel="noopener">Source code on GitHub</a></p>
     </div>
   </section>
 </main>
