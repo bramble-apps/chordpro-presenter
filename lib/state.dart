@@ -26,6 +26,7 @@ import 'widgets/live_media.dart' show LiveControl;
 import 'metronome.dart';
 import 'pads/pad_controller.dart';
 import 'music.dart';
+import 'openchords.dart';
 import 'projection.dart';
 import 'widgets/projection_view.dart';
 import 'themes.dart';
@@ -498,6 +499,10 @@ class AppSettings {
   /// Sidebar floats over the music instead of taking its own column.
   bool floatingSidebar = false;
 
+  /// Who this device is to OpenChords (owner of the folders it shares);
+  /// the same id on two devices makes both the owner.
+  String openChordsUserId = '';
+
   /// Presentation mode: slides as a grid of tiles instead of the sheet.
   bool presentationMode = false;
 
@@ -608,6 +613,7 @@ class AppSettings {
     'sheetCrop': sheetCrop,
     'sheetThemeColors': sheetThemeColors,
     'floatingSidebar': floatingSidebar,
+    if (openChordsUserId.isNotEmpty) 'openChordsUserId': openChordsUserId,
     'presentationMode': presentationMode,
     if (bandNickname.isNotEmpty) 'bandNickname': bandNickname,
     'showChordDiagrams': showChordDiagrams,
@@ -664,6 +670,7 @@ class AppSettings {
     sheetCrop = j['sheetCrop'] as bool? ?? sheetCrop;
     sheetThemeColors = j['sheetThemeColors'] as bool? ?? sheetThemeColors;
     floatingSidebar = j['floatingSidebar'] as bool? ?? floatingSidebar;
+    openChordsUserId = j['openChordsUserId'] as String? ?? openChordsUserId;
     presentationMode = j['presentationMode'] as bool? ?? presentationMode;
     bandNickname = j['bandNickname'] as String? ?? bandNickname;
     showChordDiagrams = j['showChordDiagrams'] as bool? ?? showChordDiagrams;
@@ -990,6 +997,9 @@ class PresenterModel extends SlideState {
   final List<Tag> tags = [];
   final List<Setlist> setlists = [];
 
+  /// Setlists and tags joined to OpenChords folders (see openchords.dart).
+  final List<OpenChordsLink> openChordsLinks = [];
+
   // ---- Libraries ----
   // The open library lives in the main save (as it always has); each
   // library is also kept under its own key, written when switching away.
@@ -1009,6 +1019,8 @@ class PresenterModel extends SlideState {
     'tags': tags.map((t) => t.toJson()).toList(),
     'setlists': setlists.map((s) => s.toJson()).toList(),
     'trash': trash.map((s) => s.toJson()).toList(),
+    if (openChordsLinks.isNotEmpty)
+      'openChords': openChordsLinks.map((l) => l.toJson()).toList(),
     'selectedSongID': selectedSongId,
     'backupIdentity': ?backupIdentity,
   };
@@ -1028,6 +1040,12 @@ class PresenterModel extends SlideState {
     setlists
       ..clear()
       ..addAll(list('setlists').map(Setlist.fromJson));
+    openChordsLinks
+      ..clear()
+      ..addAll([
+        for (final l in (json['openChords'] as List?) ?? const [])
+          ?OpenChordsLink.fromJson(l),
+      ]);
     selectedSongId = json['selectedSongID'] as String?;
     backupIdentity = json['backupIdentity'] as String?;
   }
@@ -2439,6 +2457,8 @@ class PresenterModel extends SlideState {
     'tags': tags.map((t) => t.toJson()).toList(),
     'setlists': setlists.map((s) => s.toJson()).toList(),
     'trash': trash.map((s) => s.toJson()).toList(),
+    if (openChordsLinks.isNotEmpty)
+      'openChords': openChordsLinks.map((l) => l.toJson()).toList(),
     'format': format.toJson(),
     'settings': settings.toJson(),
     'projection': projection.toJson(),
@@ -3554,6 +3574,182 @@ class PresenterModel extends SlideState {
     }
     _save();
     notifyListeners();
+  }
+
+  // ---- OpenChords (see openchords.dart) ----
+
+  /// The OpenChords link of a setlist or tag, if it has one.
+  OpenChordsLink? openChordsLinkFor(String localId) =>
+      openChordsLinks.where((l) => l.localId == localId).firstOrNull;
+
+  /// This device's OpenChords id (made the first time it's needed).
+  String get openChordsUserId {
+    if (settings.openChordsUserId.isEmpty) {
+      settings.openChordsUserId = newId().toUpperCase();
+      _save();
+    }
+    return settings.openChordsUserId;
+  }
+
+  set openChordsUserId(String id) {
+    settings.openChordsUserId = id.trim().toUpperCase();
+    _save();
+    notifyListeners();
+  }
+
+  void addOpenChordsLink(OpenChordsLink link) {
+    openChordsLinks
+      ..removeWhere((l) => l.localId == link.localId)
+      ..add(link);
+    _save();
+    notifyListeners();
+  }
+
+  void removeOpenChordsLink(OpenChordsLink link) {
+    openChordsLinks.remove(link);
+    _save();
+    notifyListeners();
+  }
+
+  /// A sync's result here: songs pulled saved with the server's dates (so
+  /// they don't count as edited here), a song folder's songs tagged or
+  /// untagged, the server's setlist taken over in place.
+  void applyOpenChords(OpenChordsLink link, OpenChordsMerge merge) {
+    final tag = link.kind == OpenChordsKind.folder
+        ? tagById(link.localId)
+        : null;
+    for (final s in merge.pulled) {
+      final up = s.id.toUpperCase();
+      final i = songs.indexWhere((x) => x.id.toUpperCase() == up);
+      final song = s.copy();
+      if (tag != null && !song.tags.contains(tag.id)) song.tags.add(tag.id);
+      if (i >= 0) {
+        songs[i] = song;
+      } else {
+        trash.removeWhere((x) => x.id.toUpperCase() == up);
+        songs.add(song);
+      }
+    }
+    if (tag != null) {
+      for (final id in merge.removedHere) {
+        songById(id)?.tags.remove(tag.id);
+      }
+    }
+    final set = merge.setlist;
+    final here = set == null ? null : setlistById(link.localId);
+    if (set != null && here != null) {
+      // Keeps this setlist's own id and what only this app has.
+      here.name = set.name;
+      here.setSpecific = here.setSpecific || set.setSpecific;
+      here.entries
+        ..clear()
+        ..addAll(set.entries);
+      here.extra.addAll(set.extra);
+    }
+    link
+      ..songIds = merge.songIds
+      ..localSetHash = merge.localSetHash
+      ..remoteSetHash = merge.remoteSetHash
+      ..lastSync = DateTime.now();
+    if (merge.changedHere) _rebuildSlides(keepIndex: true);
+    _save();
+    notifyListeners();
+  }
+
+  /// An OpenChords folder added here: a setlist folder becomes a setlist
+  /// (with its songs), a song folder a tag on its songs (and its setlists
+  /// come along). Songs already here and edited since stay as they are.
+  /// Returns the link, in step with the folder.
+  OpenChordsLink importOpenChords(
+    String folderId,
+    Map<String, dynamic> folder, {
+    required bool isOwner,
+  }) {
+    final title = (folder['title'] as String?)?.trim() ?? '';
+    final sets = [
+      for (final j in (folder['setlists'] as List?) ?? const [])
+        if (j is Map) Map<String, dynamic>.from(j),
+    ];
+    final asSetlist = folder['type'] == 'setlist' && sets.isNotEmpty;
+    // The folder's tags, matched to these by name (made if missing).
+    final tagMap = <String, String>{};
+    for (final t in ((folder['tags'] as List?) ?? const []).whereType<Map>()) {
+      final id = t['id'], name = t['title'];
+      if (id is! String || name is! String || name.trim().isEmpty) continue;
+      final here =
+          tags.where((x) => x.name == name.trim()).firstOrNull ??
+          addTag(name.trim(), color: t['color'] as String?);
+      tagMap[id.toUpperCase()] = here.id;
+    }
+    final String localId;
+    if (asSetlist) {
+      localId = createSetlist(title.isEmpty ? 'Shared setlist' : title).id;
+    } else {
+      final name = title.isEmpty ? 'OpenChords' : title;
+      localId =
+          (tags.where((t) => t.name == name).firstOrNull ?? addTag(name)).id;
+    }
+    final link = OpenChordsLink(
+      folderId: folderId,
+      kind: asSetlist ? OpenChordsKind.setlist : OpenChordsKind.folder,
+      localId: localId,
+      title: title,
+      readonly: folder['readonly'] == true,
+      isOwner: isOwner,
+    );
+    final remoteSongs = [
+      for (final r in (folder['songs'] as List?) ?? const [])
+        if (r is Map) Map<String, dynamic>.from(r),
+    ];
+    final pulled = <Song>[];
+    for (final r in remoteSongs) {
+      final s = songFromOpenChords(r, tagOf: (id) => tagMap[id]);
+      final mine = songs
+          .where((x) => x.id.toUpperCase() == s.id.toUpperCase())
+          .firstOrNull;
+      final newerHere =
+          mine?.date != null &&
+          s.date != null &&
+          mine!.date!.toUtc().isAfter(s.date!);
+      if (!newerHere) pulled.add(s);
+    }
+    openChordsLinks.add(link);
+    applyOpenChords(
+      link,
+      OpenChordsMerge(
+        pulled: pulled,
+        removedHere: const [],
+        setlist: null,
+        upload: null,
+        pushedSongs: 0,
+        pushedSetlist: false,
+        songIds: {for (final r in remoteSongs) '${r['id']}'.toUpperCase()},
+        localSetHash: null,
+        remoteSetHash: null,
+      ),
+    );
+    final byId = {for (final s in songs) s.id.toUpperCase(): s};
+    if (asSetlist) {
+      final set = setlistFromOpenChords(sets.first, byId);
+      final here = setlistById(localId)!;
+      here.setSpecific = set.setSpecific;
+      here.entries.addAll(set.entries);
+      here.extra.addAll(set.extra);
+      link.localSetHash = openChordsSetHash(
+        openChordsSetlist(here, {for (final s in songs) s.id: s}),
+      );
+      link.remoteSetHash = openChordsSetHash(sets.first);
+    } else {
+      // A song folder's setlists come along (not sent back).
+      for (final j in sets) {
+        final set = setlistFromOpenChords(j, byId);
+        if (setlists.any((x) => x.id == set.id)) continue;
+        setlists.add(set..date ??= DateTime.now());
+      }
+    }
+    _save();
+    notifyListeners();
+    return link;
   }
 
   // ---- Bible passages (see bible.dart) ----

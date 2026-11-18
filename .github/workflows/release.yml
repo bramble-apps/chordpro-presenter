@@ -30,7 +30,15 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build web --release --no-web-resources-cdn
+      # OpenChords: this app's login, from the repository's secrets (left
+      # out of the build when they aren't set).
+      - run: >-
+          flutter build web --release --no-web-resources-cdn
+          --dart-define=OPENCHORDS_USER="$OPENCHORDS_USER"
+          --dart-define=OPENCHORDS_PASSWORD="$OPENCHORDS_PASSWORD"
+        env:
+          OPENCHORDS_USER: ${{ secrets.OPENCHORDS_USER }}
+          OPENCHORDS_PASSWORD: ${{ secrets.OPENCHORDS_PASSWORD }}
       - uses: actions/upload-artifact@v4
         with:
           name: web

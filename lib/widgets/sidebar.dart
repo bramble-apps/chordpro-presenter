@@ -18,6 +18,7 @@ import '../themes.dart';
 import 'alpha_scrubber.dart';
 import 'find_songs.dart';
 import 'scanner_screen.dart';
+import 'openchords_dialog.dart';
 import 'share_dialog.dart';
 import 'edit_link.dart';
 import 'sync_dialog.dart';
@@ -388,11 +389,7 @@ class _SidebarState extends State<Sidebar> {
           },
         ),
         if (!model.remoteEdit)
-          item(
-            'remote-edit',
-            Icons.devices_outlined,
-            'Remote…',
-          ),
+          item('remote-edit', Icons.devices_outlined, 'Remote…'),
         SubmenuButton(
           leadingIcon: const Icon(Icons.handyman_outlined, size: 20),
           menuChildren: [
@@ -787,6 +784,8 @@ class _SidebarState extends State<Sidebar> {
                     builder: (_) =>
                         _SetlistDetailsDialog(model: model, setlist: openSet),
                   );
+                } else if (v == 'openchords') {
+                  await showOpenChordsShare(context, model, openSet);
                 } else if (v == 'export') {
                   await ShareDialog.show(
                     context,
@@ -807,13 +806,27 @@ class _SidebarState extends State<Sidebar> {
                   }
                 }
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
+              itemBuilder: (_) => [
+                const PopupMenuItem(
                   value: 'edit',
                   child: Text('Name, date & notes…'),
                 ),
-                PopupMenuItem(value: 'export', child: Text('Export setlist…')),
-                PopupMenuItem(value: 'delete', child: Text('Delete setlist')),
+                PopupMenuItem(
+                  value: 'openchords',
+                  child: Text(
+                    model.openChordsLinkFor(openSet.id) == null
+                        ? 'Share with OpenChords…'
+                        : 'OpenChords link & sync…',
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'export',
+                  child: Text('Export setlist…'),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete setlist'),
+                ),
               ],
             ),
           ],
@@ -1078,6 +1091,19 @@ class _SidebarState extends State<Sidebar> {
           leadingIcon: const Icon(Icons.playlist_add, size: 18),
           onPressed: _newSetlist,
           child: const Text('New setlist'),
+        ),
+        MenuItemButton(
+          leadingIcon: const Icon(Icons.link, size: 18),
+          onPressed: () async {
+            final set = await showOpenChordsOpen(context, model);
+            if (set != null && mounted) {
+              setState(() {
+                _mode = _Mode.setlists;
+                _openSetlistId = set.id;
+              });
+            }
+          },
+          child: const Text('Open an OpenChords link…'),
         ),
       ],
     );
@@ -1530,6 +1556,7 @@ class _SidebarState extends State<Sidebar> {
             subtitle: [
               if (set.eventDate != null) formatDate(set.eventDate!),
               '${set.songCount} song${set.songCount == 1 ? '' : 's'}',
+              if (model.openChordsLinkFor(set.id) != null) 'OpenChords',
             ].join(' · '),
             selected: set.id == model.activeSetlistId,
             onTap: () => setState(() => _openSetlistId = set.id),

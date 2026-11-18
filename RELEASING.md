@@ -13,3 +13,12 @@
      `cp build/app/outputs/flutter-apk/app-release.apk ChordPro_Presenter.apk && gh release upload v1.0.1 ChordPro_Presenter.apk`
    - `flutter build appbundle --release` and upload `build/app/outputs/bundle/release/app-release.aab` in
      the Play Console.
+
+## OpenChords
+
+Sharing setlists on [OpenChords](https://openchords.net) needs this app's own OpenChords login (from the
+OpenChords maintainer). GitHub Actions takes it from the repository secrets `OPENCHORDS_USER` and
+`OPENCHORDS_PASSWORD`. For builds made here (the APK, the app bundle), pass it the same way:
+`--dart-define=OPENCHORDS_USER=… --dart-define=OPENCHORDS_PASSWORD=…`. Without it, the OpenChords menu
+items say the build has no login.
+
