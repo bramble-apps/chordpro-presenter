@@ -85,7 +85,7 @@
         "nsis"
       ],
       "icon": "../../web/icons/Icon-512.png",
-      "artifactName": "ChordPro_Presenter-Setup-${version}.${ext}"
+      "artifactName": "ChordPro_Presenter-Setup.${ext}"
     },
     "nsis": {
       "oneClick": true,
@@ -99,7 +99,7 @@
       "icon": "../../web/icons/Icon-512.png",
       "category": "public.app-category.music",
       "identity": null,
-      "artifactName": "ChordPro_Presenter-${version}-mac-${arch}.${ext}"
+      "artifactName": "ChordPro_Presenter-mac-${arch}.${ext}"
     }
   },
   "devDependencies": {

@@ -257,9 +257,14 @@ p { margin: 0; }
 .get { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .get .dl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
 .get .obt img { height: 44px; width: auto; }
+.tip { display: inline-block; vertical-align: .15em; margin-left: 6px; }
+.info { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--muted); background: none; color: var(--muted); font: 700 12px/1 var(--display); cursor: pointer; display: inline-grid; place-items: center; padding: 0; }
+.info:hover, .tip.open .info { border-color: var(--fg); color: var(--fg); }
+.tipbox { position: absolute; left: 20px; right: 20px; top: 86px; padding: 12px 14px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); font: 400 14px/1.45 var(--body); letter-spacing: 0; box-shadow: 0 16px 40px -10px rgba(0,0,0,.8); opacity: 0; visibility: hidden; transition: opacity .15s; z-index: 5; }
+.tip:hover .tipbox, .tip:focus-within .tipbox, .tip.open .tipbox { opacity: 1; visibility: visible; }
 .src { margin-top: 22px; color: var(--muted); }
 .src a { color: var(--fg); }
-.get > div { border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: var(--panel); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.get > div { position: relative; border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: var(--panel); display: grid; gap: 10px; align-content: start; min-width: 0; }
 .get h3 { font-size: var(--step-1); }
 .get p { color: var(--muted); font-size: 15px; }
 .get .soon { font: 600 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--chord); }
@@ -572,11 +577,11 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: 
     <div class="wrap">
       <div class="head rv"><span class="eyebrow">Get the app</span><h2>Free on Android, Windows, macOS and Linux</h2><p class="lede">Open source under the GPL. The desktop apps keep themselves up to date.</p></div>
       <div class="get">
-        <div class="rv"><span class="soon">Testing on Google Play</span><h3>Android</h3><p>Install it with Obtainium, which keeps it up to date from the GitHub releases. Google Play is in closed testing.</p>
-          <div class="dl"><a class="obt" href="obtainium://add/https://github.com/bramble-apps/chordpro-presenter"><img src="img/badge-obtainium.png" width="188" height="56" alt="Get it on Obtainium"></a><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">APK on GitHub</a></div></div>
-        <div class="rv"><span class="soon">Installer</span><h3>Windows</h3><p>Windows 10 and 11. Updates itself in the background.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Windows</a></div></div>
-        <div class="rv"><span class="soon">Apple silicon and Intel</span><h3>macOS</h3><p>Not signed with an Apple certificate yet: the first time, right-click the app and choose Open. Tells you when there's an update.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Mac</a></div></div>
-        <div class="rv"><span class="soon">AppImage and Flatpak</span><h3>Linux</h3><p>Runs offline with smooth 120 Hz scrolling. The AppImage updates itself.</p><div class="dl"><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest" target="_blank" rel="noopener">Download for Linux</a></div></div>
+        <div class="rv"><span class="soon">Testing on Google Play</span><h3>Android</h3><p>Install it with Obtainium, which keeps it up to date. Google Play is in closed testing.</p>
+          <div class="dl"><a class="obt" href="obtainium://add/https://github.com/bramble-apps/chordpro-presenter"><img src="img/badge-obtainium.png" width="188" height="56" alt="Get it on Obtainium"></a><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter.apk">Download APK</a></div></div>
+        <div class="rv"><span class="soon">Windows 10 and 11</span><h3>Windows</h3><div class="dl"><a class="btn primary" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter-Setup.exe">Download for Windows</a></div></div>
+        <div class="rv"><span class="soon">Apple silicon and Intel</span><h3>macOS <span class="tip"><button type="button" class="info" aria-label="About installing on a Mac" aria-describedby="macTip">i</button><span class="tipbox" id="macTip" role="tooltip">Not signed with an Apple certificate yet: the first time, right-click the app and choose Open. It tells you when there's an update.</span></span></h3><div class="dl"><a class="btn primary" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter-mac-arm64.dmg">Apple silicon</a><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter-mac-x64.dmg">Intel</a></div></div>
+        <div class="rv"><span class="soon">x86-64</span><h3>Linux</h3><div class="dl"><a class="btn primary" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter-x86_64.AppImage">AppImage</a><a class="btn" href="https://github.com/bramble-apps/chordpro-presenter/releases/latest/download/ChordPro_Presenter-x86_64.flatpak">Flatpak</a></div></div>
       </div>
       <p class="src"><a href="https://github.com/bramble-apps/chordpro-presenter" target="_blank" rel="noopener">Source code on GitHub</a></p>
     </div>
@@ -743,6 +748,10 @@ if (!reduce) setInterval(() => {
     else if (!e[0].isIntersecting && timer) { clearInterval(timer); timer = null; }
   }).observe(root);
 })();
+
+/* ---------- the macOS info icon opens on tap too ---------- */
+document.querySelectorAll('.tip .info').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); b.parentElement.classList.toggle('open'); }));
+document.addEventListener('click', () => document.querySelectorAll('.tip.open').forEach(t => t.classList.remove('open')));
 
 /* ---------- gallery and formats ---------- */
 const PHONES = [['chords', 'Chord sheets'], ['tabs', 'Tabs and notes'], ['sheet', 'Sheet music'], ['present', 'Presenter'], ['format', 'Format'], ['editing', 'Editor'], ['phone', 'Bilingual'], ['export', 'Share']];
