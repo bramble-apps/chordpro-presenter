@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ChordPro Presenter Beta</title>
+<meta name="description" content="Help test ChordPro Presenter on Android: join the beta on Google Play in three steps.">
+<link rel="icon" type="image/png" href="../img/icon.png">
+<meta property="og:title" content="Test ChordPro Presenter on Android">
+<meta property="og:description" content="Chord sheets, setlists, projection and band tools in one free app. Join the beta on Google Play in three steps.">
+<meta property="og:image" content="https://bramble-apps.github.io/chordpro-presenter/img/desk-tabs-1600.webp">
+<meta property="og:url" content="https://bramble-apps.github.io/chordpro-presenter/beta/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
+<style>
+/* Same studio look as the main site: dark room, amber chord accent, one stage-light glow. */
+:root {
+  --bg: #08090b; --panel: #111318; --panel-2: #181b21; --line: #262a32;
+  --fg: #eceef1; --muted: #9aa0ac; --chord: #f4b860;
+  --g1: #3d7bff; --g2: #8b5cff; --g3: #e14fd8; --g4: #ff4d5e; --g5: #ffa23a;
+  --display: "Geist", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark; box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 clamp(15px, 1.05vw + 10px, 17px)/1.6 var(--display); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+img { max-width: 100%; height: auto; display: block; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.035em; text-wrap: balance; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:focus-visible { outline: 2px solid var(--g2); outline-offset: 3px; border-radius: 6px; }
+
+.nav { border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; gap: 16px; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 16px var(--display); text-decoration: none; white-space: nowrap; }
+.brand img { width: 26px; height: 26px; border-radius: 7px; }
+.nav .back { margin-left: auto; font-size: 14px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.nav .back:hover { color: var(--fg); }
+
+/* hero */
+.hero { position: relative; overflow: hidden; padding-block: clamp(48px, 8vw, 100px) clamp(40px, 6vw, 80px); }
+.hero::before { content: ""; position: absolute; inset: -30% -10% auto; height: 120%; z-index: -1; opacity: .5; filter: blur(80px);
+  background: radial-gradient(40% 50% at 25% 40%, color-mix(in srgb, var(--g1) 60%, transparent), transparent 70%),
+              radial-gradient(35% 45% at 60% 30%, color-mix(in srgb, var(--g3) 45%, transparent), transparent 70%),
+              radial-gradient(30% 40% at 85% 55%, color-mix(in srgb, var(--g5) 40%, transparent), transparent 70%); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 8px; font: 600 12px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--chord); border: 1px solid color-mix(in srgb, var(--chord) 35%, transparent); background: color-mix(in srgb, var(--chord) 8%, transparent); padding: 6px 12px; border-radius: 999px; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--chord); box-shadow: 0 0 10px var(--chord); }
+.hero h1 { font-size: clamp(40px, 6vw + 8px, 84px); line-height: .98; letter-spacing: -0.05em; font-weight: 700; margin-top: 20px; }
+.hero h1 em { font-style: normal; background: linear-gradient(100deg, var(--g1), var(--g2) 30%, var(--g3) 55%, var(--g4) 75%, var(--g5)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .lede { margin-top: 20px; font-size: clamp(17px, 1.2vw + 12px, 21px); color: var(--muted); max-width: 36ch; line-height: 1.5; }
+.hero .cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.hero .cta small { color: var(--muted); font-size: 14px; }
+.phones { position: relative; display: flex; justify-content: center; gap: 0; }
+.phones img { width: 46%; max-width: 230px; border-radius: 30px; border: 6px solid #1d2028; background: #1d2028; box-shadow: 0 0 0 1px #343946, 0 30px 80px rgba(0,0,0,.6); }
+.phones img:first-child { transform: rotate(-6deg) translateX(14%); z-index: 1; }
+.phones img:last-child { transform: rotate(5deg) translate(-14%, 8%); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; border-radius: 999px; padding: 12px 22px; font: 600 15px var(--display); text-decoration: none; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); transition: transform .2s, background .2s; }
+.btn:hover { transform: translateY(-1px); }
+.btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+
+/* steps */
+.steps { padding-block: clamp(24px, 4vw, 48px) clamp(56px, 8vw, 110px); }
+.steps h2 { font-size: clamp(28px, 2.6vw + 14px, 44px); line-height: 1.05; }
+.steps .sub { color: var(--muted); margin-top: 10px; max-width: 56ch; }
+.list { list-style: none; padding: 0; margin: 32px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+.list li { counter-increment: s; position: relative; border: 1px solid var(--line); border-radius: 22px; padding: 26px; background: var(--panel); display: grid; gap: 12px; align-content: start; min-width: 0; }
+.list li::before { content: counter(s); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 600 17px var(--mono); color: var(--bg); background: var(--chord); }
+.list h3 { font-size: clamp(19px, 1vw + 14px, 23px); letter-spacing: -.02em; }
+.list p { color: var(--muted); font-size: 15px; }
+.list p b { color: var(--fg); font-weight: 600; }
+.list .btn { justify-self: start; margin-top: 4px; }
+
+.notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.note { border: 1px solid var(--line); border-radius: 22px; padding: 24px 26px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.note h3 { font-size: 18px; letter-spacing: -.015em; display: flex; align-items: center; gap: 10px; }
+.note h3 span { font: 600 13px var(--mono); color: var(--chord); }
+.note p { color: var(--muted); font-size: 15px; }
+.note a { color: var(--fg); }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-block: 28px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--fg); }
+
+@media (max-width: 860px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); }
+  .phones { max-width: 420px; margin: 8px auto 0; }
+  .list, .notes { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rise { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+  .rise.d1 { animation-delay: .08s; } .rise.d2 { animation-delay: .16s; } .rise.d3 { animation-delay: .24s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="../"><img src="../img/icon.png" alt="">ChordPro Presenter</a>
+    <a class="back" href="../">About the app →</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="pill rise">Android beta</span>
+        <h1 class="rise d1">Help us test <em>ChordPro Presenter</em></h1>
+        <p class="lede rise d2">Chord sheets, setlists, projection and band tools in one free app. Join the beta on Google Play in three steps and get every update first.</p>
+        <div class="cta rise d3">
+          <a class="btn primary" href="#join">Join the beta</a>
+          <small>Free · No account · No ads</small>
+        </div>
+      </div>
+      <div class="phones rise d2" aria-hidden="true">
+        <img src="../img/phone-sheet.webp" alt="" width="480" height="1100">
+        <img src="../img/phone-present.webp" alt="" width="480" height="1100">
+      </div>
+    </div>
+  </section>
+
+  <section class="steps" id="join">
+    <div class="wrap">
+      <h2>Join in three steps</h2>
+      <p class="sub">Do these on your Android phone or tablet, signed in with the Google account you use for the Play Store.</p>
+      <ol class="list">
+        <li>
+          <h3>Join the testers group</h3>
+          <p>Open the group and tap <b>Join group</b>. This is how Google knows you're a tester.</p>
+          <a class="btn primary" href="https://groups.google.com/g/chordpro-presenter-testers" target="_blank" rel="noopener">Open the group
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </li>
+        <li>
+          <h3>Accept the invitation</h3>
+          <p>Tap <b>Become a tester</b> on the Google Play page that opens.</p>
+          <a class="btn primary" href="https://play.google.com/apps/testing/app.chordpropresenter" target="_blank" rel="noopener">Become a tester
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </li>
+        <li>
+          <h3>Install the app</h3>
+          <p>Install ChordPro Presenter from Google Play. Updates arrive on their own, like any other app.</p>
+          <a class="btn primary" href="https://play.google.com/store/apps/details?id=app.chordpropresenter" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.6 2.3c-.3.3-.4.7-.4 1.2v17c0 .5.1.9.4 1.2l9.5-9.7-9.5-9.7Zm10.6 10.8 2.6 2.6-11 6.3 8.4-8.9Zm3.9-4.8 2.7 1.6c.8.5.8 1.7 0 2.2l-2.7 1.6-2.9-2.7 2.9-2.7Zm-12.3-6.4 11 6.3-2.6 2.6-8.4-8.9Z"/></svg>
+            Get it on Google Play</a>
+        </li>
+      </ol>
+
+      <div class="notes">
+        <div class="note">
+          <h3><span>14</span> Keep it for two weeks</h3>
+          <p>Google lets an app go public only after 12 testers have kept it for 14 days in a row. Please leave it installed and open it now and then.</p>
+        </div>
+        <div class="note">
+          <h3>Found a bug? Have an idea?</h3>
+          <p>Tell us on <a href="https://github.com/bramble-apps/chordpro-presenter/issues" target="_blank" rel="noopener">GitHub</a>, or with <b>Send feedback</b> on the app's Google Play page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>ChordPro Presenter by BrambleApps</span>
+    <a href="../">Windows, macOS and Linux downloads</a>
+    <a href="https://chordpro-presenter.web.app/privacy.html" target="_blank" rel="noopener">Privacy policy</a>
+  </div>
+</footer>
+</body>
+</html>
