@@ -7,6 +7,7 @@ import 'fonts.dart';
 import 'screens/operator_screen.dart';
 import 'screens/projector_screen.dart';
 import 'cloud_sync.dart';
+import 'openchords.dart';
 import 'state.dart';
 import 'widgets/sync_dialog.dart';
 import 'eink.dart';
@@ -60,6 +61,8 @@ Future<void> main() async {
   if (!kIsWeb) await setUpDesktopOperator(model);
   // Backups and sync, as set up in ☰ → Backup & sync.
   cloudSync = CloudSync(model)..start();
+  // Shared setlists and folders, as set up in Settings → OpenChords.
+  OpenChordsAutoSync(model).start();
   runApp(BilingualProjectorApp(model: model));
 }
 

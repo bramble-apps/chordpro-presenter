@@ -1,7 +1,7 @@
 {
   "name": "chordpro-presenter",
   "productName": "ChordPro Presenter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chord sheets, setlists and bilingual lyric projection for rehearsal and the stage",
   "main": "main.js",
   "desktopName": "chordpro-presenter.desktop",

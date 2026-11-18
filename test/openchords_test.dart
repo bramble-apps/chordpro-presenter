@@ -416,6 +416,122 @@ void main() {
     expect((server.folders[id]!['tags'] as List).single['title'], 'Fast');
   });
 
+  test('a tag shared as a song folder reaches another device', () async {
+    final server = FakeServer();
+    final alice = await device('A1111111-1111-4111-8111-111111111111');
+    final band = alice.addTag('Band');
+    alice
+      ..addOrUpdate(Song(title: 'Fast one', raw: '[E]fast', tags: [band.id]))
+      ..addOrUpdate(Song(title: 'Not shared', raw: '[C]no'));
+    final link = await shareTagOnOpenChords(alice, band, client: server.api());
+    final folder = server.folders[link.folderId]!;
+    expect(folder['type'], 'folder');
+    expect((folder['songs'] as List).map((s) => s['title']), ['Fast one']);
+
+    final bob = await device('B2222222-2222-4222-8222-222222222222');
+    final got = await server.api().getFolder(
+      link.folderId,
+      bob.openChordsUserId,
+    );
+    final bobLink = bob.importOpenChords(link.folderId, got!, isOwner: false);
+    final bobTag = bob.tagById(bobLink.localId)!;
+    expect(bobTag.name, 'Band');
+    expect(
+      bob.songs.where((s) => s.tags.contains(bobTag.id)).map((s) => s.title),
+      ['Fast one'],
+    );
+
+    // Alice tags another song; the background sync takes it up, and Bob's
+    // brings it down.
+    alice.addOrUpdate(Song(title: 'Slow one', raw: '[A]slow', tags: [band.id]));
+    openChordsTestClient = server.api();
+    addTearDown(() => openChordsTestClient = null);
+    await OpenChordsAutoSync(alice).run();
+    await OpenChordsAutoSync(bob).run();
+    expect(
+      bob.songs.where((s) => s.tags.contains(bobTag.id)).map((s) => s.title),
+      containsAll(['Fast one', 'Slow one']),
+    );
+
+    // Turned off: nothing syncs.
+    alice.updateSettings((s) => s.openChordsAutoSync = false);
+    alice.addOrUpdate(Song(title: 'Third', raw: '[D]x', tags: [band.id]));
+    await OpenChordsAutoSync(alice).run();
+    expect((server.folders[link.folderId]!['songs'] as List).length, 2);
+  });
+
+  test('a whole library: shared, joined as a library, synced', () async {
+    final server = FakeServer();
+    final alice = await device('A1111111-1111-4111-8111-111111111111');
+    await alice.createLibrary('Church');
+    final fast = alice.addTag('Fast');
+    final one = Song(title: 'One', raw: '[C]one', tags: [fast.id]);
+    final two = Song(title: 'Two', raw: '[G]two');
+    alice
+      ..addOrUpdate(one)
+      ..addOrUpdate(two);
+    final sunday = alice.createSetlist('Sunday');
+    alice.addSongsToSetlist(sunday, [one.id, two.id]);
+
+    final link = await shareLibraryOnOpenChords(alice, client: server.api());
+    expect(link.kind, OpenChordsKind.library);
+    final folder = server.folders[link.folderId]!;
+    expect(folder['title'], 'Church');
+    expect((folder['songs'] as List).length, 2);
+    expect((folder['setlists'] as List).single['title'], 'Sunday');
+    expect((folder['tags'] as List).single['title'], 'Fast');
+
+    // Bob joins it as a new library.
+    final bob = await device('B2222222-2222-4222-8222-222222222222');
+    final got = await server.api().getFolder(
+      link.folderId,
+      bob.openChordsUserId,
+    );
+    await bob.createLibrary('Church');
+    final bobLink = bob.importOpenChords(
+      link.folderId,
+      got!,
+      isOwner: false,
+      asLibrary: true,
+    );
+    expect(bobLink.kind, OpenChordsKind.library);
+    expect(bob.songs.map((s) => s.title), unorderedEquals(['One', 'Two']));
+    expect(bob.setlists.map((s) => s.name), ['Sunday']);
+    expect(bob.setlists.single.entries.length, 2);
+    final bobFast = bob.tags.singleWhere((t) => t.name == 'Fast');
+    expect(bob.songs.firstWhere((s) => s.title == 'One').tags, [bobFast.id]);
+    expect(
+      (await syncOpenChords(bob, bobLink, client: server.api())).summary,
+      'Up to date',
+    );
+
+    // Alice adds a setlist and deletes a song; Bob adds a song.
+    alice.createSetlist('Youth');
+    alice.deleteSong(two.id);
+    final aSunday = alice.setlistById(sunday.id)!;
+    aSunday.entries.removeWhere((e) => e.songId == two.id);
+    bob.addOrUpdate(Song(title: 'Three', raw: '[D]three'));
+    await syncOpenChords(alice, link, client: server.api());
+    final r = await syncOpenChords(bob, bobLink, client: server.api());
+    expect(r.takeSets.map((s) => s.name), containsAll(['Youth', 'Sunday']));
+    expect(
+      bob.setlists.map((s) => s.name),
+      unorderedEquals(['Sunday', 'Youth']),
+    );
+    expect(bob.songs.map((s) => s.title), unorderedEquals(['One', 'Three']));
+    // (Deleted songs go to the trash, so they can come back.)
+    expect(bob.trash.map((s) => s.title), contains('Two'));
+    await syncOpenChords(alice, link, client: server.api());
+    expect(alice.songs.map((s) => s.title), containsAll(['One', 'Three']));
+
+    // Bob deletes a setlist: it goes on Alice's side too.
+    bob.deleteSetlist(bob.setlists.firstWhere((s) => s.name == 'Youth'));
+    await syncOpenChords(bob, bobLink, client: server.api());
+    final a = await syncOpenChords(alice, link, client: server.api());
+    expect(a.dropSets.length, 1);
+    expect(alice.setlists.map((s) => s.name), ['Sunday']);
+  });
+
   test('logs in again when the token runs out', () async {
     final server = FakeServer();
     final api = server.api();
@@ -453,9 +569,13 @@ void main() {
     );
 
     Future<void> settle(WidgetTester tester) async {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 50)),
-      );
+      // (Real waits, for storage and the fake server, between frames.)
+      for (var i = 0; i < 4; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
+        await tester.pump();
+      }
       await tester.pumpAndSettle();
     }
 
@@ -486,6 +606,119 @@ void main() {
       expect(server.folders[link.folderId]!['readonly'], isTrue);
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('a tag shared from its menu shows on the settings page', (
+      tester,
+    ) async {
+      final m = await tester.runAsync(
+        () => device('A1111111-1111-4111-8111-111111111111'),
+      );
+      final tag = m!.addTag('Youth');
+      m.addOrUpdate(Song(title: 'Tagged', raw: '[G]x', tags: [tag.id]));
+      await tester.pumpWidget(app((c) => showOpenChordsShareTag(c, m, tag)));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('Share with OpenChords'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+      await settle(tester);
+      expect(find.text('Shared on OpenChords'), findsOneWidget);
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      final link = m.openChordsLinkFor(tag.id)!;
+      expect(server.folders.keys, [link.folderId]);
+
+      await tester.pumpWidget(app((c) => showOpenChordsSettings(c, m)));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('OpenChords settings'), findsOneWidget);
+      expect(find.text('Sync automatically'), findsOneWidget);
+      expect(find.text(m.openChordsUserId), findsOneWidget);
+      expect(find.textContaining('Songs tagged "Youth"'), findsOneWidget);
+      // (The page is taller than the test screen.)
+      await tester.ensureVisible(find.byTooltip('Options'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Options'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stop syncing'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Stop syncing'));
+      await tester.pumpAndSettle();
+      expect(m.openChordsLinks, isEmpty);
+      expect(find.text('Nothing shared yet.'), findsOneWidget);
+    });
+
+    testWidgets('New library: personal, or started on OpenChords', (
+      tester,
+    ) async {
+      final m = await tester.runAsync(
+        () => device('A1111111-1111-4111-8111-111111111111'),
+      );
+      await tester.pumpWidget(app((c) => showNewLibrary(c, m!)));
+
+      // Personal.
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Home');
+      await tester.pump();
+      await tester.tap(find.text('Create'));
+      await settle(tester);
+      expect(m!.currentLibrary.name, 'Home');
+      expect(m.openChordsLinkFor(m.libraryId), isNull);
+
+      // OpenChords, started here: made, shared, and its link shown.
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OpenChords'));
+      await tester.pumpAndSettle();
+      expect(find.text('Start one'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Band');
+      await tester.pump();
+      await tester.tap(find.text('Create'));
+      await settle(tester);
+      await settle(tester);
+      expect(m.currentLibrary.name, 'Band');
+      final link = m.openChordsLinkFor(m.libraryId)!;
+      expect(link.kind, OpenChordsKind.library);
+      expect(server.folders[link.folderId]!['title'], 'Band');
+      expect(find.text('Shared on OpenChords'), findsOneWidget);
+      expect(find.text(link.link), findsOneWidget);
+    });
+
+    testWidgets('join a shared library as a new library', (tester) async {
+      const id = 'F0000000-0000-4000-8000-000000000003';
+      server.folders[id] = {
+        'title': 'Band library',
+        'type': 'folder',
+        'songs': [
+          {
+            'id': 'S0000000-0000-4000-8000-000000000009',
+            'title': 'Shared song',
+            'rawData': '[A]shared',
+            'lastUpdated': '2026-11-10T10:00:00Z',
+          },
+        ],
+        'setlists': [],
+      };
+      final m = await tester.runAsync(
+        () => device('B2222222-2222-4222-8222-222222222222'),
+      );
+      await tester.pumpWidget(
+        app((c) => showOpenChordsOpen(c, m!, newLibrary: true)),
+      );
+      await tester.tap(find.text('go'));
+      await settle(tester);
+      expect(find.text('Join a shared library'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), id);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      expect(find.text('As a new library'), findsOneWidget);
+      await tester.tap(find.text('Join as new library'));
+      await settle(tester);
+      expect(m!.currentLibrary.name, 'Band library');
+      expect(m.libraries.length, 2);
+      expect(m.songs.map((s) => s.title), ['Shared song']);
+      expect(m.openChordsLinkFor(m.libraryId)!.kind, OpenChordsKind.library);
     });
 
     testWidgets('open a link someone sent', (tester) async {

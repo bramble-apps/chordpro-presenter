@@ -17,6 +17,7 @@ import 'gospelizer.dart';
 import 'format.dart';
 import 'ink.dart';
 import 'library_import.dart';
+import 'library_sync.dart';
 import 'media.dart';
 import 'media_library.dart';
 import 'autoscroll.dart';
@@ -503,6 +504,10 @@ class AppSettings {
   /// the same id on two devices makes both the owner.
   String openChordsUserId = '';
 
+  /// Shared setlists and folders sync on their own (at start, then every
+  /// few minutes).
+  bool openChordsAutoSync = true;
+
   /// Presentation mode: slides as a grid of tiles instead of the sheet.
   bool presentationMode = false;
 
@@ -614,6 +619,7 @@ class AppSettings {
     'sheetThemeColors': sheetThemeColors,
     'floatingSidebar': floatingSidebar,
     if (openChordsUserId.isNotEmpty) 'openChordsUserId': openChordsUserId,
+    'openChordsAutoSync': openChordsAutoSync,
     'presentationMode': presentationMode,
     if (bandNickname.isNotEmpty) 'bandNickname': bandNickname,
     'showChordDiagrams': showChordDiagrams,
@@ -671,6 +677,7 @@ class AppSettings {
     sheetThemeColors = j['sheetThemeColors'] as bool? ?? sheetThemeColors;
     floatingSidebar = j['floatingSidebar'] as bool? ?? floatingSidebar;
     openChordsUserId = j['openChordsUserId'] as String? ?? openChordsUserId;
+    openChordsAutoSync = j['openChordsAutoSync'] as bool? ?? openChordsAutoSync;
     presentationMode = j['presentationMode'] as bool? ?? presentationMode;
     bandNickname = j['bandNickname'] as String? ?? bandNickname;
     showChordDiagrams = j['showChordDiagrams'] as bool? ?? showChordDiagrams;
@@ -1101,6 +1108,64 @@ class PresenterModel extends SlideState {
     await _store.delete(_libraryKey(id));
     _save();
     notifyListeners();
+  }
+
+  // ---- Syncing two libraries (see library_sync.dart) ----
+
+  /// The open library's own lists, or another library read from storage.
+  Future<LibrarySide> librarySide(String id) async {
+    final name =
+        libraries.where((l) => l.id == id).firstOrNull?.name ?? 'Library';
+    if (id == libraryId) return LibrarySide(name, songs, setlists, tags);
+    Map<String, dynamic> j = const {};
+    try {
+      final stored = await _store.read(_libraryKey(id));
+      if (stored != null) j = jsonDecode(stored) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('Failed to read library $id: $e');
+    }
+    List<Map<String, dynamic>> list(String k) =>
+        ((j[k] as List?) ?? []).cast<Map<String, dynamic>>();
+    return LibrarySide(
+      name,
+      list('songs').map(Song.fromJson).toList(),
+      list('setlists').map(Setlist.fromJson).toList(),
+      list('tags').map(Tag.fromJson).toList(),
+    );
+  }
+
+  /// Compares the open library with library [otherId].
+  Future<(LibraryDiff, LibrarySide, LibrarySide)> compareWithLibrary(
+    String otherId,
+  ) async {
+    final here = await librarySide(libraryId);
+    final there = await librarySide(otherId);
+    return (compareLibraries(here, there), here, there);
+  }
+
+  /// Carries out [diff]'s choices between the open library and [otherId]
+  /// (from [compareWithLibrary]) and saves both.
+  Future<LibrarySyncResult> syncWithLibrary(
+    String otherId,
+    LibraryDiff diff,
+    LibrarySide here,
+    LibrarySide there,
+  ) async {
+    final result = applyLibrarySync(diff, here, there);
+    Map<String, dynamic> j = {};
+    try {
+      final stored = await _store.read(_libraryKey(otherId));
+      if (stored != null) j = jsonDecode(stored) as Map<String, dynamic>;
+    } catch (_) {}
+    j
+      ..['songs'] = [for (final s in there.songs) s.toJson()]
+      ..['setlists'] = [for (final s in there.setlists) s.toJson()]
+      ..['tags'] = [for (final t in there.tags) t.toJson()];
+    await _store.write(_libraryKey(otherId), jsonEncode(j));
+    _rebuildSlides(keepIndex: true);
+    _save();
+    notifyListeners();
+    return result;
   }
 
   final SheetFormat format = SheetFormat();
@@ -3635,6 +3700,41 @@ class PresenterModel extends SlideState {
         songById(id)?.tags.remove(tag.id);
       }
     }
+    if (link.kind == OpenChordsKind.library) {
+      // Gone from the shared library: to the trash here (restorable).
+      for (final id in merge.removedHere) {
+        final song = songById(id);
+        if (song == null) continue;
+        songs.remove(song);
+        trash.insert(0, song);
+        if (selectedSongId == id) selectedSongId = null;
+      }
+      for (final t in merge.takeSets) {
+        final i = setlists.indexWhere(
+          (x) => x.id.toUpperCase() == t.id.toUpperCase(),
+        );
+        if (i < 0) {
+          setlists.add(t..date ??= DateTime.now());
+          continue;
+        }
+        final here = setlists[i];
+        here.name = t.name;
+        here.setSpecific = here.setSpecific || t.setSpecific;
+        here.entries
+          ..clear()
+          ..addAll(t.entries);
+        here.extra.addAll(t.extra);
+      }
+      for (final id in merge.dropSets) {
+        setlists.removeWhere((x) => x.id == id);
+        if (activeSetlistId == id) {
+          activeSetlistId = null;
+          activeEntryId = null;
+        }
+      }
+      link.setHashes = {...merge.setHashes};
+      selectedSongId ??= songs.isEmpty ? null : songs.first.id;
+    }
     final set = merge.setlist;
     final here = set == null ? null : setlistById(link.localId);
     if (set != null && here != null) {
@@ -3660,17 +3760,22 @@ class PresenterModel extends SlideState {
   /// (with its songs), a song folder a tag on its songs (and its setlists
   /// come along). Songs already here and edited since stay as they are.
   /// Returns the link, in step with the folder.
+  ///
+  /// [asLibrary]: the whole folder joined to the open library instead (its
+  /// songs, setlists and tags; open a new library for it first).
   OpenChordsLink importOpenChords(
     String folderId,
     Map<String, dynamic> folder, {
     required bool isOwner,
+    bool asLibrary = false,
   }) {
     final title = (folder['title'] as String?)?.trim() ?? '';
     final sets = [
       for (final j in (folder['setlists'] as List?) ?? const [])
         if (j is Map) Map<String, dynamic>.from(j),
     ];
-    final asSetlist = folder['type'] == 'setlist' && sets.isNotEmpty;
+    final asSetlist =
+        !asLibrary && folder['type'] == 'setlist' && sets.isNotEmpty;
     // The folder's tags, matched to these by name (made if missing).
     final tagMap = <String, String>{};
     for (final t in ((folder['tags'] as List?) ?? const []).whereType<Map>()) {
@@ -3682,7 +3787,9 @@ class PresenterModel extends SlideState {
       tagMap[id.toUpperCase()] = here.id;
     }
     final String localId;
-    if (asSetlist) {
+    if (asLibrary) {
+      localId = libraryId;
+    } else if (asSetlist) {
       localId = createSetlist(title.isEmpty ? 'Shared setlist' : title).id;
     } else {
       final name = title.isEmpty ? 'OpenChords' : title;
@@ -3691,7 +3798,11 @@ class PresenterModel extends SlideState {
     }
     final link = OpenChordsLink(
       folderId: folderId,
-      kind: asSetlist ? OpenChordsKind.setlist : OpenChordsKind.folder,
+      kind: asLibrary
+          ? OpenChordsKind.library
+          : asSetlist
+          ? OpenChordsKind.setlist
+          : OpenChordsKind.folder,
       localId: localId,
       title: title,
       readonly: folder['readonly'] == true,
@@ -3729,7 +3840,18 @@ class PresenterModel extends SlideState {
       ),
     );
     final byId = {for (final s in songs) s.id.toUpperCase(): s};
-    if (asSetlist) {
+    if (asLibrary) {
+      final byLocal = {for (final s in songs) s.id: s};
+      for (final j in sets) {
+        final set = setlistFromOpenChords(j, byId);
+        setlists.removeWhere((x) => x.id.toUpperCase() == set.id.toUpperCase());
+        setlists.add(set..date ??= DateTime.now());
+        link.setHashes[set.id.toUpperCase()] = [
+          openChordsSetHash(openChordsSetlist(set, byLocal)),
+          openChordsSetHash(j),
+        ];
+      }
+    } else if (asSetlist) {
       final set = setlistFromOpenChords(sets.first, byId);
       final here = setlistById(localId)!;
       here.setSpecific = set.setSpecific;

@@ -25,6 +25,7 @@
 // lastUpdated); the setlist goes the way of the side that changed it since
 // the last sync (both: this device's).
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -416,15 +417,18 @@ Setlist setlistFromOpenChords(Map<String, dynamic> j, Map<String, Song> byId) {
 
 // ---- Links ----
 
-enum OpenChordsKind { setlist, folder }
+/// What a link joins here: a setlist, the songs with a tag (a song
+/// folder), or a whole library (its songs, setlists and tags).
+enum OpenChordsKind { setlist, folder, library }
 
-/// A folder on the OpenChords server joined to a setlist or a tag here,
-/// with what was in step at the last sync.
+/// A folder on the OpenChords server joined to a setlist, a tag or a
+/// library here, with what was in step at the last sync.
 class OpenChordsLink {
   final String folderId;
   final OpenChordsKind kind;
 
-  /// The setlist ([OpenChordsKind.setlist]) or tag ([OpenChordsKind.folder]).
+  /// The setlist ([OpenChordsKind.setlist]), tag ([OpenChordsKind.folder])
+  /// or library ([OpenChordsKind.library]).
   final String localId;
   String title;
 
@@ -439,6 +443,10 @@ class OpenChordsLink {
   /// The setlist as it was at the last sync, here and on the server.
   String? localSetHash;
   String? remoteSetHash;
+
+  /// A library's setlists as they were at the last sync: id (upper case)
+  /// → [here, server].
+  Map<String, List<String>> setHashes;
   DateTime? lastSync;
 
   OpenChordsLink({
@@ -451,8 +459,10 @@ class OpenChordsLink {
     Set<String>? songIds,
     this.localSetHash,
     this.remoteSetHash,
+    Map<String, List<String>>? setHashes,
     this.lastSync,
-  }) : songIds = songIds ?? {};
+  }) : songIds = songIds ?? {},
+       setHashes = setHashes ?? {};
 
   String get link => openChordsLink(folderId);
 
@@ -469,6 +479,7 @@ class OpenChordsLink {
     'songIds': songIds.toList(),
     'localSetHash': ?localSetHash,
     'remoteSetHash': ?remoteSetHash,
+    if (setHashes.isNotEmpty) 'setHashes': setHashes,
     'lastSync': ?lastSync?.toIso8601String(),
   };
 
@@ -490,6 +501,12 @@ class OpenChordsLink {
       },
       localSetHash: v['localSetHash'] as String?,
       remoteSetHash: v['remoteSetHash'] as String?,
+      setHashes: {
+        if (v['setHashes'] is Map)
+          for (final e in (v['setHashes'] as Map).entries)
+            if (e.value is List && (e.value as List).length == 2)
+              '${e.key}': [for (final h in e.value as List) '$h'],
+      },
       lastSync: v['lastSync'] is String
           ? DateTime.tryParse(v['lastSync'] as String)
           : null,
@@ -533,6 +550,14 @@ class OpenChordsMerge {
   final String? localSetHash;
   final String? remoteSetHash;
 
+  /// A library's setlists: new or changed on the server (taken here), gone
+  /// from the server (ids as here; removed here), how many were sent, and
+  /// where each stands now.
+  final List<Setlist> takeSets;
+  final List<String> dropSets;
+  final int pushedSets;
+  final Map<String, List<String>> setHashes;
+
   OpenChordsMerge({
     required this.pulled,
     required this.removedHere,
@@ -543,22 +568,38 @@ class OpenChordsMerge {
     required this.songIds,
     required this.localSetHash,
     required this.remoteSetHash,
+    this.takeSets = const [],
+    this.dropSets = const [],
+    this.pushedSets = 0,
+    this.setHashes = const {},
   });
 
   bool get changedHere =>
-      pulled.isNotEmpty || removedHere.isNotEmpty || setlist != null;
+      pulled.isNotEmpty ||
+      removedHere.isNotEmpty ||
+      setlist != null ||
+      takeSets.isNotEmpty ||
+      dropSets.isNotEmpty;
 
   String get summary {
     final parts = [
       if (pulled.isNotEmpty)
         '${pulled.length} song${pulled.length == 1 ? '' : 's'} updated here',
       if (setlist != null) 'setlist updated here',
+      if (takeSets.isNotEmpty)
+        '${takeSets.length} setlist${takeSets.length == 1 ? '' : 's'} '
+            'updated here',
+      if (dropSets.isNotEmpty)
+        '${dropSets.length} setlist${dropSets.length == 1 ? '' : 's'} '
+            'removed',
       if (removedHere.isNotEmpty)
         '${removedHere.length} song${removedHere.length == 1 ? '' : 's'} '
             'removed from the folder',
       if (pushedSongs > 0)
         '$pushedSongs song${pushedSongs == 1 ? '' : 's'} sent',
       if (pushedSetlist) 'setlist sent',
+      if (pushedSets > 0)
+        '$pushedSets setlist${pushedSets == 1 ? '' : 's'} sent',
     ];
     return parts.isEmpty ? 'Up to date' : parts.join(', ');
   }
@@ -573,6 +614,7 @@ OpenChordsMerge mergeOpenChords({
   required Map<String, dynamic>? remote,
   required List<Song> localSongs,
   Setlist? localSet,
+  List<Setlist> localSets = const [],
   List<Tag> tags = const [],
   Map<String, String> remoteTagNames = const {},
   String? Function(String ocTagId)? tagOf,
@@ -601,7 +643,11 @@ OpenChordsMerge mergeOpenChords({
     for (final t in ((remote?['tags'] as List?) ?? const []).whereType<Map>())
       if (_s(t['id']).isNotEmpty) _up(_s(t['id'])): Map.from(t),
   };
-  if (link.kind == OpenChordsKind.setlist) {
+  // (A song folder keeps its own tags; a setlist or library sends ours.)
+  final ourTags = link.kind != OpenChordsKind.folder;
+  // A folder or library: songs come and go (a setlist's follow it).
+  final membership = link.kind != OpenChordsKind.setlist;
+  if (ourTags) {
     for (final t in tags) {
       final same = folderTags.entries
           .where((e) => _s(e.value['title']) == t.name)
@@ -612,10 +658,7 @@ OpenChordsMerge mergeOpenChords({
   final usedTags = <String>{};
 
   Map<String, dynamic> out(Song s) {
-    final j = openChordsSong(
-      s,
-      tagIds: link.kind == OpenChordsKind.setlist ? tagIds : null,
-    );
+    final j = openChordsSong(s, tagIds: ourTags ? tagIds : null);
     if (link.kind == OpenChordsKind.folder) {
       // A song folder keeps the tags its songs had there.
       final was = remoteSongs[_up(s.id)]?['tags'];
@@ -646,16 +689,14 @@ OpenChordsMerge mergeOpenChords({
         upload[id] = r;
       }
     } else if (r != null) {
-      if (link.kind == OpenChordsKind.folder &&
-          link.songIds.contains(id) &&
-          canPush) {
+      if (membership && link.songIds.contains(id) && canPush) {
         // Taken out of the folder here (untagged or deleted): out there too.
         continue;
       }
       pulled.add(songFromOpenChords(r, tagOf: tagOf));
       upload[id] = r;
     } else if (l != null) {
-      if (link.kind == OpenChordsKind.folder && link.songIds.contains(id)) {
+      if (membership && link.songIds.contains(id)) {
         // Gone from the folder on the server.
         removedHere.add(l.id);
         continue;
@@ -732,6 +773,76 @@ OpenChordsMerge mergeOpenChords({
     upload.removeWhere((id, _) => !inSet.contains(id));
   }
 
+  // A library's setlists, each the way of the side that changed it.
+  final takeSets = <Setlist>[];
+  final dropSets = <String>[];
+  final setHashes = <String, List<String>>{};
+  var pushedSets = 0;
+  if (link.kind == OpenChordsKind.library) {
+    final songsNow = <String, Song>{
+      for (final s in localSongs) s.id: s,
+      for (final s in pulled) s.id: s,
+    };
+    final byUp = {for (final s in songsNow.values) _up(s.id): s};
+    final mineById = {
+      for (final set in localSets)
+        _up(set.id): (set, openChordsSetlist(set, songsNow)),
+    };
+    final theirsById = {
+      for (final r in remoteSets)
+        if (_s(r['id']).isNotEmpty) _up(_s(r['id'])): r,
+    };
+    final out = <Map<String, dynamic>>[];
+    for (final id in {...mineById.keys, ...theirsById.keys}) {
+      final mine = mineById[id], theirs = theirsById[id];
+      final base = link.setHashes[id];
+      if (mine != null && theirs != null) {
+        final mh = openChordsSetHash(mine.$2);
+        final th = openChordsSetHash(theirs);
+        final localChanged = base == null ? mh != th : mh != base[0];
+        final remoteChanged = base != null && th != base[1];
+        if (canPush && localChanged) {
+          out.add(mine.$2);
+          if (mh != th) pushedSets++;
+          setHashes[id] = [mh, mh];
+        } else if (remoteChanged || (!canPush && localChanged)) {
+          final taken = setlistFromOpenChords(theirs, byUp);
+          takeSets.add(taken);
+          out.add(theirs);
+          setHashes[id] = [
+            openChordsSetHash(openChordsSetlist(taken, songsNow)),
+            th,
+          ];
+        } else {
+          out.add(theirs);
+          setHashes[id] = [mh, th];
+        }
+      } else if (theirs != null) {
+        // Deleted here since the last sync: deleted there too.
+        if (base != null && canPush) continue;
+        final taken = setlistFromOpenChords(theirs, byUp);
+        takeSets.add(taken);
+        out.add(theirs);
+        setHashes[id] = [
+          openChordsSetHash(openChordsSetlist(taken, songsNow)),
+          openChordsSetHash(theirs),
+        ];
+      } else if (mine != null) {
+        // Deleted on the server since the last sync.
+        if (base != null) {
+          dropSets.add(mine.$1.id);
+          continue;
+        }
+        if (!canPush) continue;
+        final mh = openChordsSetHash(mine.$2);
+        out.add(mine.$2);
+        pushedSets++;
+        setHashes[id] = [mh, mh];
+      }
+    }
+    if (canPush) setsOut = out;
+  }
+
   final sendSongs = upload.values.toList();
   for (final s in sendSongs) {
     for (final t in (s['tags'] as List?) ?? const []) {
@@ -742,6 +853,8 @@ OpenChordsMerge mergeOpenChords({
       remote == null ||
       pushed > 0 ||
       pushedSet ||
+      pushedSets > 0 ||
+      setsOut.length != remoteSets.length ||
       upload.length != remoteSongs.length;
   Map<String, dynamic>? folder;
   if (canPush && changedThere) {
@@ -777,6 +890,10 @@ OpenChordsMerge mergeOpenChords({
     songIds: upload.keys.toSet(),
     localSetHash: localHash,
     remoteSetHash: remoteHash,
+    takeSets: takeSets,
+    dropSets: dropSets,
+    pushedSets: pushedSets,
+    setHashes: setHashes,
   );
 }
 
@@ -928,6 +1045,7 @@ class OpenChordsClient {
 /// The songs a link covers here: the setlist's (nested ones too), or the
 /// tag's.
 List<Song> openChordsSongsHere(PresenterModel m, OpenChordsLink link) {
+  if (link.kind == OpenChordsKind.library) return [...m.songs];
   if (link.kind == OpenChordsKind.folder) {
     return [
       for (final s in m.songs)
@@ -982,6 +1100,7 @@ Future<OpenChordsMerge> syncOpenChords(
     localSet: link.kind == OpenChordsKind.setlist
         ? m.setlistById(link.localId)
         : null,
+    localSets: link.kind == OpenChordsKind.library ? m.setlists : const [],
     tags: m.tags,
     tagOf: (id) => tagMap[id],
   );
@@ -1085,4 +1204,108 @@ String sha256Hex(String text) {
     }
   }
   return h.map((x) => x.toRadixString(16).padLeft(8, '0')).join();
+}
+
+/// Shares the songs with [tag] as a new OpenChords song folder (this
+/// device its owner); songs tagged later go up with the next sync.
+Future<OpenChordsLink> shareTagOnOpenChords(
+  PresenterModel m,
+  Tag tag, {
+  bool readonly = false,
+  OpenChordsClient? client,
+}) async {
+  final link = OpenChordsLink(
+    folderId: newOpenChordsId(),
+    kind: OpenChordsKind.folder,
+    localId: tag.id,
+    title: tag.name,
+    readonly: readonly,
+  );
+  await syncOpenChords(m, link, client: client);
+  m.addOpenChordsLink(link);
+  return link;
+}
+
+/// What a link is joined to here, for showing it: the setlist's or tag's
+/// name (null when it's gone).
+String? openChordsLocalName(PresenterModel m, OpenChordsLink link) =>
+    switch (link.kind) {
+      OpenChordsKind.setlist => m.setlistById(link.localId)?.name,
+      OpenChordsKind.folder => m.tagById(link.localId)?.name,
+      OpenChordsKind.library =>
+        link.localId == m.libraryId ? m.currentLibrary.name : null,
+    };
+
+/// Syncs every link whose setlist or tag is still here; returns the
+/// first problem, if any (the others still sync).
+Future<String?> syncAllOpenChords(
+  PresenterModel m, {
+  OpenChordsClient? client,
+}) async {
+  String? problem;
+  for (final link in [...m.openChordsLinks]) {
+    if (openChordsLocalName(m, link) == null) continue;
+    try {
+      await syncOpenChords(m, link, client: client);
+    } on OpenChordsException catch (e) {
+      problem ??= e.message;
+    } catch (e) {
+      problem ??= 'Couldn\'t reach OpenChords.';
+    }
+  }
+  return problem;
+}
+
+/// Keeps shared setlists and folders in step while the app runs: a sync
+/// shortly after start, then every few minutes (when turned on in the
+/// OpenChords settings and there's anything shared).
+class OpenChordsAutoSync {
+  final PresenterModel model;
+  static const every = Duration(minutes: 3);
+  Timer? _timer;
+  bool _running = false;
+
+  OpenChordsAutoSync(this.model);
+
+  void start() {
+    if (!openChordsAvailable) return;
+    Timer(const Duration(seconds: 8), run);
+    _timer = Timer.periodic(every, (_) => run());
+  }
+
+  Future<void> run() async {
+    if (_running ||
+        !model.settings.openChordsAutoSync ||
+        model.remoteEdit ||
+        model.openChordsLinks.isEmpty) {
+      return;
+    }
+    _running = true;
+    try {
+      await syncAllOpenChords(model);
+    } finally {
+      _running = false;
+    }
+  }
+
+  void dispose() => _timer?.cancel();
+}
+
+/// Shares the open library (all its songs, setlists and tags) as a new
+/// OpenChords folder, this device its owner.
+Future<OpenChordsLink> shareLibraryOnOpenChords(
+  PresenterModel m, {
+  bool readonly = false,
+  OpenChordsClient? client,
+}) async {
+  final link = OpenChordsLink(
+    folderId: newOpenChordsId(),
+    kind: OpenChordsKind.library,
+    localId: m.libraryId,
+    title: m.currentLibrary.name,
+    readonly: readonly,
+  );
+  await syncOpenChords(m, link, client: client);
+  m.addOpenChordsLink(link);
+  return link;
 }

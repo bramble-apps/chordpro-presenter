@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../format.dart';
 import '../gospelizer.dart';
 import '../state.dart';
+import 'openchords_dialog.dart';
 import '../fonts.dart';
 import '../themes.dart';
 import 'sidebar_icon.dart';
@@ -301,6 +302,24 @@ class SettingsDialog extends StatelessWidget {
                     ),
                   ),
                 ],
+                heading('Sharing'),
+                Card.outlined(
+                  margin: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
+                    leading: const Icon(Icons.share_outlined),
+                    title: const Text('OpenChords'),
+                    subtitle: Text(
+                      model.openChordsLinks.isEmpty
+                          ? 'Share setlists and songs with any '
+                                'OpenChords-compatible app'
+                          : '${model.openChordsLinks.length} shared · '
+                                'links, sync and your OpenChords ID',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => showOpenChordsSettings(context, model),
+                  ),
+                ),
               ],
             ),
           ),

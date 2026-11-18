@@ -18,6 +18,7 @@ import '../themes.dart';
 import 'alpha_scrubber.dart';
 import 'find_songs.dart';
 import 'scanner_screen.dart';
+import 'library_sync_dialog.dart';
 import 'openchords_dialog.dart';
 import 'share_dialog.dart';
 import 'edit_link.dart';
@@ -281,10 +282,25 @@ class _SidebarState extends State<Sidebar> {
             else if (_mode == _Mode.libraries)
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.create_new_folder_outlined, size: 18),
-                  label: const Text('New library'),
-                  onPressed: _newLibrary,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(
+                          Icons.create_new_folder_outlined,
+                          size: 18,
+                        ),
+                        label: const Text('New library'),
+                        onPressed: _newLibrary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.outlined(
+                      tooltip: 'OpenChords settings',
+                      icon: const Icon(Icons.cloud_sync_outlined, size: 20),
+                      onPressed: () => showOpenChordsSettings(context, model),
+                    ),
+                  ],
                 ),
               )
             else if (_mode != _Mode.find)
@@ -431,8 +447,9 @@ class _SidebarState extends State<Sidebar> {
           ],
           child: const Text('Export'),
         ),
-        if (!model.remoteEdit)
+        if (!model.remoteEdit) ...[
           item('sync', Icons.cloud_sync_outlined, 'Backup & sync…'),
+        ],
         const Divider(height: 1),
         item('settings', Icons.settings_outlined, 'Settings…'),
         item('donate', Icons.favorite_outline, 'Support development…'),
@@ -815,7 +832,7 @@ class _SidebarState extends State<Sidebar> {
                   value: 'openchords',
                   child: Text(
                     model.openChordsLinkFor(openSet.id) == null
-                        ? 'Share with OpenChords…'
+                        ? 'Share on OpenChords…'
                         : 'OpenChords link & sync…',
                   ),
                 ),
@@ -922,20 +939,16 @@ class _SidebarState extends State<Sidebar> {
     await model.switchLibrary(id);
   }
 
+  /// New library: personal, or OpenChords (started here or joined).
   Future<void> _newLibrary() async {
-    final name = await _askName(
-      context,
-      'New library',
-      '',
-      hint: 'e.g. French songs',
-    );
-    if (name == null || !mounted) return;
+    final before = model.libraryId;
+    await showNewLibrary(context, model);
+    if (!mounted || model.libraryId == before) return;
     setState(() {
       _tagFilter.clear();
       _openSetlistId = null;
       _mode = _Mode.songs;
     });
-    await model.createLibrary(name);
   }
 
   /// The libraries (in the side pane): tap one to open it; rename or
@@ -954,7 +967,11 @@ class _SidebarState extends State<Sidebar> {
             ),
             title: lib.name,
             subtitle: lib.id == model.libraryId
-                ? 'Open · ${model.songs.length} songs'
+                ? [
+                    'Open · ${model.songs.length} songs',
+                    if (model.openChordsLinkFor(lib.id) != null)
+                      'Shared on OpenChords',
+                  ].join(' · ')
                 : null,
             selected: lib.id == model.libraryId,
             onTap: lib.id == model.libraryId
@@ -969,6 +986,22 @@ class _SidebarState extends State<Sidebar> {
                 );
                 if (name != null) model.renameLibrary(lib.id, name);
               },
+              if (!model.remoteEdit)
+                lib.id == model.libraryId &&
+                        model.openChordsLinkFor(lib.id) != null
+                    ? 'OpenChords link & sync…'
+                    : 'Share on OpenChords…': () async {
+                  // (A library is shared from inside it.)
+                  if (lib.id != model.libraryId) {
+                    await _openLibrary(lib.id);
+                  }
+                  if (mounted) {
+                    await showOpenChordsShareLibrary(context, model);
+                  }
+                },
+              if (lib.id != model.libraryId && !model.remoteEdit)
+                'Compare & sync with ${model.currentLibrary.name}…': () =>
+                    showLibrarySync(context, model, lib.id),
               if (lib.id != model.libraryId)
                 'Delete': () async {
                   final ok = await _confirm(
@@ -1044,7 +1077,18 @@ class _SidebarState extends State<Sidebar> {
         ),
       ),
       menuChildren: [
+        MenuItemButton(
+          leadingIcon: const Icon(Icons.music_note, size: 18),
+          onPressed: () => widget.onEditSong(Song(title: '', raw: '')),
+          child: const Text('New song'),
+        ),
+        MenuItemButton(
+          leadingIcon: const Icon(Icons.playlist_add, size: 18),
+          onPressed: _newSetlist,
+          child: const Text('New setlist'),
+        ),
         if (openSet != null) ...[
+          const Divider(height: 1),
           MenuItemButton(
             leadingIcon: const Icon(Icons.library_add, size: 18),
             onPressed: () async {
@@ -1068,11 +1112,6 @@ class _SidebarState extends State<Sidebar> {
           const Divider(height: 1),
         ],
         MenuItemButton(
-          leadingIcon: const Icon(Icons.music_note, size: 18),
-          onPressed: () => widget.onEditSong(Song(title: '', raw: '')),
-          child: const Text('New song'),
-        ),
-        MenuItemButton(
           leadingIcon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
           onPressed: _addPdfSongs,
           child: const Text('PDF or picture as a song…'),
@@ -1088,12 +1127,7 @@ class _SidebarState extends State<Sidebar> {
           child: const Text('Paste a song'),
         ),
         MenuItemButton(
-          leadingIcon: const Icon(Icons.playlist_add, size: 18),
-          onPressed: _newSetlist,
-          child: const Text('New setlist'),
-        ),
-        MenuItemButton(
-          leadingIcon: const Icon(Icons.link, size: 18),
+          leadingIcon: const Icon(Icons.cloud_download_outlined, size: 18),
           onPressed: () async {
             final set = await showOpenChordsOpen(context, model);
             if (set != null && mounted) {
@@ -1103,7 +1137,7 @@ class _SidebarState extends State<Sidebar> {
               });
             }
           },
-          child: const Text('Open an OpenChords link…'),
+          child: const Text('Add from OpenChords link…'),
         ),
       ],
     );
@@ -3133,6 +3167,21 @@ class _TagManager extends StatelessWidget {
                                   );
                                   if (n != null) model.updateTag(tag, name: n);
                                 },
+                              ),
+                              IconButton(
+                                visualDensity: compact
+                                    ? VisualDensity.compact
+                                    : null,
+                                tooltip: model.openChordsLinkFor(tag.id) == null
+                                    ? 'Share these songs on OpenChords'
+                                    : 'OpenChords link & sync',
+                                icon: Icon(
+                                  model.openChordsLinkFor(tag.id) == null
+                                      ? Icons.share_outlined
+                                      : Icons.cloud_done_outlined,
+                                ),
+                                onPressed: () =>
+                                    showOpenChordsShareTag(context, model, tag),
                               ),
                               IconButton(
                                 visualDensity: compact
