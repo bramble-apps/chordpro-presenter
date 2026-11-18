@@ -35,3 +35,8 @@ page = head.replace('</head>', top + rest[:rest.index('</style>') + 8] + '\n</he
 open(os.path.join(dist, 'index.html'), 'w').write(page + '\n</body>\n</html>\n')
 open(os.path.join(dist, '.nojekyll'), 'w').write('')
 print('dist/index.html')
+
+# The Android beta page: https://bramble-apps.github.io/chordpro-presenter/beta/
+os.makedirs(os.path.join(dist, 'beta'))
+shutil.copy(os.path.join(HERE, 'beta.html'), os.path.join(dist, 'beta', 'index.html'))
+print('dist/beta/index.html')
