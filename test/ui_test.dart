@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:bilingual_projector/widgets/find_songs.dart';
 import 'package:bilingual_projector/widgets/fitting_slide.dart';
+import 'package:bilingual_projector/widgets/key_wheel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bilingual_projector/widgets/chord_line.dart';
 import 'package:bilingual_projector/browser.dart';
@@ -98,7 +99,8 @@ void main() {
     expect(find.text('Key: G'), findsOneWidget);
     expect(chordText('Em '), findsWidgets);
 
-    await tester.tap(find.text('Key: G'));
+    // (the key list: a long press; a tap opens the key wheel)
+    await tester.longPress(find.text('Key: G'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('A').last);
     await tester.pumpAndSettle();
@@ -107,6 +109,18 @@ void main() {
     expect(chordText('F#m '), findsWidgets);
     expect(chordText('Em '), findsNothing);
     expect(model.currentSong!.transpose, 2);
+  });
+
+  testWidgets('key button opens the key wheel, its chips change the key', (tester) async {
+    final model = await pumpApp(tester);
+    await tester.tap(find.text('Key: G'));
+    await tester.pumpAndSettle();
+    expect(find.byType(KeyWheel), findsOneWidget);
+    // G major's V chip: D, which is −5 from G
+    await tester.tap(find.widgetWithText(InkWell, 'D'));
+    await tester.pumpAndSettle();
+    expect(model.currentSong!.transpose, -5);
+    expect(find.text('Key: D'), findsOneWidget);
   });
 
   testWidgets('format: inline, roman, minor style, caps, hide', (tester) async {
@@ -205,7 +219,8 @@ void main() {
     await tester.tap(find.text('1. Amazing Grace'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Key: G'));
+    // (the key list: a long press; a tap opens the key wheel)
+    await tester.longPress(find.text('Key: G'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('A').last);
     await tester.pumpAndSettle();
