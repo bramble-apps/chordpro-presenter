@@ -41,6 +41,7 @@ import '../widgets/song_editor.dart';
 import '../widgets/structure_editor.dart';
 import '../widgets/sidebar_icon.dart';
 import '../widgets/ink_layer.dart';
+import '../widgets/key_wheel.dart';
 import '../widgets/ink_toolbar.dart';
 import '../toolbar_items.dart';
 import '../widgets/toolbar_editor.dart';
@@ -2559,7 +2560,9 @@ class _KeyButton extends StatelessWidget {
       builder: (context) => IconButton(
         tooltip: setSpecific ? 'Change key (this setlist only)' : 'Change key',
         padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-        onPressed: () async {
+        // the key wheel (circle of fifths); the old list stays for a long press
+        onPressed: () => _openKeyWheel(context),
+        onLongPress: () async {
           final v = await _menuFrom(context, items, initialValue: current);
           if (v != null) model.setTranspose(v);
         },
@@ -2586,6 +2589,59 @@ class _KeyButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+extension on _KeyButton {
+  /// The key wheel in a dialog: turning it changes the song's key as it comes
+  /// to rest, so the song behind follows.
+  void _openKeyWheel(BuildContext context) {
+    final song = model.currentSong!;
+    final chords = [
+      for (final m in RegExp(r'\[([^\]]+)\]').allMatches(song.raw))
+        ?Chord.parse(m.group(1)!),
+    ];
+    showAppDialog<void>(
+      context: context,
+      builder: (context) {
+        final w = MediaQuery.sizeOf(context).width;
+        final scheme = Theme.of(context).colorScheme;
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Text('Key', style: Theme.of(context).textTheme.titleMedium),
+                    if (model.editingSetSpecific) ...[
+                      const SizedBox(width: 8),
+                      Text('this setlist only', style: TextStyle(fontSize: 12, color: scheme.tertiary)),
+                    ],
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Done',
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                KeyWheel(
+                  original: song.writtenKey,
+                  offset: model.currentTranspose,
+                  chords: chords,
+                  size: math.min(320.0, w - 64),
+                  onChanged: model.setTranspose,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
