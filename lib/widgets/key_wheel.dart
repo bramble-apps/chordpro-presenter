@@ -733,8 +733,9 @@ static Color songTint(ColorScheme s, Color base) =>
       final majInk = Color.lerp(songO ? scheme.onSurface : Color.lerp(scheme.onSurfaceVariant, scheme.onSurface, keyW)!, onTonic, wO)!;
       final minKey = ink ? scheme.onSurface : scheme.tertiary;
       final minInk = Color.lerp(songI ? scheme.onSurface : Color.lerp(scheme.onSurfaceVariant, minKey, keyW)!, onTonic, wI)!;
-      _text(canvas, majName, at(R * (mid + outer) / 2, a), R * .13, FontWeight.w800, majInk);
-      _text(canvas, minName, at(R * (hub + mid) / 2, a), R * .075, FontWeight.w600, minInk);
+      final majAt = at(R * (mid + outer) / 2, a), minAt = at(R * (hub + mid) / 2, a);
+      final majBox = _text(canvas, majName, majAt, R * .13, FontWeight.w800, majInk);
+      final minBox = _text(canvas, minName, minAt, R * .075, FontWeight.w600, minInk);
       // e-ink (black and white): the song's chords as dots instead
       for (final inner in [false, true]) {
         if (!ink) break;
@@ -756,15 +757,17 @@ static Color songTint(ColorScheme s, Color base) =>
         );
         canvas.drawCircle(p, dot, Paint()..color = markColor(scheme, ink));
       }
-      // the original key: a small ring at the outer edge
+      // the original key: its name underlined (a minor song's, inside)
       if (orig == k) {
-        canvas.drawCircle(
-          at(R * (outer - .045), a),
-          R * .022,
+        final (p, box, inkC) = minor ? (minAt, minBox, minInk) : (majAt, majBox, majInk);
+        final y = p.dy + box.height / 2 + R * .012;
+        canvas.drawLine(
+          Offset(p.dx - box.width / 2, y),
+          Offset(p.dx + box.width / 2, y),
           Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.4
-            ..color = Color.lerp(scheme.onSurfaceVariant, onTonic, wO)!,
+            ..strokeWidth = math.max(1.4, R * .012)
+            ..strokeCap = StrokeCap.round
+            ..color = inkC,
         );
       }
     }
@@ -817,7 +820,7 @@ static Color songTint(ColorScheme s, Color base) =>
     );
   }
 
-  void _text(
+  Size _text(
     Canvas canvas,
     String s,
     Offset at,
@@ -843,6 +846,7 @@ static Color songTint(ColorScheme s, Color base) =>
     )..layout();
     }
     tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
+    return tp.size;
   }
 
   /// Laid-out labels, reused frame to frame (laying out 24 labels every frame
