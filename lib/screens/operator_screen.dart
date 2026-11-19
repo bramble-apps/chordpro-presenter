@@ -41,6 +41,7 @@ import '../widgets/song_editor.dart';
 import '../widgets/structure_editor.dart';
 import '../widgets/sidebar_icon.dart';
 import '../widgets/ink_layer.dart';
+import '../widgets/capo_icon.dart';
 import '../widgets/key_wheel.dart';
 import '../widgets/ink_toolbar.dart';
 import '../toolbar_items.dart';
@@ -2750,13 +2751,26 @@ class _CapoButton extends StatelessWidget {
           ], initialValue: capo);
           if (v != null) model.setCapo(v);
         },
-        icon: Text(
-          capo == 0 ? 'Capo' : 'Capo $capo',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: capo == 0 ? FontWeight.normal : FontWeight.w600,
-            color: capo == 0 ? scheme.onSurfaceVariant : scheme.onSurface,
-          ),
+        // the capo icon, with the fret when there is one
+        icon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CapoIcon(
+              size: 22,
+              color: capo == 0 ? scheme.onSurfaceVariant : scheme.onSurface,
+            ),
+            if (capo > 0) ...[
+              const SizedBox(width: 4),
+              Text(
+                '$capo',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.onSurface,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
