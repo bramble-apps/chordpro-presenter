@@ -2602,46 +2602,22 @@ extension on _KeyButton {
       for (final m in RegExp(r'\[([^\]]+)\]').allMatches(song.raw))
         ?Chord.parse(m.group(1)!),
     ];
+    // the Key button's place on screen: the panel rises from it
+    final box = context.findRenderObject() as RenderBox?;
+    final anchor = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
     showAppDialog<void>(
       context: context,
-      builder: (context) {
-        final w = MediaQuery.sizeOf(context).width;
-        final scheme = Theme.of(context).colorScheme;
-        return Dialog(
-          insetPadding: const EdgeInsets.all(16),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Text('Key', style: Theme.of(context).textTheme.titleMedium),
-                    if (model.editingSetSpecific) ...[
-                      const SizedBox(width: 8),
-                      Text('this setlist only', style: TextStyle(fontSize: 12, color: scheme.tertiary)),
-                    ],
-                    const Spacer(),
-                    IconButton(
-                      tooltip: 'Done',
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                KeyWheel(
-                  original: song.writtenKey,
-                  offset: model.currentTranspose,
-                  chords: chords,
-                  size: math.min(320.0, w - 64),
-                  onChanged: model.setTranspose,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => KeyWheelPopover(
+        anchor: anchor,
+        setlistOnly: model.editingSetSpecific,
+        builder: (size) => KeyWheel(
+          original: song.writtenKey,
+          offset: model.currentTranspose,
+          chords: chords,
+          size: size,
+          onChanged: model.setTranspose,
+        ),
+      ),
     );
   }
 }
