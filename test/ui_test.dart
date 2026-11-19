@@ -88,6 +88,11 @@ Finder chordText(String chord) => find.byWidgetPredicate(
   description: 'chord "$chord"',
 );
 
+/// The toolbar's key button, showing key [k].
+Finder keyButton(String k) => find.byWidgetPredicate(
+  (w) => w is Text && w.key == const ValueKey('key-button-label') && w.data == k,
+);
+
 void main() {
   // Chord shapes, loaded for real once (screens use them as they open).
   setUpAll(() async {
@@ -96,16 +101,16 @@ void main() {
   });
   testWidgets('key button transposes the chord sheet', (tester) async {
     final model = await pumpApp(tester);
-    expect(find.text('Key: G'), findsOneWidget);
+    expect(keyButton('G'), findsOneWidget);
     expect(chordText('Em '), findsWidgets);
 
     // (the key list: a long press; a tap opens the key wheel)
-    await tester.longPress(find.text('Key: G'));
+    await tester.longPress(keyButton('G'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('A').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Key: A'), findsOneWidget);
+    expect(keyButton('A'), findsOneWidget);
     expect(chordText('F#m '), findsWidgets);
     expect(chordText('Em '), findsNothing);
     expect(model.currentSong!.transpose, 2);
@@ -113,14 +118,14 @@ void main() {
 
   testWidgets('key button opens the key wheel, its chips change the key', (tester) async {
     final model = await pumpApp(tester);
-    await tester.tap(find.text('Key: G'));
+    await tester.tap(keyButton('G'));
     await tester.pumpAndSettle();
     expect(find.byType(KeyWheel), findsOneWidget);
     // G major's V chip: D, which is −5 from G
     await tester.tap(find.widgetWithText(InkWell, 'D'));
     await tester.pumpAndSettle();
     expect(model.currentSong!.transpose, -5);
-    expect(find.text('Key: D'), findsOneWidget);
+    expect(keyButton('D'), findsOneWidget);
   });
 
   testWidgets('format: inline, roman, minor style, caps, hide', (tester) async {
@@ -220,7 +225,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // (the key list: a long press; a tap opens the key wheel)
-    await tester.longPress(find.text('Key: G'));
+    await tester.longPress(keyButton('G'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('A').last);
     await tester.pumpAndSettle();
@@ -228,12 +233,12 @@ void main() {
     final set = model.setlists.single;
     expect(set.entries.single.transpose, 2);
     expect(model.currentSong!.transpose, 0, reason: 'song itself unchanged');
-    expect(find.text('Key: A'), findsOneWidget);
+    expect(keyButton('A'), findsOneWidget);
 
     // Opening the song from the library shows its own key again.
     model.selectSong(model.currentSong!.id);
     await tester.pumpAndSettle();
-    expect(find.text('Key: G'), findsOneWidget);
+    expect(keyButton('G'), findsOneWidget);
 
     // Survives a save/load round trip.
     await model.flush();

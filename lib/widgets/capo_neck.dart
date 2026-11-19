@@ -288,17 +288,13 @@ class _NeckPainter extends CustomPainter {
         ..strokeWidth = 1 + (5 - i) * .25
         ..color = metal.withValues(alpha: .85));
     }
-    // the capo: a bar across the strings, its clamp knob at the side (dimmed when parked)
+    // the capo: a bar across the strings (dimmed when parked)
     final y = top + CapoNeckMath.capoAt(capo, length);
     final c = ink ? scheme.onSurface : scheme.primary;
     final parked = capo < -.2 ? .35 : 1.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(-7, y - 8, width + 14, 16), const Radius.circular(8)),
       Paint()..color = c.withValues(alpha: parked),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(width + 4, y - 5, 12, 10), const Radius.circular(5)),
-      Paint()..color = Color.lerp(c, Colors.black, .25)!.withValues(alpha: parked),
     );
   }
 

@@ -2577,10 +2577,12 @@ class _KeyButton extends StatelessWidget {
               color: setSpecific ? scheme.tertiary : null,
             ),
             const SizedBox(width: 4),
+            // just the key: ♪ B ▾ ("+2" or "Original" when the song's key is unknown)
             Text(
+              key: const ValueKey('key-button-label'),
               written == null
-                  ? 'Key ${labelFor(current)}'
-                  : 'Key: ${written.transposed(current).name}',
+                  ? labelFor(current)
+                  : written.transposed(current).name,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -2758,10 +2760,8 @@ class _CapoButton extends StatelessWidget {
         icon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CapoIcon(
-              size: 22,
-              color: capo == 0 ? scheme.onSurfaceVariant : scheme.onSurface,
-            ),
+            // (the same colour as the toolbar's other icons, capo or not)
+            const CapoIcon(size: 22),
             if (capo > 0) ...[
               const SizedBox(width: 4),
               Text(
