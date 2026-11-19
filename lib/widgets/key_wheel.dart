@@ -670,54 +670,30 @@ static Color songTint(ColorScheme s, Color base) =>
     final onTonic = ink ? scheme.onSecondaryContainer : scheme.onPrimary;
 
     for (var k = 0; k < 12; k++) {
-      final rel = ((k - sel) % 12 + 18) % 12 - 6;
-      final inKey = rel.abs() <= 1;
+      // how far this key is from the top, in keys (fractional while turning): the
+      // highlights follow it smoothly instead of jumping a key at a time
+      final d = (((k - pos) % 12 + 18) % 12 - 6).abs();
+      final keyW = (2.0 - d).clamp(0.0, 1.0); // the key's chords: full within one key, fading to two
+      final tonicW = (1.0 - d).clamp(0.0, 1.0); // the tonic: slides from one key to the next
       final a = k * 30 + rot;
-      final tO = !minor && k == sel, tI = minor && k == sel;
+      final wO = minor ? 0.0 : tonicW, wI = minor ? tonicW : 0.0;
+      final tO = wO > .5, tI = wI > .5;
       // a chord the song uses: its segment tinted in the song's colour (as the key's are, in theirs)
-      final songO = !ink && marks.containsKey((false, k)),
-          songI = !ink && marks.containsKey((true, k));
-      final baseO = inKey ? keyOuter : segBg,
-          baseI = inKey ? keyInner : innerBg;
-      canvas.drawPath(
-        seg(R * mid, R * outer, a - 15, a + 15),
-        Paint()..color = tO ? tonic : (songO ? songTint(scheme, baseO) : baseO),
-      );
-      canvas.drawPath(
-        seg(R * hub, R * mid, a - 15, a + 15),
-        Paint()..color = tI ? tonic : (songI ? songTint(scheme, baseI) : baseI),
-      );
+      final songO = !ink && marks.containsKey((false, k)), songI = !ink && marks.containsKey((true, k));
+      var baseO = Color.lerp(segBg, keyOuter, keyW)!, baseI = Color.lerp(innerBg, keyInner, keyW)!;
+      if (songO) baseO = songTint(scheme, baseO);
+      if (songI) baseI = songTint(scheme, baseI);
+      canvas.drawPath(seg(R * mid, R * outer, a - 15, a + 15), Paint()..color = Color.lerp(baseO, tonic, wO)!);
+      canvas.drawPath(seg(R * hub, R * mid, a - 15, a + 15), Paint()..color = Color.lerp(baseI, tonic, wI)!);
       canvas.drawPath(seg(R * mid, R * outer, a - 15, a + 15), gap);
       canvas.drawPath(seg(R * hub, R * mid, a - 15, a + 15), gap);
       final majName = MusicKey(KeyWheelMath.pcs[k], false).name;
-      final minName = MusicKey(
-        KeyWheelMath.mod12(KeyWheelMath.pcs[k] + 9),
-        true,
-      ).name;
-      _text(
-        canvas,
-        majName,
-        at(R * (mid + outer) / 2, a),
-        R * .13,
-        FontWeight.w800,
-        tO
-            ? onTonic
-            : (inKey || songO ? scheme.onSurface : scheme.onSurfaceVariant),
-      );
-      _text(
-        canvas,
-        minName,
-        at(R * (hub + mid) / 2, a),
-        R * .075,
-        FontWeight.w600,
-        tI
-            ? onTonic
-            : (songI
-                  ? scheme.onSurface
-                  : (inKey
-                        ? (ink ? scheme.onSurface : scheme.tertiary)
-                        : scheme.onSurfaceVariant)),
-      );
+      final minName = MusicKey(KeyWheelMath.mod12(KeyWheelMath.pcs[k] + 9), true).name;
+      final majInk = Color.lerp(songO ? scheme.onSurface : Color.lerp(scheme.onSurfaceVariant, scheme.onSurface, keyW)!, onTonic, wO)!;
+      final minKey = ink ? scheme.onSurface : scheme.tertiary;
+      final minInk = Color.lerp(songI ? scheme.onSurface : Color.lerp(scheme.onSurfaceVariant, minKey, keyW)!, onTonic, wI)!;
+      _text(canvas, majName, at(R * (mid + outer) / 2, a), R * .13, FontWeight.w800, majInk);
+      _text(canvas, minName, at(R * (hub + mid) / 2, a), R * .075, FontWeight.w600, minInk);
       // e-ink (black and white): the song's chords as dots instead
       for (final inner in [false, true]) {
         if (!ink) break;
@@ -747,7 +723,7 @@ static Color songTint(ColorScheme s, Color base) =>
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.4
-            ..color = tO ? onTonic : scheme.onSurfaceVariant,
+            ..color = Color.lerp(scheme.onSurfaceVariant, onTonic, wO)!,
         );
       }
     }
