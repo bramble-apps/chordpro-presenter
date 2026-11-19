@@ -865,11 +865,22 @@ class KeyWheelPopover extends StatelessWidget {
   final Rect? anchor;
   final bool setlistOnly;
   final Widget Function(double wheelSize) builder;
+
+  /// The title row's text (null: no title row; tap outside to close).
+  final String? title;
+  final double maxWidth;
+
+  /// The size given to [builder] from the panel's width and the height
+  /// there is room for (default: the key wheel's).
+  final double Function(double width, double room)? sizeFor;
   const KeyWheelPopover({
     super.key,
     required this.anchor,
     required this.setlistOnly,
     required this.builder,
+    this.title = 'Key',
+    this.maxWidth = 360,
+    this.sizeFor,
   });
 
   @override
@@ -880,7 +891,7 @@ class KeyWheelPopover extends StatelessWidget {
     final pad = mq.padding;
     const margin = 8.0;
     final width = math.min(
-      360.0,
+      maxWidth,
       screen.width - 2 * margin - pad.left - pad.right,
     );
     // below the panel: the button's top (or the screen's foot); above: the status bar
@@ -889,7 +900,7 @@ class KeyWheelPopover extends StatelessWidget {
         : anchor!.top - margin;
     final room = bottomEdge - pad.top - margin;
     // the header, the chips, the legend and the padding take about 150
-    final wheel = math.max(180.0, math.min(width - 32, room - 150));
+    final wheel = sizeFor?.call(width, room) ?? math.max(180.0, math.min(width - 32, room - 150));
     final left = anchor == null
         ? (screen.width - width) / 2
         : (anchor!.center.dx - width / 2).clamp(
@@ -926,14 +937,15 @@ class KeyWheelPopover extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 6, 14),
+                padding: title == null ? const EdgeInsets.fromLTRB(16, 16, 12, 16) : const EdgeInsets.fromLTRB(16, 6, 6, 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (title != null)
                     Row(
                       children: [
                         Text(
-                          'Key',
+                          title!,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         if (setlistOnly) ...[

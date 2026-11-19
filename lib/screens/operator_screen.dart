@@ -42,6 +42,7 @@ import '../widgets/structure_editor.dart';
 import '../widgets/sidebar_icon.dart';
 import '../widgets/ink_layer.dart';
 import '../widgets/capo_icon.dart';
+import '../widgets/capo_neck.dart';
 import '../widgets/key_wheel.dart';
 import '../widgets/ink_toolbar.dart';
 import '../toolbar_items.dart';
@@ -2739,7 +2740,9 @@ class _CapoButton extends StatelessWidget {
       builder: (context) => IconButton(
         tooltip: model.editingSetSpecific ? 'Capo (this setlist only)' : 'Capo',
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        onPressed: () async {
+        // the capo neck in a popover; the old list stays for a long press
+        onPressed: () => _openCapoNeck(context),
+        onLongPress: () async {
           final v = await _menuFrom(context, [
             for (var i = 0; i <= 9; i++)
               CheckedPopupMenuItem<int>(
@@ -2771,6 +2774,93 @@ class _CapoButton extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+extension on _CapoButton {
+  /// The capo neck in a popover rising from the Capo button: drag the capo
+  /// along it; the song changes as it comes to rest on a fret.
+  void _openCapoNeck(BuildContext context) {
+    final song = model.currentSong!;
+    final box = context.findRenderObject() as RenderBox?;
+    final anchor = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    // the song's chords (each once, in order), shown as played with the capo
+    final seen = <String>{};
+    final chords = [
+      for (final m in RegExp(r'\[([^\]]+)\]').allMatches(song.raw))
+        if (Chord.parse(m.group(1)!) != null && seen.add(m.group(1)!)) m.group(1)!,
+    ].take(8).toList();
+    var shown = model.currentCapo;
+    showAppDialog<void>(
+      context: context,
+      dim: false,
+      builder: (context) => KeyWheelPopover(
+        anchor: anchor,
+        setlistOnly: model.editingSetSpecific,
+        title: null,
+        maxWidth: 320,
+        sizeFor: (width, room) => (room - 32).clamp(240.0, 430.0),
+        builder: (height) => StatefulBuilder(
+          builder: (context, setState) {
+            final scheme = Theme.of(context).colorScheme;
+            final t = model.currentTranspose - shown;
+            final key = song.writtenKey?.transposed(t);
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CapoNeck(
+                  capo: model.currentCapo,
+                  height: height,
+                  onMoving: (f) => setState(() => shown = f),
+                  onChanged: model.setCapo,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        shown == 0 ? 'No capo' : 'Capo $shown',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      if (model.editingSetSpecific)
+                        Text('this setlist only', style: TextStyle(fontSize: 12, color: scheme.tertiary)),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        children: [
+                          for (final c in chords)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: scheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(inkR(8)),
+                                border: isEink(context) ? Border.all(width: inkW(1), color: scheme.outline) : null,
+                              ),
+                              child: Text(
+                                renderChord(
+                                  c,
+                                  transpose: t,
+                                  key: key,
+                                  notation: ChordNotation.standard,
+                                  minorStyle: MinorStyle.m,
+                                  accidentals: Accidentals.auto,
+                                ),
+                                style: const TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
