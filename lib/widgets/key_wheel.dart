@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../eink.dart';
@@ -155,8 +156,7 @@ class KeyWheel extends StatefulWidget {
   State<KeyWheel> createState() => _KeyWheelState();
 }
 
-class _KeyWheelState extends State<KeyWheel>
-    with SingleTickerProviderStateMixin {
+class _KeyWheelState extends State<KeyWheel> with TickerProviderStateMixin {
   late final AnimationController _pos = AnimationController.unbounded(
     vsync: this,
   );
@@ -172,6 +172,11 @@ class _KeyWheelState extends State<KeyWheel>
   double? _dragAngle;
   final _hist = <(Duration, double)>[];
   DateTime _wheelAt = DateTime(0);
+  // the highlights (the key's chords, the tonic) per position, easing to the
+  // key at the top whenever it changes, so they fade over instead of jumping
+  final _keyW = List<double>.filled(12, 0), _tonicW = List<double>.filled(12, 0);
+  late final Ticker _fade = createTicker(_fadeTick);
+  Duration _fadeLast = Duration.zero;
 
   static const _spring = SpringDescription(
     mass: 1,
@@ -186,6 +191,10 @@ class _KeyWheelState extends State<KeyWheel>
     final start = _orig + _steps(widget.offset);
     _pos.value = start.toDouble();
     _sel = KeyWheelMath.mod12(start);
+    for (var k = 0; k < 12; k++) {
+      _keyW[k] = _keyTarget(k);
+      _tonicW[k] = _tonicTarget(k);
+    }
     _pos.addListener(_moved);
     _pos.addStatusListener((s) {
       if (s == AnimationStatus.completed || s == AnimationStatus.dismissed) {
@@ -196,6 +205,7 @@ class _KeyWheelState extends State<KeyWheel>
 
   @override
   void dispose() {
+    _fade.dispose();
     _pos.dispose();
     _focus.dispose();
     super.dispose();
@@ -208,14 +218,41 @@ class _KeyWheelState extends State<KeyWheel>
 
   int get _offset => KeyWheelMath.offset(_orig, _sel);
 
+  double _keyTarget(int k) => (((k - _sel) % 12 + 18) % 12 - 6).abs() <= 1 ? 1 : 0;
+  double _tonicTarget(int k) => k == _sel ? 1 : 0;
+
+  /// Eases the highlights toward the current key (about 200 ms).
+  void _fadeTick(Duration elapsed) {
+    final dt = (elapsed - _fadeLast).inMicroseconds / 1e6;
+    _fadeLast = elapsed;
+    final snap = isEink(context) || MediaQuery.of(context).disableAnimations;
+    final f = snap ? 1.0 : 1 - math.exp(-dt / .065);
+    var done = true;
+    for (var k = 0; k < 12; k++) {
+      for (final (w, t) in [(_keyW, _keyTarget(k)), (_tonicW, _tonicTarget(k))]) {
+        w[k] += (t - w[k]) * f;
+        if ((t - w[k]).abs() < .004) {
+          w[k] = t;
+        } else {
+          done = false;
+        }
+      }
+    }
+    setState(() {});
+    if (done) _fade.stop();
+  }
+
   void _moved() {
     final s = KeyWheelMath.mod12(_pos.value.round());
     if (s != _sel) {
       setState(() => _sel = s);
+      if (!_fade.isActive) {
+        _fadeLast = Duration.zero;
+        _fade.start();
+      }
       HapticFeedback.selectionClick();
-    } else {
-      setState(() {});
     }
+    // (otherwise only the wheel repaints, from the position itself: no rebuild)
   }
 
   void _settled() {
@@ -346,7 +383,9 @@ class _KeyWheelState extends State<KeyWheel>
                     CustomPaint(
                       size: Size.square(widget.size),
                       painter: _WheelPainter(
-                        pos: _pos.value,
+                        pos: _pos,
+                        keyW: _keyW,
+                        tonicW: _tonicW,
                         sel: _sel,
                         orig: widget.original == null ? null : _orig,
                         minor: _minor,
@@ -591,7 +630,9 @@ class _Chip extends StatelessWidget {
 }
 
 class _WheelPainter extends CustomPainter {
-  final double pos;
+  /// The wheel's turn (in keys): the painter repaints as it moves.
+  final Animation<double> pos;
+  final List<double> keyW, tonicW;
   final int sel;
   final int? orig;
   final bool minor;
@@ -601,6 +642,8 @@ class _WheelPainter extends CustomPainter {
   final TextStyle textStyle;
   _WheelPainter({
     required this.pos,
+    required this.keyW,
+    required this.tonicW,
     required this.sel,
     required this.orig,
     required this.minor,
@@ -608,7 +651,7 @@ class _WheelPainter extends CustomPainter {
     required this.scheme,
     required this.ink,
     required this.textStyle,
-  });
+  }) : super(repaint: pos);
 
   // ring edges as fractions of the radius
   static const outer = .86, mid = .60, hub = .35;
@@ -636,7 +679,7 @@ static Color songTint(ColorScheme s, Color base) =>
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final R = size.width / 2;
-    final rot = -pos * 30;
+    final rot = -pos.value * 30;
     Offset at(double r, double deg) {
       final a = deg * math.pi / 180;
       return c + Offset(r * math.sin(a), -r * math.cos(a));
@@ -670,11 +713,9 @@ static Color songTint(ColorScheme s, Color base) =>
     final onTonic = ink ? scheme.onSecondaryContainer : scheme.onPrimary;
 
     for (var k = 0; k < 12; k++) {
-      // how far this key is from the top, in keys (fractional while turning): the
-      // highlights follow it smoothly instead of jumping a key at a time
-      final d = (((k - pos) % 12 + 18) % 12 - 6).abs();
-      final keyW = (2.0 - d).clamp(0.0, 1.0); // the key's chords: full within one key, fading to two
-      final tonicW = (1.0 - d).clamp(0.0, 1.0); // the tonic: slides from one key to the next
+      // the highlights as eased by the state (they fade to a new key, not jump)
+      final keyW = Curves.easeInOut.transform(this.keyW[k].clamp(0.0, 1.0));
+      final tonicW = Curves.easeInOut.transform(this.tonicW[k].clamp(0.0, 1.0));
       final a = k * 30 + rot;
       final wO = minor ? 0.0 : tonicW, wI = minor ? tonicW : 0.0;
       final tO = wO > .5, tI = wI > .5;
@@ -784,7 +825,11 @@ static Color songTint(ColorScheme s, Color base) =>
     FontWeight w,
     Color color,
   ) {
-    final tp = TextPainter(
+    final key = '$s|$size|${w.value}|${color.toARGB32()}|${textStyle.fontFamily}';
+    var tp = _laid[key];
+    if (tp == null) {
+      if (_laid.length > 400) _laid.clear();
+      tp = _laid[key] = TextPainter(
       text: TextSpan(
         text: s,
         style: textStyle.copyWith(
@@ -796,18 +841,17 @@ static Color songTint(ColorScheme s, Color base) =>
       ),
       textDirection: TextDirection.ltr,
     )..layout();
+    }
     tp.paint(canvas, at - Offset(tp.width / 2, tp.height / 2));
   }
 
+  /// Laid-out labels, reused frame to frame (laying out 24 labels every frame
+  /// made turning heavy).
+  static final _laid = <String, TextPainter>{};
+
   @override
-  bool shouldRepaint(_WheelPainter o) =>
-      o.pos != pos ||
-      o.sel != sel ||
-      o.minor != minor ||
-      o.scheme != scheme ||
-      o.ink != ink ||
-      o.marks.length != marks.length ||
-      o.orig != orig;
+  // (the highlights ease in place without the wheel moving: always repaint)
+  bool shouldRepaint(_WheelPainter o) => true;
 }
 
 /// The key wheel's panel: just above the Key button (over the toolbar), as
