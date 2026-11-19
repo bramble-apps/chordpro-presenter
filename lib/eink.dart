@@ -67,13 +67,15 @@ Future<T?> showAppDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool barrierDismissible = true,
+  // (a popover-like panel: no wash over the screen behind)
+  bool dim = true,
 }) => showDialog<T>(
   context: context,
   builder: builder,
   barrierDismissible: barrierDismissible,
   animationStyle: isEink(context) ? AnimationStyle.noAnimation : null,
   // E-ink: no grey wash behind (the dialog's thick edge sets it apart).
-  barrierColor: isEink(context) ? Colors.transparent : null,
+  barrierColor: isEink(context) || !dim ? Colors.transparent : null,
 );
 
 /// [base] (a built theme, for its shapes and font) in black and white.

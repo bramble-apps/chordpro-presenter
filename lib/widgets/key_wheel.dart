@@ -618,7 +618,7 @@ class _WheelPainter extends CustomPainter {
 
   /// A segment or chip the song uses: [base] washed with the song's colour.
 static Color songTint(ColorScheme s, Color base) =>
-      Color.alphaBlend(songColor(s).withValues(alpha: .45), base);
+      Color.alphaBlend(songColor(s).withValues(alpha: .22), base);
 
   /// The song's colour: the theme accent's opposite hue, so it never reads as
   /// the lens's (or the minor chords') colour, whatever the colour theme.
@@ -627,7 +627,7 @@ static Color songTint(ColorScheme s, Color base) =>
     final dark = s.brightness == Brightness.dark;
     return h
         .withHue((h.hue + 165) % 360)
-        .withSaturation(math.max(h.saturation, .55))
+        .withSaturation(math.max(h.saturation, .40).clamp(0, .5))
         .withLightness(dark ? .62 : .48)
         .toColor();
   }

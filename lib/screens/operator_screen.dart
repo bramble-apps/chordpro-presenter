@@ -2607,6 +2607,8 @@ extension on _KeyButton {
     final anchor = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
     showAppDialog<void>(
       context: context,
+      // (the song behind stays as bright as it is: it changes key as you turn)
+      dim: false,
       builder: (context) => KeyWheelPopover(
         anchor: anchor,
         setlistOnly: model.editingSetSpecific,
