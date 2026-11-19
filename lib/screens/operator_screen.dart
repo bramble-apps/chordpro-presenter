@@ -2744,7 +2744,7 @@ class _CapoButton extends StatelessWidget {
         onPressed: () => _openCapoNeck(context),
         onLongPress: () async {
           final v = await _menuFrom(context, [
-            for (var i = 0; i <= 9; i++)
+            for (var i = 0; i <= capoMax; i++)
               CheckedPopupMenuItem<int>(
                 value: i,
                 checked: i == capo,
