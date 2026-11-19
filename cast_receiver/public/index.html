@@ -17,6 +17,11 @@
                                         as soon as complete
     {type:'media', youtube}             play that YouTube video over the
                                         slides (null: stop, back to them)
+    {type:'bg', spec}                   an animated wallpaper drawn here
+                                        behind the slides (dynamic_bg.js;
+                                        spec from DynamicRenderer.castSpec),
+                                        the slides then sent see-through;
+                                        spec null: none
     {type:'open', url}                  show that page instead (the web
                                         version's live projector, served by
                                         the computer on the local network)
@@ -26,11 +31,17 @@
 <meta charset="utf-8">
 <title>ChordPro Presenter</title>
 <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<script src="dynamic_bg.js"></script>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   /* The picture's frame (its shape fitted to the screen): slides and the
      live text sit in it. */
   #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  #bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; transition: opacity 0.6s ease;
+  }
+  #bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
   #stage img {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: contain; opacity: 0;
@@ -47,7 +58,7 @@
 </style>
 </head>
 <body>
-<div id="stage"></div>
+<div id="stage"><div id="bg"><canvas></canvas><canvas></canvas></div></div>
 <div id="media"></div>
 <script>
   'use strict';
@@ -70,6 +81,12 @@
       img.style.opacity = 1;
       var old = shown;
       shown = img;
+      // See-through slides over a wallpaper: the old one fades out as the
+      // new one fades in (opaque ones just get covered).
+      if (old && bgSpec) {
+        old.style.transitionDuration = t + 's';
+        old.style.opacity = 0;
+      }
       setTimeout(function () {
         if (old && old.parentNode) old.parentNode.removeChild(old);
       }, t * 1000 + 100);
@@ -172,6 +189,89 @@
     for (var i = 0; i < live.length; i++) live[i].el.style.visibility = on ? '' : 'hidden';
   }
 
+  // ---- An animated wallpaper, drawn here ----
+  // At the screen's full resolution. A frame that takes longer than a
+  // screen refresh is drawn a few rows at a time between refreshes, then
+  // fades in over the last one while the next is drawn, so the motion
+  // stays smooth however long a frame takes.
+  var bgCanvas = document.getElementById('bg');
+  var bgLayers = bgCanvas.getElementsByTagName('canvas');
+  var bgSpec = null, bgKey = null, bgRenderer = null, bgImage = null;
+  var bgStart = 0, bgHidden = false, bgNext = 0, bgZ = 0;
+  var bgRow = 0, bgBegan = 0, bgDone = 0, bgTook = 0;
+  function bgSize() {
+    // (Cast pages show at most 1080p, even on a 4K TV.)
+    var sw = parseFloat(stage.style.width), sh = parseFloat(stage.style.height);
+    var dpr = Math.min(window.devicePixelRatio || 1, 1920 / sw);
+    var w = Math.max(2, Math.round(sw * dpr)), h = Math.max(2, Math.round(sh * dpr));
+    if (!bgRenderer || bgRenderer.w !== w || bgRenderer.h !== h) {
+      bgRenderer = new DynamicRenderer(bgSpec, w, h);
+      bgImage = new ImageData(w, h);
+      bgRow = 0;
+    }
+  }
+  function bgShow(took) {
+    var c = bgLayers[bgNext];
+    bgNext ^= 1;
+    if (c.width !== bgImage.width || c.height !== bgImage.height) {
+      c.width = bgImage.width;
+      c.height = bgImage.height;
+    }
+    c.getContext('2d').putImageData(bgImage, 0, 0);
+    c.style.zIndex = ++bgZ;
+    c.style.transition = 'none';
+    c.style.opacity = 0;
+    void c.offsetWidth;
+    // Fade in over about as long as the next frame will take to draw.
+    c.style.transition = took > 40 ? 'opacity ' + Math.round(took) + 'ms linear' : 'none';
+    c.style.opacity = 1;
+  }
+  function bgFrame() {
+    if (!bgSpec) return;
+    requestAnimationFrame(bgFrame);
+    if (bgHidden) return;
+    bgSize();
+    var r = bgRenderer, t0 = performance.now();
+    if (bgRow === 0) {
+      bgBegan = t0;
+      // Drawn for when it'll be fully shown (it fades in over a frame).
+      r.begin((t0 - bgStart + bgTook) / 1000);
+    }
+    // About 20 ms of drawing per refresh, in thin strips.
+    var step = Math.max(1, Math.round(r.h / 90));
+    while (bgRow < r.h) {
+      var y1 = Math.min(r.h, bgRow + step);
+      r.rows(bgRow, y1, bgImage.data);
+      bgRow = y1;
+      if (performance.now() - t0 > 20) break;
+    }
+    if (bgRow >= r.h) {
+      bgRow = 0;
+      var now = performance.now();
+      bgTook = bgDone ? Math.min(now - bgBegan, 10000) : 0;
+      bgDone = now;
+      bgShow(bgTook);
+    }
+  }
+  function setBg(m) {
+    var spec = m.spec || null;
+    var key = spec ? JSON.stringify(spec) : null;
+    if (key === bgKey) return;
+    var was = bgSpec;
+    bgKey = key;
+    bgSpec = spec;
+    bgRenderer = null;
+    bgDone = 0;
+    if (!spec) { bgCanvas.style.opacity = 0; return; }
+    if (!was) bgStart = performance.now();
+    bgCanvas.style.opacity = bgHidden ? 0 : 1;
+    if (!was) requestAnimationFrame(bgFrame);
+  }
+  function bgVisible(on) {
+    bgHidden = !on;
+    bgCanvas.style.opacity = on && bgSpec ? 1 : 0;
+  }
+
   // ---- YouTube from the media library ----
   var media = document.getElementById('media');
   var playing = null;
@@ -198,14 +298,16 @@
       return;
     }
     if (m.type === 'put') { if (!ready[m.id]) piece(m.id, m); return; }
-    if (m.type === 'show') { showId(m.id, m.t || 0); liveVisible(true); return; }
+    if (m.type === 'show') { showId(m.id, m.t || 0); liveVisible(true); bgVisible(true); return; }
     if (m.type === 'overlay') { setOverlay(m); return; }
     if (m.type === 'media') { setMedia(m); return; }
+    if (m.type === 'bg') { setBg(m); return; }
     if (m.type === 'clear') {
       want = null;
       showing = null;
       if (shown) { shown.style.transitionDuration = '0.3s'; shown.style.opacity = 0; }
       liveVisible(false);
+      bgVisible(false);
       return;
     }
     if (m.type === 'slide') { // older apps

@@ -31,6 +31,10 @@ Future<List<SlideImage>> captureSlides(
   /// How long the first slide waits for its background and fonts (later
   /// captures of the same song can wait less: they're already loaded).
   Duration firstWait = const Duration(milliseconds: 500),
+
+  /// Leave the background out (see-through pictures, for a TV that draws
+  /// the animated wallpaper itself).
+  bool noBackground = false,
 }) async {
   final overlay = Overlay.of(context, rootOverlay: true);
   final key = GlobalKey();
@@ -62,6 +66,7 @@ Future<List<SlideImage>> captureSlides(
                   projectorFont: font,
                   blackout: false,
                   stage: stage,
+                  noBackground: noBackground,
                   ink: ink == null || i >= ink.length ? null : [ink[i]],
                 ),
               ),

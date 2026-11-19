@@ -111,9 +111,14 @@ class ProjectionData {
   /// its still picture (the projector plays the sound).
   final bool preview;
 
+  /// Lyrics with no background behind them (see-through): for a TV that
+  /// draws the animated wallpaper itself.
+  final bool noBackground;
+
   const ProjectionData({
     this.live,
     this.preview = false,
+    this.noBackground = false,
     this.lowPower = false,
     required this.settings,
     required this.slides,
@@ -375,28 +380,33 @@ class _LyricsView extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ColoredBox(color: s.bgColor),
-        AnimatedSwitcher(
-          duration: Duration(milliseconds: (s.bgTransition * 1000).round()),
-          child: media != null
-              ? MediaBackground(
-                  key: ValueKey(media.id),
-                  media: media,
-                  fit: s.bgFit,
-                )
-              : dynamicBg != null
-              ? DynamicBackground(
-                  key: ValueKey('dynamic ${dynamicBg.name}'),
-                  bg: dynamicBg,
-                  // The operator's small copy moves only if asked to.
-                  animate:
-                      !still && motion && (!data.preview || s.bgDynamicPreview),
-                  // Fewer pixels for the small copy and on slow devices
-                  // (a still is drawn once, and may be cast or exported).
-                  pixels: !still && (data.preview || data.lowPower) ? 320 : 480,
-                )
-              : const SizedBox.expand(key: ValueKey('none')),
-        ),
+        if (!data.noBackground) ColoredBox(color: s.bgColor),
+        if (!data.noBackground)
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: (s.bgTransition * 1000).round()),
+            child: media != null
+                ? MediaBackground(
+                    key: ValueKey(media.id),
+                    media: media,
+                    fit: s.bgFit,
+                  )
+                : dynamicBg != null
+                ? DynamicBackground(
+                    key: ValueKey('dynamic ${dynamicBg.name}'),
+                    bg: dynamicBg,
+                    // The operator's small copy moves only if asked to.
+                    animate:
+                        !still &&
+                        motion &&
+                        (!data.preview || s.bgDynamicPreview),
+                    // Fewer pixels for the small copy and on slow devices
+                    // (a still is drawn once, and may be cast or exported).
+                    pixels: !still && (data.preview || data.lowPower)
+                        ? 320
+                        : 480,
+                  )
+                : const SizedBox.expand(key: ValueKey('none')),
+          ),
         if (s.bgDim > 0)
           ColoredBox(color: s.bgDimColor.withValues(alpha: s.bgDim / 100)),
         if (overlayGradient(s) case final g?)

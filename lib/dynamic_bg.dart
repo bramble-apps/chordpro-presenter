@@ -430,6 +430,46 @@ class DynamicRenderer {
     }
   }
 
+  /// Everything this draws from, worked out: the TV draws the same frames
+  /// from it (cast_receiver/public/dynamic_bg.js, a copy of this class).
+  static Map<String, Object> castSpec(DynamicBg bg) {
+    final r = DynamicRenderer(bg, 16, 9);
+    return {
+      'family': r._fam.name,
+      'factor': r._factor,
+      'stops': [...r._stops],
+      'n': {
+        'speed': r._speed,
+        'scale': r._scale,
+        'angle': r._angle,
+        'contrast': r._contrast,
+        'brightness': r._brightness,
+        'saturation': r._saturation,
+        'gamma': r._gamma,
+        'grain': r._grain,
+        'grainSpeed': r._grainSpeed,
+        'paletteOffset': r._paletteOffset,
+        'amp': r._amp,
+        'octaves': r._octaves,
+        'noiseScale': r._noiseScale,
+        'noiseSpeed': r._noiseSpeed,
+        'movement': r._movement,
+        'fogDistance': r._fogDistance,
+        'fogPower': r._fogPower,
+        'zoom': r._zoom,
+        'density': r._density,
+        'waveAmp': r._waveAmp,
+        'envelope': r._envelope,
+        'yOffset': r._yOffset,
+        'blur': r._blur,
+        'opacity': r._opacity,
+        'offset': r._offset,
+      },
+      'multiply': r._multiply,
+      'bg': [r._bgR, r._bgG, r._bgB],
+    };
+  }
+
   /// The whole frame at time [t] (seconds), as RGBA bytes.
   static Uint8List frame(DynamicBg bg, double t, int w, int h) {
     final r = DynamicRenderer(bg, w, h)..begin(t);

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import 'dynamic_bg.dart';
 import 'media.dart';
 import 'media_library.dart';
 import 'projection.dart';
@@ -72,6 +73,11 @@ class SlideCaster {
   /// Plays YouTube video [youtube] over the slides on the TV (null: stops).
   Future<void> media({String? youtube}) =>
       _send({'type': 'media', 'youtube': youtube});
+
+  /// An animated wallpaper the TV draws itself behind the slides
+  /// ([DynamicRenderer.castSpec]; null: none).
+  Future<void> background(Map<String, Object>? spec) =>
+      _send({'type': 'bg', 'spec': spec});
 
   Future<bool> _send(Map<String, Object?> message) async {
     try {
@@ -159,6 +165,17 @@ class _CastFeederState extends State<CastFeeder> {
   /// The library media last sent ('' for none).
   String _liveSent = '';
 
+  /// The wallpaper recipe the TV has (null: unknown, '' for none).
+  String? _bgSent;
+
+  /// An animated wallpaper the TV draws itself (the lyrics look only; the
+  /// stage view is one picture).
+  DynamicBg? get _tvWallpaper {
+    final s = model.shownProjection;
+    if (model.projection.view == ProjectionView.stage) return null;
+    return s.bgType == BackgroundType.dynamic ? s.bgDynamic : null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -190,7 +207,20 @@ class _CastFeederState extends State<CastFeeder> {
   void _connected() {
     // A new connection starts empty: send everything again.
     _shown = null;
+    _bgSent = null;
     _changed();
+  }
+
+  /// Tells the TV which wallpaper to draw, when that changed.
+  Future<void> _sendWallpaper() async {
+    final c = caster;
+    if (c == null) return;
+    final bg = _tvWallpaper;
+    final spec = bg == null ? null : DynamicRenderer.castSpec(bg);
+    final key = spec == null ? '' : jsonEncode(spec);
+    if (key == _bgSent) return;
+    _bgSent = key;
+    await c.background(spec);
   }
 
   String _lookNow() => jsonEncode([
@@ -228,6 +258,7 @@ class _CastFeederState extends State<CastFeeder> {
         _look = look;
         _drawn.clear();
         _shown = null;
+        _sendWallpaper();
       }
       _show();
       _drawAll();
@@ -264,6 +295,7 @@ class _CastFeederState extends State<CastFeeder> {
       return;
     }
     _look ??= _lookNow();
+    if (_bgSent == null) await _sendWallpaper();
     final id = _id(_index);
     if (id == _shown) return;
     _shown = id;
@@ -324,6 +356,8 @@ class _CastFeederState extends State<CastFeeder> {
                   stage: model.stageData,
                   width: 1280,
                   firstWait: wait,
+                  // Over a wallpaper the TV draws: see-through.
+                  noBackground: _tvWallpaper != null,
                   ink: [for (final i in batch) model.slideInk[i]],
                 ))
                   image.png,
