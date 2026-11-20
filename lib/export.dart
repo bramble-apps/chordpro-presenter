@@ -777,6 +777,7 @@ Future<void> addPdfPages(
   pw.Widget footerFor(int page, int pages) => pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
+      pw.SizedBox(height: 12),
       if (!f[SheetElement.footer].hidden && footer.isNotEmpty)
         pw.Text(
           f[SheetElement.footer].apply(footer.join('\n')),
@@ -819,9 +820,11 @@ Future<void> addPdfPages(
           : PdfPageFormat.letter,
       margin: const pw.EdgeInsets.all(40),
       theme: textTheme,
+      // (a gap above it: the last lines never run into the footer)
       footer: (context) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
+          pw.SizedBox(height: 12),
           if (!f[SheetElement.footer].hidden && footer.isNotEmpty)
             pw.Text(
               f[SheetElement.footer].apply(footer.join('\n')),
@@ -885,10 +888,10 @@ void _railPart(
   final middle = lines.length ~/ 2;
   children.removeRange(start, children.length);
   for (var i = 0; i < lines.length; i++) {
-    // (aligned: each line as wide as the page or column, so a right-hand
-    // rail runs straight)
+    // (each line as wide as the page or column, so a right-hand rail runs
+    // straight; only as tall as the line, or the last one on a page would
+    // stretch down into the footer)
     final line = pw.Container(
-      alignment: pw.Alignment.topLeft,
       margin: left
           ? pw.EdgeInsets.only(left: gutter / 2)
           : pw.EdgeInsets.only(right: gutter / 2),
@@ -898,11 +901,17 @@ void _railPart(
       decoration: pw.BoxDecoration(
         border: left ? pw.Border(left: rail) : pw.Border(right: rail),
       ),
-      child: lines[i],
+      child: pw.Align(
+        alignment: pw.Alignment.topLeft,
+        heightFactor: 1,
+        child: lines[i],
+      ),
     );
+    // (inseparable: a line moves to the next page whole, not leaving an
+    // empty piece of rail behind)
     children.add(
       i != middle
-          ? line
+          ? pw.Inseparable(child: line)
           : pw.Stack(
               children: [
                 line,
