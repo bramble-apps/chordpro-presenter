@@ -509,7 +509,9 @@ class _ZoomablePagesState extends State<ZoomablePages>
     _snap.stop();
     _pinchBy(factor, at, at);
     _settle?.cancel();
-    _settle = Timer(const Duration(milliseconds: 160), () {
+    // (a browser's trackpad pinch has no end of its own: over once the
+    // steps have stopped a while, not at a short pause mid-pinch)
+    _settle = Timer(const Duration(milliseconds: 450), () {
       if (mounted) _ended(at);
     });
   }
@@ -589,50 +591,49 @@ class _ZoomablePagesState extends State<ZoomablePages>
             child: SingleChildScrollView(
               controller: widget.controller,
               physics: scroll,
-              padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom),
-              child: SingleChildScrollView(
-                controller: _across,
-                physics: scroll,
-                scrollDirection: Axis.horizontal,
-                // (not cut off at the top padding: the pages run up behind
-                // the toolbars; the window's own edges clip them)
-                clipBehavior: Clip.none,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: room),
-                  // Ctrl (⌘) + the wheel, or a browser's trackpad pinch:
-                  // zoom about the pointer (caught here, inside the scroll
-                  // views, so it isn't a scroll)
-                  child: Listener(
-                    onPointerSignal: (e) {
-                      Offset here() {
-                        final at = context.findRenderObject() as RenderBox?;
-                        return at?.globalToLocal(e.position) ?? Offset.zero;
-                      }
+              // Ctrl (⌘) + the wheel, or a browser's trackpad pinch: zoom
+              // about the pointer, wherever it is in the view (the band
+              // above the first page too); caught here, inside the scroll
+              // views, so it isn't taken as a scroll.
+              child: Listener(
+                behavior: HitTestBehavior.opaque,
+                onPointerSignal: (e) {
+                  Offset here() {
+                    final at = context.findRenderObject() as RenderBox?;
+                    return at?.globalToLocal(e.position) ?? Offset.zero;
+                  }
 
-                      if (e is PointerScaleEvent) {
-                        GestureBinding.instance.pointerSignalResolver.register(
-                          e,
-                          (_) => _zoomStep(e.scale, here()),
-                        );
-                        return;
-                      }
-                      if (e is! PointerScrollEvent) return;
-                      final keys = HardwareKeyboard.instance;
-                      if (!keys.isControlPressed && !keys.isMetaPressed) {
-                        return;
-                      }
-                      GestureBinding.instance.pointerSignalResolver.register(
-                        e,
-                        (_) => _zoomStep(
-                          math.exp(-e.scrollDelta.dy / 300),
-                          here(),
-                        ),
-                      );
-                    },
-                    // (centred in the room while narrower than it)
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: widget.builder(scale, content, _laidOut),
+                  if (e is PointerScaleEvent) {
+                    GestureBinding.instance.pointerSignalResolver.register(
+                      e,
+                      (_) => _zoomStep(e.scale, here()),
+                    );
+                    return;
+                  }
+                  if (e is! PointerScrollEvent) return;
+                  final keys = HardwareKeyboard.instance;
+                  if (!keys.isControlPressed && !keys.isMetaPressed) return;
+                  GestureBinding.instance.pointerSignalResolver.register(
+                    e,
+                    (_) => _zoomStep(math.exp(-e.scrollDelta.dy / 300), here()),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom),
+                  child: SingleChildScrollView(
+                    controller: _across,
+                    physics: scroll,
+                    scrollDirection: Axis.horizontal,
+                    // (not cut off at the top padding: the pages run up
+                    // behind the toolbars; the window's own edges clip them)
+                    clipBehavior: Clip.none,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: room),
+                      // (centred in the room while narrower than it)
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: widget.builder(scale, content, _laidOut),
+                      ),
                     ),
                   ),
                 ),

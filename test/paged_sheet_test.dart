@@ -148,4 +148,29 @@ void main() {
     ));
     expect(t.widget<SingleChildScrollView>(clip).clipBehavior, Clip.none);
   });
+
+  testWidgets('a trackpad pinch works from the top, unscrolled, even above the first page', (t) async {
+    t.view.physicalSize = const Size(1000, 700);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final c = ScrollController();
+    await t.pumpWidget(pages(c));
+    expect(c.offset, 0);
+    // in the band above the page (the top padding), then on the page
+    for (final at in [const Offset(500, 8), const Offset(500, 200)]) {
+      pageZoom.value = 1;
+      await t.pump();
+      for (var i = 0; i < 4; i++) {
+        t.binding.handlePointerEvent(PointerScaleEvent(position: at, scale: 1.1));
+        await t.pump(const Duration(milliseconds: 16));
+      }
+      expect(pageZoom.value, closeTo(1.46, .01), reason: '$at');
+      // a short pause mid-pinch isn't its end (no snapping back yet)
+      await t.pump(const Duration(milliseconds: 250));
+      expect(pageZoom.value, closeTo(1.46, .01), reason: '$at, paused');
+      // (and over once it has stopped a while)
+      await t.pump(const Duration(milliseconds: 500));
+      await t.pumpAndSettle();
+    }
+  });
 }
