@@ -24,6 +24,10 @@ import '../eink.dart';
 /// Formatted chord sheet: title/artist/details on top, sections (tap one to
 /// centre it), chords above or inline with the lyrics, key changes from the
 /// song structure, notes and a copyright footer — styled by [SheetFormat].
+/// Screen pixels a point: the Format pane's sizes are points, drawn at
+/// their real size (as a document app does at 100 %).
+const pointPixels = 4 / 3;
+
 /// How a [ChordSheet] below sits in its screen: [framed] (a card with a
 /// border, the default) or full-bleed under floating toolbars, with its
 /// content kept [inset] from the edges (clear of the toolbars) and
@@ -397,10 +401,14 @@ class _ChordSheetState extends State<ChordSheet>
   bool _inLinked = false;
 
   TextStyle _style(SheetElement e, {Color? color, bool chord = false}) {
-    var st = format[e].textStyle(
-      color: color,
-      family: chord ? widget.chordFamily : widget.textFamily,
-    );
+    // (sizes are points, as in a document: 12 is what 12 pt looks like at
+    // 100 %, 16 screen pixels)
+    var st = format[e]
+        .textStyle(
+          color: color,
+          family: chord ? widget.chordFamily : widget.textFamily,
+        )
+        .copyWith(fontSize: format[e].size * pointPixels);
     if (_inLinked) {
       st = format.linked.apply(
         st,

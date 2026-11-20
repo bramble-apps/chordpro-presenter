@@ -558,10 +558,12 @@ class _ZoomablePagesState extends State<ZoomablePages>
         // zoom 1: Fit Width
         _fit = math.max(0.1, room / widget.paperWidth);
         _room = room;
-        // At Fit Width the text is the size of the scroll view's: a page
-        // wider than the paper holds more instead of growing its text.
-        // (narrower, as on a phone, it just shrinks)
-        final content = _fit > 1 ? 1 / _fit : 1.0;
+        // The page laid out in points, its text at the sizes chosen (as
+        // printed), the same whatever the window (its line and page breaks
+        // stay put); it grows and shrinks with the page as a real one
+        // would. At 100 % (a point 4/3 of a pixel) its text is the scroll
+        // view's size; Fit Width is whatever fills the view.
+        const content = 3 / 4;
         final scale = _fit * pageZoom.value * content;
         final scroll = _pinching ? const NeverScrollableScrollPhysics() : null;
         return Listener(

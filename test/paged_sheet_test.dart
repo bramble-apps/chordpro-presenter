@@ -30,23 +30,26 @@ void main() {
     ),
   );
 
-  testWidgets('at first: Fit Width, the page edge to edge as in Pages', (t) async {
+  testWidgets('Fit Width: the page edge to edge, its content laid out once and scaled with it', (t) async {
     t.view.physicalSize = const Size(1000, 700);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     await t.pumpWidget(pages(ScrollController()));
-    const fit = 1000 / 600;
+    // the page as wide as the view
     expect(t.getRect(find.byType(PagedSheet)).left, 0);
     expect(t.getSize(find.byType(PagedSheet)).width, closeTo(1000, .5));
-    expect(t.getTopLeft(find.text('Line 0')).dx, closeTo(40 * fit, 1));
-    // the text at its own size (as in the scroll view), not 1.67 ×: the
-    // page holds more instead (20 lines of 60 a page, 2 pages, no gaps)
-    expect(t.getRect(find.text('Line 0')).height, closeTo(60, .5));
-    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(2 * 800 * fit, 1));
-    // a phone too
-    t.view.physicalSize = const Size(400, 700);
+    // laid out in points (a point 4/3 of a pixel at 100 %): 16 lines of 60
+    // a page, 3 pages; on a 1000-wide page (100 % would be 800) all of it
+    // 1.25 × its size
+    double line() => t.getRect(find.text('Line 0')).height;
+    expect(line(), closeTo(60 * 1.25, .5));
+    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(3 * 800 * 1000 / 600, 1));
+    // a narrower view: the same pages, smaller (not re-flowed)
+    t.view.physicalSize = const Size(450, 700);
     await t.pump();
-    expect(t.getSize(find.byType(PagedSheet)).width, closeTo(400, .5));
+    expect(t.getSize(find.byType(PagedSheet)).width, closeTo(450, .5));
+    expect(line(), closeTo(60 * 450 / 800, .5));
+    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(3 * 800 * 450 / 600, 1));
   });
 
   var fingers = 0;
@@ -91,7 +94,7 @@ void main() {
     await t.pumpAndSettle();
     expect(pageZoom.value, closeTo(.6, .01), reason: '2.4 × 25/100');
     // the whole page, half size, centred
-    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(200, t.getTopLeft(find.byType(PagedSheet)).dy, 600, 2 * 800 * 1000 / 600 * .6), epsilon: 1));
+    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(200, t.getTopLeft(find.byType(PagedSheet)).dy, 600, 3 * 800 * 1000 / 600 * .6), epsilon: 1));
   });
 
   testWidgets('let go close to fitting the width, it snaps back to it', (t) async {
