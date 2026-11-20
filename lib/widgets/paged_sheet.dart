@@ -1,6 +1,7 @@
 // The settable render properties keep private fields behind setters.
 // ignore_for_file: prefer_initializing_formals
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -29,8 +30,13 @@ class PagedSheet extends MultiChildRenderObjectWidget {
   final Color edgeColor;
   final double? scale;
 
+  /// Called at the end of each layout, with the sheet's new size (the zoom
+  /// sets its scroll there, in the same frame).
+  final VoidCallback? onLayout;
+
   const PagedSheet({
     this.scale,
+    this.onLayout,
     super.key,
     required this.paper,
     required this.columns,
@@ -54,7 +60,7 @@ class PagedSheet extends MultiChildRenderObjectWidget {
     pageColor: pageColor,
     edgeColor: edgeColor,
     scale: scale,
-  );
+  )..onLayout = onLayout;
 
   @override
   void updateRenderObject(BuildContext context, RenderPagedSheet renderObject) {
@@ -67,7 +73,8 @@ class PagedSheet extends MultiChildRenderObjectWidget {
       ..pageGap = pageGap
       ..pageColor = pageColor
       ..edgeColor = edgeColor
-      ..fixedScale = scale;
+      ..fixedScale = scale
+      ..onLayout = onLayout;
   }
 }
 
@@ -153,6 +160,7 @@ class RenderPagedSheet extends RenderBox
     markNeedsPaint();
   }
 
+  VoidCallback? onLayout;
   double? _fixedScale;
   set fixedScale(double? v) {
     if (v == _fixedScale) return;
@@ -242,6 +250,7 @@ class RenderPagedSheet extends RenderBox
     size = constraints.constrain(
       Size(width, (_pages * pageStride - _pageGap) * _scale),
     );
+    onLayout?.call();
   }
 
   Matrix4 get _transform => Matrix4.diagonal3Values(_scale, _scale, 1);
@@ -328,8 +337,9 @@ class ZoomablePages extends StatefulWidget {
   final EdgeInsets padding;
   final double paperWidth;
 
-  /// The pages at a scale (screen pixels a point).
-  final Widget Function(double scale) builder;
+  /// The pages at a scale (screen pixels a point); [onLayout] goes to the
+  /// [PagedSheet].
+  final Widget Function(double scale, VoidCallback onLayout) builder;
 
   const ZoomablePages({
     super.key,
@@ -354,6 +364,10 @@ class _ZoomablePagesState extends State<ZoomablePages> {
   Offset _focal = Offset.zero;
   double _fit = 1;
   double _room = 0;
+  // where to scroll once laid out at a new zoom (down, across)
+  (double, double)? _pending;
+  // the wheel / trackpad pinch settling once it stops
+  Timer? _settle;
 
   @override
   void initState() {
@@ -364,6 +378,7 @@ class _ZoomablePagesState extends State<ZoomablePages> {
   @override
   void dispose() {
     pageZoom.removeListener(_changed);
+    _settle?.cancel();
     _across.dispose();
     super.dispose();
   }
@@ -397,25 +412,52 @@ class _ZoomablePagesState extends State<ZoomablePages> {
     final top = widget.padding.top, left = widget.padding.left;
     final vAt = v.hasClients ? v.offset : 0.0;
     final hAt = h.hasClients ? h.offset : 0.0;
+    // (across, the page is centred while narrower than the room: the point
+    // is taken from the page's own edge)
+    double centred(double z) =>
+        math.max(0, (_room - widget.paperWidth * _fit * z) / 2);
+    final onPage = hAt + from.dx - left - centred(z0);
+    _pending = (
+      (vAt + from.dy - top) * r + top - to.dy,
+      onPage * r + centred(z1) + left - to.dx,
+    );
+    // The new zoom, the scroll set as it's laid out (_laidOut) and the
+    // pinch's picture dropped, all in one frame: no flash in between.
     setState(() {
       _startDist = null;
       _pinch = 1;
     });
     pageZoom.value = z1;
+  }
+
+  /// The pages laid out (at a new zoom): the scroll that keeps the point,
+  /// set before this frame is painted.
+  void _laidOut() {
+    final want = _pending;
+    if (want == null) return;
+    _pending = null;
+    final v = widget.controller, h = _across;
+    if (v.hasClients) v.position.correctPixels(math.max(0, want.$1));
+    if (h.hasClients) h.position.correctPixels(math.max(0, want.$2));
+    // (past the end: back to it, once the new length is known)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (v.hasClients) {
-        final want = (vAt + from.dy - top) * r + top - to.dy;
-        v.jumpTo(want.clamp(0.0, v.position.maxScrollExtent));
+      for (final c in [v, h]) {
+        if (c.hasClients && c.offset > c.position.maxScrollExtent) {
+          c.jumpTo(c.position.maxScrollExtent);
+        }
       }
-      if (h.hasClients) {
-        // (across, the page is centred while narrower than the room: the
-        // point is taken from the page's own edge)
-        double centred(double z) =>
-            math.max(0, (_room - widget.paperWidth * _fit * z) / 2);
-        final onPage = hAt + from.dx - left - centred(z0);
-        final want = onPage * r + centred(z1) + left - to.dx;
-        h.jumpTo(want.clamp(0.0, h.position.maxScrollExtent));
-      }
+    });
+  }
+
+  /// A wheel step with Ctrl, or a trackpad pinch (which a browser sends as
+  /// zoom steps): scaled at once like a touch pinch, about the pointer, and
+  /// settled a moment after the last step.
+  void _zoomStep(double factor, Offset at) {
+    if (_startDist == null) _startPinch(at);
+    _movePinch(_pinch * factor, _startFocal);
+    _settle?.cancel();
+    _settle = Timer(const Duration(milliseconds: 160), () {
+      if (mounted) _commit(_pinch, _startFocal, _startFocal);
     });
   }
 
@@ -492,6 +534,9 @@ class _ZoomablePagesState extends State<ZoomablePages> {
                   controller: _across,
                   physics: scroll,
                   scrollDirection: Axis.horizontal,
+                  // (not cut off at the top padding: the pages run up behind
+                  // the toolbars; the window's own edges clip them)
+                  clipBehavior: Clip.none,
                   padding: EdgeInsets.only(left: pad.left, right: pad.right),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minWidth: room),
@@ -499,6 +544,17 @@ class _ZoomablePagesState extends State<ZoomablePages> {
                     // here, inside the scroll views, so it isn't a scroll)
                     child: Listener(
                       onPointerSignal: (e) {
+                        Offset here() {
+                          final at = context.findRenderObject() as RenderBox?;
+                          return at?.globalToLocal(e.position) ?? Offset.zero;
+                        }
+
+                        // a trackpad pinch in a browser (the desktop app)
+                        if (e is PointerScaleEvent) {
+                          GestureBinding.instance.pointerSignalResolver
+                              .register(e, (_) => _zoomStep(e.scale, here()));
+                          return;
+                        }
                         if (e is! PointerScrollEvent) return;
                         final keys = HardwareKeyboard.instance;
                         if (!keys.isControlPressed && !keys.isMetaPressed) {
@@ -506,21 +562,16 @@ class _ZoomablePagesState extends State<ZoomablePages> {
                         }
                         GestureBinding.instance.pointerSignalResolver.register(
                           e,
-                          (_) {
-                            final at = context.findRenderObject() as RenderBox?;
-                            final p = at?.globalToLocal(e.position) ?? Offset.zero;
-                            _commit(
-                              math.exp(-e.scrollDelta.dy / 300),
-                              p,
-                              p,
-                            );
-                          },
+                          (_) => _zoomStep(
+                            math.exp(-e.scrollDelta.dy / 300),
+                            here(),
+                          ),
                         );
                       },
                       // (centred in the room while narrower than it)
                       child: Align(
                         alignment: Alignment.topCenter,
-                        child: widget.builder(scale),
+                        child: widget.builder(scale, _laidOut),
                       ),
                     ),
                   ),

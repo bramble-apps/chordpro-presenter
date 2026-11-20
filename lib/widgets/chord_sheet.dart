@@ -700,9 +700,10 @@ class _ChordSheetState extends State<ChordSheet>
           controller: _scroll,
           padding: pad,
           paperWidth: layout.paper.width,
-          builder: (scale) => _withOverlay(
+          builder: (scale, laidOut) => _withOverlay(
             PagedSheet(
               scale: scale,
+              onLayout: laidOut,
               paper: layout.paper,
               columns: layout.columns,
               spanning: 1,

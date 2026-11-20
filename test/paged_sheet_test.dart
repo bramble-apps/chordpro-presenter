@@ -12,8 +12,9 @@ void main() {
         controller: c,
         padding: const EdgeInsets.all(16),
         paperWidth: 600,
-        builder: (scale) => PagedSheet(
+        builder: (scale, laidOut) => PagedSheet(
           scale: scale,
+          onLayout: laidOut,
           paper: const Size(600, 800),
           columns: 1,
           spanning: 0,
@@ -60,10 +61,44 @@ void main() {
     await t.pump();
     await a.up();
     await b.up();
-    await t.pumpAndSettle();
+    // the very next frame is already right: no flash of the old place
+    await t.pump();
     expect(pageZoom.value, closeTo(2, .01));
     // the point under the fingers is still under them
     final after = t.getTopLeft(find.text('Line 3'));
     expect(at - after, offsetMoreOrLessEquals((at - before) * 2, epsilon: 2));
+  });
+
+  testWidgets('a trackpad pinch (zoom steps from a browser) zooms smoothly and settles', (t) async {
+    t.view.physicalSize = const Size(1000, 700);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(pages(ScrollController()));
+    final at = t.getCenter(find.text('Line 3'));
+    for (var i = 0; i < 5; i++) {
+      t.binding.handlePointerEvent(PointerScaleEvent(position: at, scale: 1.1));
+      await t.pump(const Duration(milliseconds: 16));
+    }
+    // scaled on screen at once, the zoom itself settled a moment later
+    expect(pageZoom.value, 1);
+    await t.pump(const Duration(milliseconds: 200));
+    expect(pageZoom.value, closeTo(1.61, .01));
+  });
+
+  testWidgets('pages run up behind whatever is above them (not cut at the padding)', (t) async {
+    t.view.physicalSize = const Size(1000, 700);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final c = ScrollController();
+    await t.pumpWidget(pages(c));
+    c.jumpTo(60);
+    await t.pump();
+    // Line 0 now sits in the top padding, and is still painted there
+    final y = t.getTopLeft(find.text('Line 0')).dy;
+    expect(y, lessThan(16));
+    final clip = find.ancestor(of: find.text('Line 0'), matching: find.byWidgetPredicate(
+      (w) => w is SingleChildScrollView && w.scrollDirection == Axis.horizontal,
+    ));
+    expect(t.widget<SingleChildScrollView>(clip).clipBehavior, Clip.none);
   });
 }
