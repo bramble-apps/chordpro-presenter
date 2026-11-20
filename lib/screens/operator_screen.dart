@@ -2040,18 +2040,9 @@ class _OperatorScreenState extends State<OperatorScreen>
           // bars as before.)
           final fullBleed = !presenting && !eink;
           final scheme = Theme.of(context).colorScheme;
-          // (the halo is the colour of what's behind the toolbars: the
-          // sheet's page, or in page view the backdrop round the pages, in
-          // the sheet's own colours when the music isn't themed)
-          final song = model.currentSong;
-          final sheetScheme = model.settings.themeMusic
-              ? scheme
-              : neutralScheme(scheme.brightness, oled: model.settings.oled);
-          final behind = presenting
-              ? (pane > 0 ? scheme.surfaceContainerHigh : scheme.surface)
-              : song != null && model.layoutFor(song).pageMode
-              ? sheetScheme.surfaceContainer
-              : sheetScheme.surfaceContainerLowest;
+          final behind = pane > 0
+              ? scheme.surfaceContainerHigh
+              : scheme.surface;
           Widget halo(double right, double? top, double? bottom, Size size) =>
               Positioned(
                 right: right,
@@ -2113,14 +2104,13 @@ class _OperatorScreenState extends State<OperatorScreen>
                 ),
               ),
               if (pane > 0) _bottomPane(pane),
-              // A soft halo around the toolbars, so what scrolls behind them
-              // (slides, media, the sheet) doesn't run into their edges.
-              if ((presenting || (fullBleed && pane == 0)) &&
+              // A soft halo around the toolbar while presenting, so the slides
+              // and media behind it don't run into its edges. (Over the
+              // sheet: just the toolbars' own shadow.)
+              if (presenting &&
                   bottomBarSize.value != Size.zero &&
                   !isEink(context))
                 halo(barPad, null, barPad, bottomBarSize.value),
-              if (fullBleed && !_compact && _topBarSize.value != Size.zero)
-                halo(14, 12, null, _topBarSize.value),
               // E-ink: a plain plate instead (nothing shows round the
               // toolbar's edges, nothing is half hidden behind it).
               if (presenting &&

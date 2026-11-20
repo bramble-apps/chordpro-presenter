@@ -29,19 +29,21 @@ void main() {
     ),
   );
 
-  testWidgets('at first: fits the width, but text no bigger than the scroll view', (t) async {
+  testWidgets('at first: Fit Width, the page edge to edge as in Pages', (t) async {
     t.view.physicalSize = const Size(1000, 700);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     await t.pumpWidget(pages(ScrollController()));
-    // a wide window: the 600 pt page at true size, centred in the 968 of room
-    expect(t.getTopLeft(find.text('Line 0')).dx, closeTo(16 + 184 + 40, 1));
+    const fit = 1000 / 600;
+    expect(t.getRect(find.byType(PagedSheet)).left, 0);
+    expect(t.getSize(find.byType(PagedSheet)).width, closeTo(1000, .5));
+    expect(t.getTopLeft(find.text('Line 0')).dx, closeTo(40 * fit, 1));
     // 40 lines of 60 on 720-high columns: 12 a page, 4 pages, no gaps
-    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(4 * 800, 1));
-    // a narrow one (a phone): the page fits it
+    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(4 * 800 * fit, 1));
+    // a phone too
     t.view.physicalSize = const Size(400, 700);
     await t.pump();
-    expect(t.getSize(find.byType(PagedSheet)).width, closeTo(368, .5));
+    expect(t.getSize(find.byType(PagedSheet)).width, closeTo(400, .5));
   });
 
   var fingers = 0;
@@ -69,13 +71,13 @@ void main() {
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     // (from wider than the window: narrower, a page stays centred instead)
-    pageZoom.value = 1.7;
+    pageZoom.value = 1.2;
     await t.pumpWidget(pages(ScrollController()));
     final before = t.getTopLeft(find.text('Line 3'));
     final at = before + const Offset(300, 10);
     final (a, b) = await pinch(t, at, 50, 100, release: false);
     // already zoomed mid-pinch (laid out, not a scaled picture)
-    expect(pageZoom.value, closeTo(3.4, .01));
+    expect(pageZoom.value, closeTo(2.4, .01));
     final after = t.getTopLeft(find.text('Line 3'));
     expect(at - after, offsetMoreOrLessEquals((at - before) * 2, epsilon: 2));
     await a.up();
@@ -84,9 +86,9 @@ void main() {
     // zooming out shows the whole page, not the old view shrunk
     await pinch(t, at, 100, 25);
     await t.pumpAndSettle();
-    expect(pageZoom.value, closeTo(.85, .01), reason: '3.4 × 25/100');
+    expect(pageZoom.value, closeTo(.6, .01), reason: '2.4 × 25/100');
     // the whole page, half size, centred
-    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(16 + (968 - 510) / 2, t.getTopLeft(find.byType(PagedSheet)).dy, 510, 4 * 800 * .85), epsilon: 1));
+    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(200, t.getTopLeft(find.byType(PagedSheet)).dy, 600, 4 * 800 * 1000 / 600 * .6), epsilon: 1));
   });
 
   testWidgets('let go close to fitting the width, it snaps back to it', (t) async {

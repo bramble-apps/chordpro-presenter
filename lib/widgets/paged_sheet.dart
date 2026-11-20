@@ -337,8 +337,8 @@ class RenderPagedSheet extends RenderBox
 }
 
 /// The page view's zoom, shared by every song (kept as you swipe between
-/// them): 1 fits the page to the width, but never larger than the scroll
-/// view's text (a wide window: the page centred at that size).
+/// them): 1 is Fit Width, as in Pages: the page spans the view, edge to
+/// edge.
 final pageZoom = ValueNotifier<double>(1);
 
 /// Pages that scroll and zoom like Bramble Pages': a pinch (or a trackpad
@@ -419,7 +419,9 @@ class _ZoomablePagesState extends State<ZoomablePages>
     if (z1 == z0 && from == to) return;
     final r = z1 / z0;
     final v = widget.controller, h = _across;
-    final top = widget.padding.top, left = widget.padding.left;
+    // (across, the pages run edge to edge: no padding)
+    final top = widget.padding.top;
+    const left = 0.0;
     // (from where the last step left it, if it isn't laid out yet)
     final vAt = _pending?.$1 ?? (v.hasClients ? v.offset : 0.0);
     final hAt = _pending?.$2 ?? (h.hasClients ? h.offset : 0.0);
@@ -523,10 +525,10 @@ class _ZoomablePagesState extends State<ZoomablePages>
     final pad = widget.padding;
     return LayoutBuilder(
       builder: (context, box) {
-        final room = box.maxWidth - pad.horizontal;
-        // zoom 1: the page fits the width, its text at most the scroll
-        // view's size
-        _fit = (room / widget.paperWidth).clamp(0.1, 1.0);
+        // (Fit Width: the whole width, edge to edge, as in Pages)
+        final room = box.maxWidth;
+        // zoom 1: Fit Width
+        _fit = math.max(0.1, room / widget.paperWidth);
         _room = room;
         final scale = _fit * pageZoom.value;
         final scroll = _pinching ? const NeverScrollableScrollPhysics() : null;
@@ -563,7 +565,6 @@ class _ZoomablePagesState extends State<ZoomablePages>
                 // (not cut off at the top padding: the pages run up behind
                 // the toolbars; the window's own edges clip them)
                 clipBehavior: Clip.none,
-                padding: EdgeInsets.only(left: pad.left, right: pad.right),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minWidth: room),
                   // Ctrl (⌘) + the wheel, or a browser's trackpad pinch:
