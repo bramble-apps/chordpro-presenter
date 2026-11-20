@@ -648,6 +648,82 @@ class _OperatorScreenState extends State<OperatorScreen>
     });
   }
 
+  // The window crossing the narrow width (760): the docked sidebar slides
+  // away first and then the drawer layout takes over (the song already
+  // filling the window, so nothing jumps); widening, the docked layout comes
+  // back with the sidebar slid out and it slides in. Changing direction
+  // half way turns the slide round.
+  bool? _narrowShown;
+  var _leaving = false;
+  double _width = 0;
+
+  bool _narrowFor(double width) {
+    _width = width;
+    final want = width < 760;
+    final shown = _narrowShown;
+    if (shown == null) return _narrowShown = want;
+    final instant =
+        isEink(context) ||
+        model.settings.floatingSidebar ||
+        MediaQuery.disableAnimationsOf(context);
+    if (want == shown) {
+      // (sliding away, and wide again: back in)
+      if (!want && _leaving) {
+        _leaving = false;
+        _later(() {
+          if (_sidebarOpen) _slideSide(1);
+        });
+      }
+      return shown;
+    }
+    if (want) {
+      if (instant || _side.value == 0) return _narrowShown = true;
+      if (!_leaving) {
+        _leaving = true;
+        _later(() {
+          _slideSide(0).whenCompleteOrCancel(() {
+            if (!_leaving || !mounted) return;
+            _leaving = false;
+            // (still narrow: the drawer layout now)
+            if (_width < 760) setState(() => _narrowShown = true);
+          });
+        });
+      }
+      return false;
+    }
+    // widening: the docked layout, the sidebar sliding in
+    _narrowShown = false;
+    _leaving = false;
+    if (instant || !_sidebarOpen) {
+      _side.value = _sidebarOpen ? 1 : 0;
+    } else {
+      _side.value = 0;
+      _later(() => _slideSide(1));
+    }
+    return false;
+  }
+
+  void _later(VoidCallback f) =>
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) f();
+      });
+
+  /// The docked sidebar sliding to [to] (1 in, 0 out) with Notes' motion.
+  TickerFuture _slideSide(double to) {
+    _markSliding();
+    return to > _side.value
+        ? _side.animateTo(
+            to,
+            duration: const Duration(milliseconds: 250),
+            curve: _NotesSlide.show,
+          )
+        : _side.animateBack(
+            to,
+            duration: const Duration(milliseconds: 217),
+            curve: _NotesSlide.hide,
+          );
+  }
+
   void _toggleSidebar(bool narrow) {
     _markSliding();
     if (narrow) {
@@ -786,7 +862,7 @@ class _OperatorScreenState extends State<OperatorScreen>
         builder: (context, constraints) {
           if (!model.projectorActive) _previewHidden = false;
           final extras = StyleExtras.of(context);
-          final narrow = constraints.maxWidth < 760;
+          final narrow = _narrowFor(constraints.maxWidth);
           final floating = model.settings.floatingSidebar && !narrow;
           final sidebar = ValueListenableBuilder<bool>(
             valueListenable: _sliding,
@@ -1644,7 +1720,14 @@ class _OperatorScreenState extends State<OperatorScreen>
   /// The top toolbar's buttons. Given the [width] there is, the ones that
   /// don't fit go into the ⋯ menu (from the end) instead of off the edge.
   List<Widget> _topActions(bool narrow, Song? song, {double? width}) {
-    final layout = toolbarLayout(model.settings, compact: _compact);
+    // (the usual toolbar folds by width, not at a breakpoint: as the window
+    // narrows, buttons go into ⋯ one by one; one the person arranged keeps
+    // its own phone layout)
+    final custom = model.settings.toolbarBar != null;
+    final layout = toolbarLayout(
+      model.settings,
+      compact: custom ? _compact : false,
+    );
     var bar = [
       for (final id in layout.bar)
         if (_toolShown(id, song)) id,
@@ -1662,8 +1745,16 @@ class _OperatorScreenState extends State<OperatorScreen>
       final room = (width / each).floor();
       if (bar.length + (more.isEmpty ? 0 : 1) > room) {
         final keep = math.max(0, math.min(bar.length, room - 1));
-        more = [...bar.sublist(keep), ...more];
-        bar = bar.sublist(0, keep);
+        // the least-needed first (the ones a phone keeps in ⋯), then the
+        // rest from the end
+        final essentials = defaultToolbar(compact: true).bar;
+        final order = [
+          ...bar.reversed.where((id) => !essentials.contains(id)),
+          ...bar.reversed.where(essentials.contains),
+        ];
+        final fold = order.take(bar.length - keep).toSet();
+        more = [...bar.where(fold.contains), ...more];
+        bar = [...bar.where((id) => !fold.contains(id))];
       }
     }
     return [
@@ -2141,42 +2232,43 @@ class _OperatorScreenState extends State<OperatorScreen>
               Positioned(
                 top: eink ? em : 12,
                 // (E-ink: past the sidebar button by the same margin.)
-                left: _compact ? (eink ? em * 2 + 48 : 64) : null,
+                left: eink ? em * 2 + 48 : 64,
                 right: eink ? em : (_compact ? 8 : 14),
-                child: _ReportSize(
-                  size: _topBarSize,
-                  child: _compact
-                      ? LayoutBuilder(
-                          // Phones: what doesn't fit goes into ⋯.
-                          builder: (context, c) => _BarFit(
-                            child: _Pill(
-                              stretch: eink,
-                              children: _topActions(
-                                narrow,
-                                song,
-                                width: c.maxWidth - 8,
-                              ),
-                            ),
-                          ),
-                        )
-                      : _Pill(children: _topActions(narrow, song)),
+                // What doesn't fit goes into ⋯, a button at a time as the
+                // window narrows (no jump at a breakpoint).
+                child: LayoutBuilder(
+                  builder: (context, c) => _BarFit(
+                    einkFill: _compact,
+                    child: _ReportSize(
+                      size: _topBarSize,
+                      child: _Pill(
+                        stretch: eink && _compact,
+                        children: _topActions(
+                          narrow,
+                          song,
+                          width: c.maxWidth - 8,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               ...annotating(const EdgeInsets.fromLTRB(16, 64, 16, 150)),
               Positioned(
-                left: _compact ? (eink ? em : 8) : null,
+                left: eink ? em : 8,
                 right: eink ? em : barPad,
                 bottom: eink ? em : barPad,
-                child: _ReportSize(
-                  size: bottomBarSize,
-                  child: _compact
-                      ? _BarFit(
-                          child: _Pill(
-                            stretch: eink,
-                            children: _bottomActions(song),
-                          ),
-                        )
-                      : _Pill(children: _bottomActions(song)),
+                // (scrolls sideways once it no longer fits: the same at any
+                // width until then, no jump at a breakpoint)
+                child: _BarFit(
+                  einkFill: _compact,
+                  child: _ReportSize(
+                    size: bottomBarSize,
+                    child: _Pill(
+                      stretch: eink && _compact,
+                      children: _bottomActions(song),
+                    ),
+                  ),
                 ),
               ),
               // Above the bottom toolbar, on top of everything.
@@ -3008,7 +3100,10 @@ extension on _CapoButton {
 /// doesn't (phones, or when the metronome / autoscroll controls open out).
 class _BarFit extends StatelessWidget {
   final Widget child;
-  const _BarFit({required this.child});
+
+  /// E-ink: spread edge to edge (phones); else at its own size.
+  final bool einkFill;
+  const _BarFit({required this.child, this.einkFill = true});
 
   @override
   Widget build(BuildContext context) => Align(
@@ -3016,7 +3111,7 @@ class _BarFit extends StatelessWidget {
     // E-ink: never a strip to scroll; it shrinks to fit instead.
     // (Edge to edge, its buttons spread evenly, so it lines up with the
     // sheet under it.)
-    child: isEink(context)
+    child: isEink(context) && einkFill
         ? LayoutBuilder(
             builder: (context, c) => FittedBox(
               fit: BoxFit.scaleDown,
