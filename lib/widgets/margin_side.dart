@@ -33,8 +33,8 @@ class MarginSidePicker extends StatelessWidget {
   );
 }
 
-/// A bar on the left (or [right]) beside three lines of text, in the icon
-/// colour.
+/// A bar on the left (or [right]) beside three lines of left-justified
+/// text, in the icon colour.
 class RailIcon extends StatelessWidget {
   final bool right;
   final double size;
@@ -59,16 +59,17 @@ class _RailIconPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // on a 24 × 24 grid, like the Material icons
     final k = size.width / 24;
-    double x(double v) => (right ? 24 - v : v) * k;
     final p = Paint()
       ..color = color
       ..strokeCap = StrokeCap.round;
-    // the bar
-    canvas.drawLine(Offset(x(4), 5 * k), Offset(x(4), 19 * k), p..strokeWidth = 2.6 * k);
-    // the text: three lines, the last shorter
+    // the bar, on its side
+    final bar = right ? 20.0 : 4.0;
+    canvas.drawLine(Offset(bar * k, 5 * k), Offset(bar * k, 19 * k), p..strokeWidth = 2.6 * k);
+    // the text: three lines, left-justified either way, the last shorter
     p.strokeWidth = 2 * k;
-    for (final (y, end) in [(7.0, 20.0), (12.0, 20.0), (17.0, 15.5)]) {
-      canvas.drawLine(Offset(x(9), y * k), Offset(x(end), y * k), p);
+    final start = right ? 4.0 : 9.0;
+    for (final (y, len) in [(7.0, 11.0), (12.0, 11.0), (17.0, 6.5)]) {
+      canvas.drawLine(Offset(start * k, y * k), Offset((start + len) * k, y * k), p);
     }
   }
 
