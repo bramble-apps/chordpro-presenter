@@ -937,7 +937,7 @@ class KeyWheelPopover extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: Padding(
-                padding: title == null ? const EdgeInsets.fromLTRB(16, 16, 12, 16) : const EdgeInsets.fromLTRB(16, 6, 6, 14),
+                padding: title == null ? const EdgeInsets.fromLTRB(16, 16, 12, 16) : const EdgeInsets.fromLTRB(16, 14, 6, 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -961,13 +961,7 @@ class KeyWheelPopover extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const Spacer(),
-                        IconButton(
-                          tooltip: 'Done',
-                          visualDensity: VisualDensity.compact,
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
+                        // (no close button: tapping outside closes it)
                       ],
                     ),
                     Padding(

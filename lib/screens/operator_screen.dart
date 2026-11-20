@@ -1329,6 +1329,8 @@ class _OperatorScreenState extends State<OperatorScreen>
             minHeight: 400,
             maxHeight: 400,
             start: Alignment.bottomRight,
+            // (it opens above the bottom toolbar, not over it)
+            startAbove: _panelStartAbove,
             child: keyed,
           );
         },
@@ -1339,6 +1341,13 @@ class _OperatorScreenState extends State<OperatorScreen>
   final _tunerKey = GlobalKey();
 
   /// E-ink: floating panels stay above the bottom toolbar, never over it.
+  /// How far above the foot a floating panel first appears: clear of the
+  /// floating bottom toolbar (e-ink already leaves that room).
+  double get _panelStartAbove =>
+      _einkPanelInset == 0 && bottomBarSize.value != Size.zero
+      ? bottomBarSize.value.height + 8
+      : 0;
+
   double get _einkPanelInset =>
       isEink(context) && bottomBarSize.value != Size.zero
       ? bottomBarSize.value.height + _einkMargin(_compact) * 2
@@ -1384,6 +1393,8 @@ class _OperatorScreenState extends State<OperatorScreen>
             minHeight: h,
             maxHeight: h,
             start: Alignment.bottomRight,
+            // (it opens above the bottom toolbar, not over it)
+            startAbove: _panelStartAbove,
             child: panel,
           );
         },

@@ -39,6 +39,10 @@ class FloatingPanel extends StatefulWidget {
   final Alignment start;
   final Offset? startAt;
 
+  /// Room left free at the foot when it first appears (the bottom toolbar):
+  /// it opens above it, though it can be dragged anywhere after.
+  final double startAbove;
+
   /// The whole panel drags (otherwise only [FloatingDragArea]s inside).
   final bool dragAnywhere;
 
@@ -74,6 +78,7 @@ class FloatingPanel extends StatefulWidget {
     this.minHeight = 80,
     this.maxHeight = 900,
     this.start = Alignment.bottomLeft,
+    this.startAbove = 0,
     this.startAt,
     this.dragAnywhere = false,
     this.allCorners = false,
@@ -303,8 +308,9 @@ class _FloatingPanelState extends State<FloatingPanel>
           _placed = true;
           final (lo, hi) = _bounds;
           final t = widget.start;
+          final hiY = math.max(lo.dy, hi.dy - widget.startAbove);
           _x.value = lo.dx + (hi.dx - lo.dx) * (t.x + 1) / 2;
-          _y.value = lo.dy + (hi.dy - lo.dy) * (t.y + 1) / 2;
+          _y.value = lo.dy + (hiY - lo.dy) * (t.y + 1) / 2;
         } else {
           // Keep it on screen when the window shrinks.
           final p = _clamp(Offset(_x.value, _y.value));
