@@ -534,3 +534,6 @@ Future<String?> importFromBrowser(
   String url,
   String script,
 ) async => NativeIO.browseImport?.call(context, url, script);
+
+/// (Web only: the page behind the app's canvas.)
+void setPageBackground(int argb) {}

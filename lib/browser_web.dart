@@ -1182,3 +1182,13 @@ Future<String?> importFromBrowser(
     events.close();
   }
 }
+
+/// The page behind the app's canvas in [argb], the app's own colour there:
+/// a window being resized shows it for a frame at its edges before the app
+/// has caught up, so it should blend in.
+void setPageBackground(int argb) {
+  final css = '#${(argb & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+  (web.document.documentElement as web.HTMLElement?)?.style.backgroundColor =
+      css;
+  web.document.body?.style.backgroundColor = css;
+}

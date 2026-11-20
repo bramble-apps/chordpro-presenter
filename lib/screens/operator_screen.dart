@@ -648,6 +648,27 @@ class _OperatorScreenState extends State<OperatorScreen>
     });
   }
 
+  /// (Web / desktop app) the page behind the app's canvas in the colour at
+  /// the app's edges (the sheet, the pages' backdrop, the slides), so the
+  /// strip a window being resized shows for a frame blends in.
+  Color? _pageBg;
+  void _matchPageBackground(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final s = model.settings;
+    final sheet = s.themeMusic
+        ? scheme
+        : neutralScheme(scheme.brightness, oled: s.oled);
+    final song = model.currentSong;
+    final bg = s.presentationMode
+        ? scheme.surface
+        : song != null && model.layoutFor(song).pageMode
+        ? sheet.surfaceContainer
+        : sheet.surfaceContainerLowest;
+    if (bg == _pageBg) return;
+    _pageBg = bg;
+    setPageBackground(bg.toARGB32());
+  }
+
   // The window crossing the narrow width (760): the docked sidebar slides
   // away first and then the drawer layout takes over (the song already
   // filling the window, so nothing jumps); widening, the docked layout comes
@@ -861,6 +882,7 @@ class _OperatorScreenState extends State<OperatorScreen>
       builder: (context, _) => LayoutBuilder(
         builder: (context, constraints) {
           if (!model.projectorActive) _previewHidden = false;
+          _matchPageBackground(context);
           final extras = StyleExtras.of(context);
           final narrow = _narrowFor(constraints.maxWidth);
           final floating = model.settings.floatingSidebar && !narrow;

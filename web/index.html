@@ -31,6 +31,15 @@
 
   <title>ChordPro Presenter</title>
   <link rel="manifest" href="manifest.json">
+  <!-- Behind the app: its own colour from the start (the app keeps it in
+       step with its theme), so a window being resized never flashes a
+       different strip at its edges. -->
+  <style>
+    html, body { margin: 0; background: #141218; }
+    @media (prefers-color-scheme: light) {
+      html, body { background: #fef7ff; }
+    }
+  </style>
 </head>
 <body>
   <!--
