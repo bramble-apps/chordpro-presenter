@@ -3616,6 +3616,32 @@ class PresenterModel extends SlideState {
     notifyListeners();
   }
 
+  /// A copy of [set] ("… copy"), right after it: the same songs, keys,
+  /// capos, arrangements and notes, with ids of its own and no OpenChords
+  /// link (the original keeps that).
+  Setlist duplicateSetlist(Setlist set) {
+    // (through JSON text: nothing shared with the original)
+    final j = jsonDecode(jsonEncode(set.toJson())) as Map<String, dynamic>;
+    final copy = Setlist.fromJson({
+      ...j,
+      'id': null,
+      'name': '${set.name} copy',
+      'date': DateTime.now().toIso8601String(),
+      'entries': [
+        for (final e in j['entries'] as List) {...e as Map<String, dynamic>, 'id': null},
+      ],
+      'extra': {
+        for (final x in ((j['extra'] as Map<String, dynamic>?) ?? {}).entries)
+          if (!x.key.startsWith('openchords')) x.key: x.value,
+      },
+    });
+    final at = setlists.indexOf(set);
+    setlists.insert(at < 0 ? setlists.length : at + 1, copy);
+    _save();
+    notifyListeners();
+    return copy;
+  }
+
   void deleteSetlist(Setlist set) {
     setlists.remove(set);
     if (activeSetlistId == set.id) {

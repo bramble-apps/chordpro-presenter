@@ -801,6 +801,9 @@ class _SidebarState extends State<Sidebar> {
                     builder: (_) =>
                         _SetlistDetailsDialog(model: model, setlist: openSet),
                   );
+                } else if (v == 'duplicate') {
+                  final copy = model.duplicateSetlist(openSet);
+                  setState(() => _openSetlistId = copy.id);
                 } else if (v == 'openchords') {
                   await showOpenChordsShare(context, model, openSet);
                 } else if (v == 'export') {
@@ -827,6 +830,10 @@ class _SidebarState extends State<Sidebar> {
                 const PopupMenuItem(
                   value: 'edit',
                   child: Text('Name, date & notes…'),
+                ),
+                const PopupMenuItem(
+                  value: 'duplicate',
+                  child: Text('Duplicate setlist'),
                 ),
                 PopupMenuItem(
                   value: 'openchords',
@@ -1600,6 +1607,7 @@ class _SidebarState extends State<Sidebar> {
                 builder: (_) =>
                     _SetlistDetailsDialog(model: model, setlist: set),
               ),
+              'Duplicate setlist': () => model.duplicateSetlist(set),
               'Delete': () async {
                 final ok = await _confirm(
                   context,
