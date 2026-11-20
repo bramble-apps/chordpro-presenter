@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../eink.dart';
@@ -132,7 +133,8 @@ class _SnakeColumnsState extends State<SnakeColumns> {
         for (var i = 0; i < widget.columns; i++) {
           final w = _windows[i]
             ..by = step * i
-            ..step = step;
+            ..step = step
+            ..scroll = (() => _offset);
           w.remeasure(_offset);
           final column = i == 0
               ? SingleChildScrollView(
@@ -206,6 +208,9 @@ class _Follower extends StatelessWidget {
 /// layout), and which ones are whole inside the column at a scroll.
 class _Window {
   double by = 0, step = 1;
+
+  /// The scroll now (for a line's very first paint, see [_FirstPaint]).
+  double Function() scroll = () => 0;
   final _rootKey = GlobalKey();
   final _lines = <_SeamLineState>{};
   final _top = <_SeamLineState, double>{};
@@ -285,6 +290,12 @@ class _SeamLineState extends State<SeamLine> {
   _Window? _window;
   var _shown = true;
 
+  // Not yet placed by its column (a sheet just shown, e.g. back from the
+  // projector view): until then it checks at its first paint whether it's
+  // whole in the column, so no line at an edge flashes up for a frame; its
+  // first placing is then at once, not faded.
+  var _placed = false, _instant = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -312,18 +323,82 @@ class _SeamLineState extends State<SeamLine> {
   }
 
   void show(bool shown) {
-    if (shown != _shown && mounted) setState(() => _shown = shown);
+    if (!mounted) return;
+    if (!_placed) {
+      setState(() {
+        _placed = true;
+        _instant = true;
+        _shown = shown;
+      });
+      return;
+    }
+    _instant = false;
+    if (shown != _shown) setState(() => _shown = shown);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_window == null) return widget.child;
+    final w = _window;
+    if (w == null) return widget.child;
     return AnimatedOpacity(
       opacity: _shown ? 1 : 0,
-      duration: motion(context, const Duration(milliseconds: 120)),
+      duration: _instant
+          ? Duration.zero
+          : motion(context, const Duration(milliseconds: 120)),
       curve: Curves.easeOut,
-      child: widget.child,
+      // (always there, so the line's own widgets never move: it checks only
+      // until the line is placed)
+      child: _FirstPaint(window: w, active: !_placed, child: widget.child),
     );
   }
 }
 
+/// A line's very first paint, before its column has placed it: seen only if
+/// it's whole inside the column (worked out from where it is now).
+class _FirstPaint extends SingleChildRenderObjectWidget {
+  final _Window window;
+  final bool active;
+  const _FirstPaint({
+    required this.window,
+    required this.active,
+    required super.child,
+  });
+
+  @override
+  _RenderFirstPaint createRenderObject(BuildContext context) =>
+      _RenderFirstPaint(window, active);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderFirstPaint r) => r
+    ..window = window
+    ..active = active;
+}
+
+class _RenderFirstPaint extends RenderProxyBox {
+  _RenderFirstPaint(this.window, this._active);
+  _Window window;
+  bool _active;
+  set active(bool v) {
+    if (v == _active) return;
+    _active = v;
+    markNeedsPaint();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_active) return super.paint(context, offset);
+    final root = window._rootKey.currentContext?.findRenderObject();
+    if (root is RenderBox && root.attached) {
+      final y = MatrixUtils.transformPoint(getTransformTo(root), Offset.zero).dy;
+      final from = window.scroll() + window.by - .5;
+      final whole = y >= from && y + size.height <= from + window.step + 1;
+      if (!whole) {
+        // (painted, but see-through: text selection expects every line
+        // to be painted)
+        context.pushOpacity(offset, 0, super.paint);
+        return;
+      }
+    }
+    super.paint(context, offset);
+  }
+}

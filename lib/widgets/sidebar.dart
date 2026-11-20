@@ -160,6 +160,7 @@ class _SidebarState extends State<Sidebar> {
   void initState() {
     super.initState();
     _search.addListener(() => _query.value = _search.text);
+    model.addListener(_modelChanged);
     // Back where it was left (after closing the app, or rotating, which
     // rebuilds the pane as a drawer or docked).
     final m = model;
@@ -215,6 +216,7 @@ class _SidebarState extends State<Sidebar> {
 
   @override
   void dispose() {
+    model.removeListener(_modelChanged);
     _search.dispose();
     _query.dispose();
     _listScroll.dispose();
@@ -593,17 +595,24 @@ class _SidebarState extends State<Sidebar> {
   /// Key a song is played in, as shown in the list.
   String? _songKey(Song s) => s.writtenKey?.transposed(s.transpose).name;
 
+  // (songs per key, counted once per change to the library)
+  (int, Map<String, (int, int)>, List<String>)? _keyCounts;
+
   Widget _filterMenu() {
     // Songs per key, ordered C, C#, D... with major before minor.
-    final counts = <String, (int, int)>{}; // name -> (order, count)
-    for (final s in model.songs) {
-      final k = s.writtenKey?.transposed(s.transpose);
-      final name = k?.name ?? 'No key';
-      final order = k == null ? 999 : k.root * 2 + (k.minor ? 1 : 0);
-      counts[name] = (order, (counts[name]?.$2 ?? 0) + 1);
+    if (_keyCounts?.$1 != _modelRev) {
+      final counts = <String, (int, int)>{}; // name -> (order, count)
+      for (final s in model.songs) {
+        final k = s.writtenKey?.transposed(s.transpose);
+        final name = k?.name ?? 'No key';
+        final order = k == null ? 999 : k.root * 2 + (k.minor ? 1 : 0);
+        counts[name] = (order, (counts[name]?.$2 ?? 0) + 1);
+      }
+      final keys = counts.keys.toList()
+        ..sort((a, b) => counts[a]!.$1.compareTo(counts[b]!.$1));
+      _keyCounts = (_modelRev, counts, keys);
     }
-    final keys = counts.keys.toList()
-      ..sort((a, b) => counts[a]!.$1.compareTo(counts[b]!.$1));
+    final (_, counts, keys) = _keyCounts!;
     final eink = isEink(context);
     final active =
         _sort != _Sort.title ||
@@ -1268,7 +1277,37 @@ class _SidebarState extends State<Sidebar> {
     return list;
   }
 
+  // The song list, kept while nothing it shows has changed (the library,
+  // the search, sorting, filters): the pane is rebuilt often (on every frame
+  // of a window being resized) and filtering, sorting and grouping a big
+  // library each time made that slow.
+  var _modelRev = 0, _stateRev = 0;
+  void _modelChanged() => _modelRev++;
+
+  // (any change to the pane's own state — sorting, filters, the letter,
+  // e-ink pages, selections — redoes the list; a window being resized
+  // doesn't touch it, so it's reused then)
+  @override
+  void setState(VoidCallback fn) {
+    _stateRev++;
+    super.setState(fn);
+  }
+  Object? _listKey;
+  Widget? _listCache;
+
   Widget _songList() {
+    final key = (
+      _modelRev,
+      _stateRev,
+      _search.text.trim(),
+      isEink(context),
+    );
+    if (_listCache != null && key == _listKey) return _listCache!;
+    _listKey = key;
+    return _listCache = _buildSongList();
+  }
+
+  Widget _buildSongList() {
     // Accents don't matter: "eleve" finds "Élevé".
     final q = _search.text.trim();
     final hiddenTags = {

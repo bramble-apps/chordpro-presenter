@@ -691,10 +691,12 @@ class _ChordSheetState extends State<ChordSheet>
     // Extra space at the end so the last section can reach the centre.
     // Room to scroll the end up the screen (not on e-ink: a song that
     // fits stays one page, no arrows).
-    final tail = SizedBox(
-      height: isEink(context) ? 0 : MediaQuery.sizeOf(context).height * 0.4,
+    // (its own widget: it reads the window's height, and a window being
+    // resized then rebuilds just it, not the whole song)
+    final tail = _Tail(
+      none: isEink(context),
+      onHeight: (h) => _tail = widget.layout?.pageMode == true ? 0 : h,
     );
-    _tail = widget.layout?.pageMode == true ? 0 : tail.height!;
 
     final Widget content;
     final layout = widget.layout;
@@ -1577,5 +1579,21 @@ class RhythmDiagram extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Room at the end of the sheet so the last section can reach the middle
+/// of the screen (0.4 of the window's height; none on e-ink, where a song
+/// that fits stays one page).
+class _Tail extends StatelessWidget {
+  final bool none;
+  final ValueChanged<double> onHeight;
+  const _Tail({required this.none, required this.onHeight});
+
+  @override
+  Widget build(BuildContext context) {
+    final h = none ? 0.0 : MediaQuery.sizeOf(context).height * 0.4;
+    onHeight(h);
+    return SizedBox(height: h);
   }
 }

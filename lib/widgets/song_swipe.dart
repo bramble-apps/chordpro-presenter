@@ -570,12 +570,11 @@ class _SongSwipeState extends State<SongSwipe> with TickerProviderStateMixin {
               return Transform.translate(offset: Offset(x, 0), child: child);
             },
             child: RepaintBoundary(
-              // (the window being resized: every song holds its layout
-              // until it settles; the sidebar sliding: the ones either side)
+              // (the song on screen lays out live; the ones either side,
+              // out of sight, hold their layout while the window is being
+              // resized or the sidebar slides, and lay out once after)
               child: slot == 0
-                  ? ResizeHold(
-                      child: ready ? p.child : const SizedBox.expand(),
-                    )
+                  ? (ready ? p.child : const SizedBox.expand())
                   : ValueListenableBuilder<bool>(
                       valueListenable: SongSwipe.resizing,
                       builder: (context, frozen, child) =>
