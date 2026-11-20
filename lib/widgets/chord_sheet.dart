@@ -692,13 +692,17 @@ class _ChordSheetState extends State<ChordSheet>
     if (layout != null && layout.pageMode) {
       // Printed-page view: title across the top of page 1, then the parts
       // flowing down the columns.
+      // (true size, as the scroll view's text; pinch, a trackpad pinch or
+      // Ctrl + the wheel to zoom)
       content = ColoredBox(
         color: scheme.surfaceContainer,
-        child: SingleChildScrollView(
+        child: ZoomablePages(
           controller: _scroll,
           padding: pad,
-          child: _withOverlay(
+          paperWidth: layout.paper.width,
+          builder: (scale) => _withOverlay(
             PagedSheet(
+              scale: scale,
               paper: layout.paper,
               columns: layout.columns,
               spanning: 1,
