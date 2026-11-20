@@ -151,6 +151,10 @@ class SheetFormat {
   bool pinHeader = false;
   bool chordsInline = false;
 
+  /// Section labels as short badges on a rail in a margin, as tall as the
+  /// section ("V1", "C"): 'left' or 'right' ('' off: labels above as text).
+  String marginLabels = '';
+
   /// Guitar tabs: solid strings with the frets on them (modern), or the
   /// text as typed in a fixed-width font (classic).
   bool tabsModern = true;
@@ -194,6 +198,7 @@ class SheetFormat {
     'styles': {for (final e in styles.entries) e.key.name: e.value.toJson()},
     'linked': linked.toJson(),
     'pinHeader': pinHeader,
+    'marginLabels': marginLabels,
     'pageMode': pageMode,
     'columns': columns,
     'chordBeats': chordBeats,
@@ -221,6 +226,7 @@ class SheetFormat {
     final l = j['linked'];
     if (l is Map<String, dynamic>) linked.updateFrom(l);
     pinHeader = j['pinHeader'] as bool? ?? pinHeader;
+    marginLabels = j['marginLabels'] as String? ?? marginLabels;
     pageMode = j['pageMode'] as bool? ?? pageMode;
     columns = ((j['columns'] as num?)?.toInt() ?? columns).clamp(1, 3);
     paperA4 = j['paperA4'] as bool? ?? paperA4;

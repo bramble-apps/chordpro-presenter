@@ -850,6 +850,31 @@ class _FormatPaneState extends State<FormatPane> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
+              title: const Text('Labels in margins'),
+              subtitle: const Text(
+                'Section names as short badges beside each section (V1, C)',
+              ),
+              value: f.marginLabels.isNotEmpty,
+              onChanged: (v) =>
+                  model.updateFormat((f) => f.marginLabels = v ? 'left' : ''),
+            ),
+            if (f.marginLabels.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: SegmentedButton<String>(
+                  style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                  segments: const [
+                    ButtonSegment(value: 'left', label: Text('Left')),
+                    ButtonSegment(value: 'right', label: Text('Right')),
+                  ],
+                  selected: {f.marginLabels},
+                  onSelectionChanged: (v) =>
+                      model.updateFormat((f) => f.marginLabels = v.first),
+                ),
+              ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
               title: const Text('Follow arrangement'),
               subtitle: const Text(
                 'Play sections in the song\'s or setlist\'s arrangement order',

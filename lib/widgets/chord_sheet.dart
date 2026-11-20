@@ -487,6 +487,9 @@ class _ChordSheetState extends State<ChordSheet>
 
     // One block per part. Tapping a part selects it (and projects it).
     final blocks = <Widget?>[];
+    // (labels in a margin: each part's label, taken out of its lines)
+    final side = format.marginLabels;
+    final blockLabels = <String?>[];
     var extra = 0; // semitones added by key changes in the structure
     for (final part in widget.parts) {
       if (part.isMarker) {
@@ -504,9 +507,11 @@ class _ChordSheetState extends State<ChordSheet>
             ],
           ),
         );
+        blockLabels.add(null);
         continue;
       }
       final children = <Widget>[];
+      String? marginLabel;
       final pieces = part.pieceLines;
       for (var p = 0; p < pieces.length; p++) {
         // Linked pieces (after the first) can be hidden or styled.
@@ -567,6 +572,12 @@ class _ChordSheetState extends State<ChordSheet>
           } else if (line.isEmpty) {
             if (children.isNotEmpty) children.add(const SizedBox(height: 4));
           } else if (ChordPro.isSectionLabel(line)) {
+            // labels in a margin: the part's first label becomes its badge;
+            // the rest (a translation's) aren't repeated in the text
+            if (side.isNotEmpty) {
+              marginLabel ??= ChordPro.sectionName(line);
+              continue;
+            }
             if (headings.hidden) continue;
             children.add(
               _directed(
@@ -585,6 +596,7 @@ class _ChordSheetState extends State<ChordSheet>
       }
       _inLinked = false;
       blocks.add(children.isEmpty ? null : column(children));
+      blockLabels.add(marginLabel);
     }
     if (widget.onlyPart case final only?) {
       return (only >= 0 && only < blocks.length ? blocks[only] : null) ??
@@ -620,6 +632,8 @@ class _ChordSheetState extends State<ChordSheet>
             style: widget.selectionStyle,
             animate: widget.animate,
             selectable: !widget.parts[i].isMarker,
+            marginLabel: blockLabels[i],
+            marginSide: side,
             onTap: () {
               _centre(_keyFor(i));
               if (!widget.parts[i].isMarker) widget.onSelectPart?.call(i);
@@ -1199,7 +1213,14 @@ class _PartBlock extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
 
+  /// The part's name for a badge in a margin, and which margin ('left',
+  /// 'right'; '' none).
+  final String? marginLabel;
+  final String marginSide;
+
   const _PartBlock({
+    this.marginLabel,
+    this.marginSide = '',
     this.animate = true,
     super.key,
     required this.index,
@@ -1217,6 +1238,7 @@ class _PartBlock extends StatelessWidget {
     final content = RepaintBoundary(child: child);
     final bar = style != SelectionStyle.highlight;
     final tint = style != SelectionStyle.bar;
+    final margin = marginSide.isNotEmpty && marginLabel != null;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -1270,13 +1292,76 @@ class _PartBlock extends StatelessWidget {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 8, 2),
+                  padding: EdgeInsets.fromLTRB(
+                    16 + (margin && marginSide == 'left' ? _MarginBadge.width : 0),
+                    6,
+                    8 + (margin && marginSide == 'right' ? _MarginBadge.width : 0),
+                    2,
+                  ),
                   child: content,
                 ),
+                if (margin)
+                  Positioned(
+                    top: 6,
+                    bottom: 2,
+                    left: marginSide == 'left' ? 8 : null,
+                    right: marginSide == 'right' ? 4 : null,
+                    width: _MarginBadge.width - 4,
+                    child: _MarginBadge(name: marginLabel!),
+                  ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// A section's name in a margin: a short badge ("V1", "C") riding a thin
+/// rail as tall as the section. Choruses in the accent colour.
+class _MarginBadge extends StatelessWidget {
+  static const width = 44.0;
+  final String name;
+  const _MarginBadge({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final short = ChordPro.sectionAbbreviation(name);
+    final chorus = short.startsWith('C') && !short.startsWith('Co');
+    final ink = einkActive;
+    final line = ink ? scheme.onSurface : (chorus ? scheme.primary : scheme.outline);
+    return Tooltip(
+      message: name,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // the rail, the section's height
+          Positioned(
+            top: 0,
+            bottom: 0,
+            child: Container(width: ink ? einkStroke : 1, color: line.withValues(alpha: ink ? 1 : .6)),
+          ),
+          // the badge, centred on it
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: ink ? scheme.surface : (chorus ? scheme.primaryContainer : scheme.surfaceContainerHighest),
+              border: Border.all(color: line, width: ink ? einkStroke : 1),
+              borderRadius: BorderRadius.circular(inkR(5)),
+            ),
+            child: Text(
+              short,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: ink ? scheme.onSurface : (chorus ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

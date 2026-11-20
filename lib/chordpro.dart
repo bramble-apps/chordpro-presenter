@@ -704,6 +704,25 @@ class ChordPro {
     return _labelRegex.hasMatch(line);
   }
 
+  /// A section name shortened for a margin badge: "Verse 1" -> "V1",
+  /// "Chorus" -> "C", "Pre-Chorus 2" -> "PC2", "Bridge" -> "B" (French
+  /// too: "Couplet 2" -> "V2", "Refrain" -> "C", "Pont" -> "B"); a
+  /// translation's "(FR)" is left out. Other names: their first two letters.
+  static String sectionAbbreviation(String name) {
+    var n = name.replaceAll(RegExp(r'\(.*?\)'), '').replaceAll(RegExp(r'[:.\-)]+$'), '').trim();
+    final num = RegExp(r'(\d+)\s*$').firstMatch(n)?.group(1) ?? '';
+    n = n.replaceAll(RegExp(r'\d+\s*$'), '').trim().toLowerCase();
+    const words = {
+      'verse': 'V', 'couplet': 'V', 'strophe': 'V', 'chorus': 'C', 'refrain': 'C',
+      'pre-chorus': 'PC', 'prechorus': 'PC', 'pre chorus': 'PC', 'pré-refrain': 'PC', 'pre-refrain': 'PC',
+      'post-chorus': 'PoC', 'bridge': 'B', 'pont': 'B', 'intro': 'I', 'introduction': 'I',
+      'outro': 'O', 'ending': 'E', 'fin': 'E', 'tag': 'T', 'coda': 'Co', 'interlude': 'In',
+      'instrumental': 'Inst', 'solo': 'S', 'vamp': 'Va',
+    };
+    final w = words[n] ?? (n.isEmpty ? '' : n[0].toUpperCase() + (n.length > 1 ? n[1] : ''));
+    return '$w$num';
+  }
+
   /// Section name of a label line ("Verse 1:" -> "Verse 1"), or null.
   static String? sectionName(String line) {
     if (!isSectionLabel(line)) return null;
