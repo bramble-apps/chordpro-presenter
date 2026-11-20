@@ -76,6 +76,22 @@ class _SidebarPainter extends CustomPainter {
       old.color != color || old.chevron != chevron || old.pointLeft != pointLeft;
 }
 
+/// A button style whose highlight shows on hover and press only: after a
+/// mouse click a button keeps the keyboard focus (or gets it back when its
+/// menu closes), and Material would keep it lit for that.
+ButtonStyle hoverOnlyHighlight(BuildContext context) {
+  final c = Theme.of(context).colorScheme.onSurface;
+  return ButtonStyle(
+    overlayColor: WidgetStateProperty.resolveWith(
+      (s) => s.contains(WidgetState.pressed)
+          ? c.withValues(alpha: .12)
+          : s.contains(WidgetState.hovered)
+          ? c.withValues(alpha: .08)
+          : Colors.transparent,
+    ),
+  );
+}
+
 /// The sidebar button: [SidebarIcon] whose divider bends into a chevron
 /// while the pointer is over it (which way: [open] → ‹, closing).
 class SidebarToggleButton extends StatefulWidget {
@@ -100,6 +116,7 @@ class _SidebarToggleButtonState extends State<SidebarToggleButton> {
     onExit: (_) => setState(() => _hover = false),
     child: IconButton(
       tooltip: widget.open ? 'Hide sidebar' : 'Show sidebar',
+      style: hoverOnlyHighlight(context),
       onPressed: widget.onPressed,
       icon: TweenAnimationBuilder<double>(
         tween: Tween(end: _hover ? 1 : 0),

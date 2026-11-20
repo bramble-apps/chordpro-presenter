@@ -803,6 +803,14 @@ class _OperatorScreenState extends State<OperatorScreen>
               ),
               // (the sidebar button rides in its top row while it's open)
               toggleRoom: narrow ? 0 : _toggleRoom,
+              // (phones: the drawer covers the button, so it has its own)
+              trailing: narrow
+                  ? SidebarToggleButton(
+                      open: true,
+                      onPressed: () =>
+                          _scaffoldKey.currentState?.closeDrawer(),
+                    )
+                  : null,
               onOpened: () {
                 if (narrow) _scaffoldKey.currentState?.closeDrawer();
                 if (floating) {

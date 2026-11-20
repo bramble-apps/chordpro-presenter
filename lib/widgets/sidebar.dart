@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'sidebar_icon.dart';
 import '../band_sync/band_sync.dart';
 import '../browser.dart';
 import '../chords/chord_library.dart';
@@ -71,7 +72,12 @@ class Sidebar extends StatefulWidget {
     required this.onOpenSettings,
     required this.onOpened,
     this.toggleRoom = 0,
+    this.trailing,
   });
+
+  /// A button at the right of the top row (the phone drawer's own sidebar
+  /// button, which closes it).
+  final Widget? trailing;
 
   /// Room kept at the right of the top row for the sidebar button, which
   /// rides there while the sidebar is open.
@@ -249,7 +255,9 @@ class _SidebarState extends State<Sidebar> {
                 children: [
                   _menu(),
                   Expanded(child: _topBar(openSet)),
-                  if (widget.toggleRoom > 0)
+                  if (widget.trailing case final t?)
+                    t
+                  else if (widget.toggleRoom > 0)
                     SizedBox(width: widget.toggleRoom - 6),
                 ],
               ),
@@ -599,6 +607,7 @@ class _SidebarState extends State<Sidebar> {
         tooltip: 'Sort & filter',
         visualDensity: VisualDensity.compact,
         iconSize: 20,
+        style: hoverOnlyHighlight(context),
         color: scheme.onSurfaceVariant,
         icon: Badge(
           isLabelVisible: active,
