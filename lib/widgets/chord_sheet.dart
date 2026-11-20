@@ -24,6 +24,28 @@ import '../eink.dart';
 /// Formatted chord sheet: title/artist/details on top, sections (tap one to
 /// centre it), chords above or inline with the lyrics, key changes from the
 /// song structure, notes and a copyright footer — styled by [SheetFormat].
+/// How a [ChordSheet] below sits in its screen: [framed] (a card with a
+/// border, the default) or full-bleed under floating toolbars, with its
+/// content kept [inset] from the edges (clear of the toolbars) and
+/// scrolling up behind them.
+class SheetInsets extends InheritedWidget {
+  final EdgeInsets inset;
+  final bool framed;
+  const SheetInsets({
+    super.key,
+    this.inset = EdgeInsets.zero,
+    this.framed = true,
+    required super.child,
+  });
+
+  static SheetInsets? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SheetInsets>();
+
+  @override
+  bool updateShouldNotify(SheetInsets old) =>
+      old.inset != inset || old.framed != framed;
+}
+
 class ChordSheet extends StatefulWidget {
   final Song song;
 
@@ -664,6 +686,9 @@ class _ChordSheetState extends State<ChordSheet>
 
     final Widget content;
     final layout = widget.layout;
+    final placed = SheetInsets.maybeOf(context);
+    final inset = placed?.inset ?? EdgeInsets.zero;
+    final pad = const EdgeInsets.all(16) + inset;
     if (layout != null && layout.pageMode) {
       // Printed-page view: title across the top of page 1, then the parts
       // flowing down the columns.
@@ -671,7 +696,7 @@ class _ChordSheetState extends State<ChordSheet>
         color: scheme.surfaceContainer,
         child: SingleChildScrollView(
           controller: _scroll,
-          padding: const EdgeInsets.all(16),
+          padding: pad,
           child: _withOverlay(
             PagedSheet(
               paper: layout.paper,
@@ -695,14 +720,14 @@ class _ChordSheetState extends State<ChordSheet>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 4),
             child: column(headerWidgets),
           ),
           const Divider(height: 1),
           Expanded(
             child: SingleChildScrollView(
               controller: _scroll,
-              padding: const EdgeInsets.all(16),
+              padding: pad.copyWith(top: 16),
               child: _withOverlay(
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -716,7 +741,7 @@ class _ChordSheetState extends State<ChordSheet>
     } else {
       content = SingleChildScrollView(
         controller: _scroll,
-        padding: const EdgeInsets.all(16),
+        padding: pad,
         child: _withOverlay(
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -726,6 +751,13 @@ class _ChordSheetState extends State<ChordSheet>
       );
     }
 
+    // Full-bleed (under floating toolbars): the page colour edge to edge.
+    if (placed != null && !placed.framed) {
+      return ColoredBox(
+        color: scheme.surfaceContainerLowest,
+        child: SelectionArea(child: content),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLowest,

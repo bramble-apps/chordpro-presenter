@@ -2034,63 +2034,84 @@ class _OperatorScreenState extends State<OperatorScreen>
           final top = eink && _topBarSize.value != Size.zero
               ? _topBarSize.value.height + em * 2
               : 64.0;
+          // The sheet edge to edge, under the toolbars: its words start
+          // below the top one (where the card's did) and scroll up behind
+          // it, and clear the bottom one at the end. (E-ink: framed by the
+          // bars as before.)
+          final fullBleed = !presenting && !eink;
+          final scheme = Theme.of(context).colorScheme;
+          final behind = presenting
+              ? (pane > 0 ? scheme.surfaceContainerHigh : scheme.surface)
+              : scheme.surfaceContainerLowest;
+          Widget halo(double right, double? top, double? bottom, Size size) =>
+              Positioned(
+                right: right,
+                top: top,
+                bottom: bottom,
+                width: size.width,
+                height: size.height,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        inkR(size.height / 2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: behind.withValues(alpha: 0.9),
+                          blurRadius: 24,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
           return Stack(
             children: [
               Positioned.fill(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    eink ? em : 16,
-                    top,
-                    eink ? em : 16,
-                    // (E-ink: the sheet ends above the toolbar, not under.)
-                    presenting
-                        ? pane
-                        : isEink(context)
-                        ? band
-                        : 16,
-                  ),
-                  child:
-                      sheetArea ??
-                      PresentationView(
-                        model: model,
-                        bottomClearance: pane > 0 ? 0 : band,
-                      ),
+                  padding: fullBleed
+                      ? EdgeInsets.only(bottom: pane)
+                      : EdgeInsets.fromLTRB(
+                          eink ? em : 16,
+                          top,
+                          eink ? em : 16,
+                          // (E-ink: the sheet ends above the toolbar, not
+                          // under.)
+                          presenting
+                              ? pane
+                              : isEink(context)
+                              ? band
+                              : 16,
+                        ),
+                  child: fullBleed
+                      ? SheetInsets(
+                          framed: false,
+                          inset: EdgeInsets.fromLTRB(
+                            16,
+                            top,
+                            16,
+                            pane > 0 ? 16 : band,
+                          ),
+                          child: sheetArea,
+                        )
+                      : sheetArea ??
+                            PresentationView(
+                              model: model,
+                              bottomClearance: pane > 0 ? 0 : band,
+                            ),
                 ),
               ),
               if (pane > 0) _bottomPane(pane),
-              // A soft halo around the toolbar, so what scrolls behind it
-              // (slides, media) doesn't run into its edges.
-              if (presenting &&
+              // A soft halo around the toolbars, so what scrolls behind them
+              // (slides, media, the sheet) doesn't run into their edges.
+              if ((presenting || (fullBleed && pane == 0)) &&
                   bottomBarSize.value != Size.zero &&
                   !isEink(context))
-                Positioned(
-                  right: barPad,
-                  bottom: barPad,
-                  width: bottomBarSize.value.width,
-                  height: bottomBarSize.value.height,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                          inkR(bottomBarSize.value.height / 2),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                (pane > 0
-                                        ? Theme.of(context)
-                                              .colorScheme
-                                              .surfaceContainerHigh
-                                        : Theme.of(context).colorScheme.surface)
-                                    .withValues(alpha: 0.9),
-                            blurRadius: 24,
-                            spreadRadius: 10,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                halo(barPad, null, barPad, bottomBarSize.value),
+              if (fullBleed && !_compact && _topBarSize.value != Size.zero)
+                halo(14, 12, null, _topBarSize.value),
               // E-ink: a plain plate instead (nothing shows round the
               // toolbar's edges, nothing is half hidden behind it).
               if (presenting &&
