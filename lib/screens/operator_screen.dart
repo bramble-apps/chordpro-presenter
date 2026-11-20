@@ -2034,10 +2034,17 @@ class _OperatorScreenState extends State<OperatorScreen>
                     const SizedBox(width: 4),
                     // The buttons first; the title keeps a little room on
                     // phones (the rest goes into ⋯).
-                    ..._topActions(
-                      narrow,
-                      song,
-                      width: c.maxWidth - 6 - math.min(120, c.maxWidth * 0.3),
+                    _GlideRight(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 2,
+                        children: _topActions(
+                          narrow,
+                          song,
+                          width:
+                              c.maxWidth - 6 - math.min(120, c.maxWidth * 0.3),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -2106,7 +2113,13 @@ class _OperatorScreenState extends State<OperatorScreen>
                     children: [
                       ..._bottomActions(song).take(1),
                       const Spacer(),
-                      ..._bottomActions(song).skip(1),
+                      _GlideRight(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 4,
+                          children: [..._bottomActions(song).skip(1)],
+                        ),
+                      ),
                     ],
                   ),
           ),
@@ -2151,6 +2164,8 @@ class _OperatorScreenState extends State<OperatorScreen>
                 width: size.width,
                 height: size.height,
                 child: IgnorePointer(
+                  // (moving with the toolbar it's round)
+                  child: _GlideRight(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(
@@ -2164,6 +2179,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                         ),
                       ],
                     ),
+                  ),
                   ),
                 ),
               );
@@ -2241,12 +2257,14 @@ class _OperatorScreenState extends State<OperatorScreen>
                     einkFill: _compact,
                     child: _ReportSize(
                       size: _topBarSize,
-                      child: _Pill(
-                        stretch: eink && _compact,
-                        children: _topActions(
-                          narrow,
-                          song,
-                          width: c.maxWidth - 8,
+                      child: _GlideRight(
+                        child: _Pill(
+                          stretch: eink && _compact,
+                          children: _topActions(
+                            narrow,
+                            song,
+                            width: c.maxWidth - 8,
+                          ),
                         ),
                       ),
                     ),
@@ -2264,9 +2282,11 @@ class _OperatorScreenState extends State<OperatorScreen>
                   einkFill: _compact,
                   child: _ReportSize(
                     size: bottomBarSize,
-                    child: _Pill(
-                      stretch: eink && _compact,
-                      children: _bottomActions(song),
+                    child: _GlideRight(
+                      child: _Pill(
+                        stretch: eink && _compact,
+                        children: _bottomActions(song),
+                      ),
                     ),
                   ),
                 ),
@@ -2278,6 +2298,31 @@ class _OperatorScreenState extends State<OperatorScreen>
           );
         },
       ),
+    );
+  }
+}
+
+/// Something pinned to the window's right edge: when the window grows it
+/// eases over to the new edge (about a tenth of a second) instead of jumping
+/// with every frame of a resize, which comes in uneven steps; when it
+/// shrinks it stays right at the edge (never cut off). Only drawn moved:
+/// its room (and what fits, see ⋯) doesn't change.
+class _GlideRight extends StatelessWidget {
+  final Widget child;
+  const _GlideRight({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: width),
+      duration: motion(context, const Duration(milliseconds: 110)),
+      curve: Curves.easeOutCubic,
+      builder: (context, shown, child) => Transform.translate(
+        offset: Offset(-math.max(0.0, width - shown), 0),
+        child: child,
+      ),
+      child: child,
     );
   }
 }
