@@ -2188,21 +2188,24 @@ class _SheetLayoutControls extends StatelessWidget {
           onSelectionChanged: (s) =>
               model.setLayout(pageMode: s.first, thisSong: own),
         ),
+        // (pages and the scroll view both: in the scroll view the song
+        // runs from column to column, all scrolling together; one column
+        // when the window is too narrow)
+        const SizedBox(height: 10),
+        const Text('Columns'),
+        const SizedBox(height: 6),
+        SegmentedButton<int>(
+          segments: const [
+            ButtonSegment(value: 1, label: Text('1')),
+            ButtonSegment(value: 2, label: Text('2')),
+            ButtonSegment(value: 3, label: Text('3')),
+          ],
+          selected: {layout.columns},
+          showSelectedIcon: false,
+          onSelectionChanged: (s) =>
+              model.setLayout(columns: s.first, thisSong: own),
+        ),
         if (layout.pageMode) ...[
-          const SizedBox(height: 10),
-          const Text('Columns'),
-          const SizedBox(height: 6),
-          SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: 1, label: Text('1')),
-              ButtonSegment(value: 2, label: Text('2')),
-              ButtonSegment(value: 3, label: Text('3')),
-            ],
-            selected: {layout.columns},
-            showSelectedIcon: false,
-            onSelectionChanged: (s) =>
-                model.setLayout(columns: s.first, thisSong: own),
-          ),
           const SizedBox(height: 10),
           const Text('Paper'),
           const SizedBox(height: 6),

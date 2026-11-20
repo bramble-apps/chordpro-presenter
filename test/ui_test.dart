@@ -134,6 +134,8 @@ void main() {
     // Inline chords via the Format panel.
     await tester.tap(find.byTooltip('Show Format'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Inline'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Inline'));
     await tester.pumpAndSettle();
     expect(hasRichText(tester, 'Em Amazing'), isTrue);
@@ -535,8 +537,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Columns and paper only show for pages.
-    expect(pane(find.text('Columns')), findsNothing);
+    // Columns for both views (the scroll view runs into columns too);
+    // paper only for pages.
+    expect(pane(find.text('Columns')), findsOneWidget);
     expect(pane(find.text('A4')), findsNothing);
 
     // Pages for every song, in two columns.

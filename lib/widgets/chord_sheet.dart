@@ -19,6 +19,7 @@ import '../themes.dart';
 import '../bidi.dart';
 import 'chord_line.dart';
 import 'paged_sheet.dart';
+import 'snake_columns.dart';
 import '../eink.dart';
 
 /// Formatted chord sheet: title/artist/details on top, sections (tap one to
@@ -507,11 +508,14 @@ class _ChordSheetState extends State<ChordSheet>
         ChordStrip(chords: stripChords, config: diagrams!),
     ];
 
+    // (each line a SeamLine: in columns it fades at the column edges)
     Widget column(List<Widget> children) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final c in children)
-          Padding(padding: const EdgeInsets.only(bottom: 6), child: c),
+          SeamLine(
+            child: Padding(padding: const EdgeInsets.only(bottom: 6), child: c),
+          ),
       ],
     );
 
@@ -633,7 +637,10 @@ class _ChordSheetState extends State<ChordSheet>
           const SizedBox.shrink();
     }
 
-    final body = <Widget>[
+    final footerLines = _footerLines(header);
+    // (the columns after the first show the body again, without the
+    // sections' keys, which can be in one place only)
+    List<Widget> bodyFor({required bool keyed}) => <Widget>[
       if (!notes.hidden && song.notes.isNotEmpty)
         Container(
           padding: const EdgeInsets.all(10),
@@ -655,7 +662,7 @@ class _ChordSheetState extends State<ChordSheet>
       for (var i = 0; i < blocks.length; i++)
         if (blocks[i] != null)
           _PartBlock(
-            key: _keyFor(i),
+            key: keyed ? _keyFor(i) : null,
             index: i,
             selection: widget.selectedSlide,
             slidePartIndex: widget.slidePartIndex,
@@ -670,10 +677,7 @@ class _ChordSheetState extends State<ChordSheet>
             },
             child: blocks[i]!,
           ),
-    ];
-    final footerLines = _footerLines(header);
-    if (!footer.hidden && footerLines.isNotEmpty) {
-      body.add(
+      if (!footer.hidden && footerLines.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 24),
           child: Text(
@@ -681,8 +685,8 @@ class _ChordSheetState extends State<ChordSheet>
             style: _style(SheetElement.footer, color: secondary),
           ),
         ),
-      );
-    }
+    ];
+    final body = bodyFor(keyed: true);
 
     // Extra space at the end so the last section can reach the centre.
     // Room to scroll the end up the screen (not on e-ink: a song that
@@ -756,7 +760,7 @@ class _ChordSheetState extends State<ChordSheet>
         ],
       );
     } else {
-      content = SingleChildScrollView(
+      final single = SingleChildScrollView(
         controller: _scroll,
         padding: pad,
         child: _withOverlay(
@@ -766,6 +770,36 @@ class _ChordSheetState extends State<ChordSheet>
           ),
         ),
       );
+      final wanted = layout?.columns ?? 1;
+      // Columns: the song running from one to the next, all scrolling
+      // together (one when the window is too narrow for them)
+      content = wanted < 2
+          ? single
+          : LayoutBuilder(
+              builder: (context, box) {
+                final n = snakeColumnsFor(wanted, box.maxWidth);
+                if (n < 2) return single;
+                return SnakeColumns(
+                  controller: _scroll,
+                  columns: n,
+                  padding: pad,
+                  first: _withOverlay(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [column(headerWidgets), ...body, tail],
+                    ),
+                  ),
+                  others: () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      column(headerWidgets),
+                      ...bodyFor(keyed: false),
+                      tail,
+                    ],
+                  ),
+                );
+              },
+            );
     }
 
     // Full-bleed (under floating toolbars): the page colour edge to edge.
