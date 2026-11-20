@@ -2,12 +2,10 @@
 // scrolling together, so what goes off the top of the second column is what
 // just came in at the foot of the first. Lines show only while they fit
 // whole in their column, fading in and out quickly at its edges.
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../eink.dart';
@@ -63,13 +61,6 @@ class _SnakeColumnsState extends State<SnakeColumns> {
   Drag? _drag;
   final _windows = <_Window>[];
 
-  // The window being resized: the following columns keep their layout
-  // (clipped) and the lines aren't measured again until it has stopped a
-  // moment; then everything is laid out once.
-  Size? _size;
-  var _resizing = false;
-  Timer? _settle;
-
   ScrollPosition? get _position => _newest(widget.controller);
 
   @override
@@ -90,19 +81,7 @@ class _SnakeColumnsState extends State<SnakeColumns> {
   @override
   void dispose() {
     widget.controller.removeListener(_scrolled);
-    _settle?.cancel();
     super.dispose();
-  }
-
-  void _sized(Size size) {
-    if (_size != null && size != _size) {
-      _resizing = true;
-      _settle?.cancel();
-      _settle = Timer(const Duration(milliseconds: 150), () {
-        if (mounted) setState(() => _resizing = false);
-      });
-    }
-    _size = size;
   }
 
   double get _offset => _position?.pixels ?? 0;
@@ -145,7 +124,6 @@ class _SnakeColumnsState extends State<SnakeColumns> {
         // what a column shows between its top and bottom padding: the next
         // column carries on from there
         final step = math.max(40.0, box.maxHeight - pad.vertical);
-        _sized(box.biggest);
         while (_windows.length < widget.columns) {
           _windows.add(_Window());
         }
@@ -155,7 +133,7 @@ class _SnakeColumnsState extends State<SnakeColumns> {
           final w = _windows[i]
             ..by = step * i
             ..step = step;
-          if (!_resizing) w.remeasure(_offset);
+          w.remeasure(_offset);
           final column = i == 0
               ? SingleChildScrollView(
                   controller: widget.controller,
@@ -168,7 +146,6 @@ class _SnakeColumnsState extends State<SnakeColumns> {
                     controller: widget.controller,
                     by: step * i,
                     padding: pad,
-                    hold: _resizing,
                     child: RepaintBoundary(child: w.root(widget.others())),
                   ),
                 );
@@ -196,22 +173,17 @@ class _Follower extends StatelessWidget {
   final ScrollController controller;
   final double by;
   final EdgeInsets padding;
-  final bool hold;
   final Widget child;
   const _Follower({
     required this.controller,
     required this.by,
     required this.padding,
-    required this.hold,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    final content = _Hold(
-      hold: hold,
-      child: Padding(padding: padding, child: child),
-    );
+    final content = Padding(padding: padding, child: child);
     return ClipRect(
       child: OverflowBox(
         alignment: Alignment.topLeft,
@@ -355,45 +327,3 @@ class _SeamLineState extends State<SeamLine> {
   }
 }
 
-/// Holds its child's layout from the last time [hold] was off (a window
-/// being resized: no re-laying out a whole song on every frame).
-class _Hold extends SingleChildRenderObjectWidget {
-  final bool hold;
-  const _Hold({required this.hold, required super.child});
-
-  @override
-  _RenderHold createRenderObject(BuildContext context) => _RenderHold(hold);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderHold r) => r.hold = hold;
-}
-
-class _RenderHold extends RenderProxyBox {
-  _RenderHold(this._hold);
-
-  bool _hold;
-  BoxConstraints? _last;
-
-  set hold(bool value) {
-    if (value == _hold) return;
-    _hold = value;
-    if (!value) markNeedsLayout();
-  }
-
-  @override
-  void performLayout() {
-    final child = this.child;
-    if (child == null) {
-      size = constraints.biggest;
-      return;
-    }
-    final last = _last;
-    if (_hold && last != null && child.hasSize) {
-      child.layout(last, parentUsesSize: true);
-    } else {
-      _last = constraints;
-      child.layout(constraints, parentUsesSize: true);
-    }
-    size = constraints.constrain(child.size);
-  }
-}

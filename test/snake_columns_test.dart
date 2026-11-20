@@ -109,36 +109,4 @@ void main() {
     await t.pumpAndSettle();
     expect(c.offset, closeTo(was + 60, 1));
   });
-
-  testWidgets('resizing the window: the second column keeps its layout until it settles', (t) async {
-    t.view.physicalSize = const Size(800, 400);
-    t.view.devicePixelRatio = 1;
-    addTearDown(t.view.reset);
-    final widths = <double>[];
-    await t.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: SnakeColumns(
-          controller: ScrollController(),
-          columns: 2,
-          padding: const EdgeInsets.all(20),
-          first: lines(),
-          others: () => LayoutBuilder(builder: (context, c) {
-            widths.add(c.maxWidth);
-            return lines();
-          }),
-        ),
-      ),
-    ));
-    await t.pumpAndSettle();
-    final before = widths.last;
-    // dragging the window wider, frame by frame
-    for (var w = 820.0; w <= 900; w += 20) {
-      t.view.physicalSize = Size(w, 400);
-      await t.pump(const Duration(milliseconds: 16));
-    }
-    expect(widths.last, before, reason: 'held while resizing');
-    await t.pump(const Duration(milliseconds: 200));
-    await t.pump();
-    expect(widths.last, greaterThan(before), reason: 'laid out once it settles');
-  });
 }

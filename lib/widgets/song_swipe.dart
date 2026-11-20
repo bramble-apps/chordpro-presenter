@@ -4,10 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
+import 'resize_hold.dart';
 import '../eink.dart';
 
 /// One song in the swipe strip.
@@ -570,12 +570,16 @@ class _SongSwipeState extends State<SongSwipe> with TickerProviderStateMixin {
               return Transform.translate(offset: Offset(x, 0), child: child);
             },
             child: RepaintBoundary(
+              // (the window being resized: every song holds its layout
+              // until it settles; the sidebar sliding: the ones either side)
               child: slot == 0
-                  ? (ready ? p.child : const SizedBox.expand())
+                  ? ResizeHold(
+                      child: ready ? p.child : const SizedBox.expand(),
+                    )
                   : ValueListenableBuilder<bool>(
                       valueListenable: SongSwipe.resizing,
                       builder: (context, frozen, child) =>
-                          _HoldLayout(hold: frozen, child: child!),
+                          ResizeHold(hold: frozen, child: child!),
                       child: ready ? p.child : const SizedBox.expand(),
                     ),
             ),
@@ -710,63 +714,6 @@ class _SwipeArrow extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-/// While [hold] is on, keeps its child laid out at the size it last had
-/// (filling or clipping the new space), instead of laying it out again.
-class _HoldLayout extends SingleChildRenderObjectWidget {
-  final bool hold;
-  const _HoldLayout({required this.hold, required super.child});
-
-  @override
-  _RenderHoldLayout createRenderObject(BuildContext context) =>
-      _RenderHoldLayout(hold);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderHoldLayout r) =>
-      r.hold = hold;
-}
-
-class _RenderHoldLayout extends RenderProxyBox {
-  _RenderHoldLayout(this._hold);
-
-  bool _hold;
-  BoxConstraints? _last;
-
-  set hold(bool value) {
-    if (value == _hold) return;
-    _hold = value;
-    if (!value) markNeedsLayout();
-  }
-
-  @override
-  void performLayout() {
-    final child = this.child;
-    if (child == null) {
-      size = constraints.biggest;
-      return;
-    }
-    final last = _last;
-    if (_hold && last != null && child.hasSize) {
-      // Same constraints as last time: no work for the child.
-      child.layout(last, parentUsesSize: true);
-    } else {
-      _last = constraints;
-      child.layout(constraints, parentUsesSize: true);
-    }
-    size = constraints.constrain(child.size);
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (child == null) return;
-    context.pushClipRect(
-      needsCompositing,
-      offset,
-      Offset.zero & size,
-      (context, offset) => super.paint(context, offset),
     );
   }
 }

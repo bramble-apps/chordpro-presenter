@@ -46,6 +46,11 @@ Future<ui.Image?> _still(DynamicBg bg, String key, int w, int h) {
   }();
 }
 
+/// The last frame a moving background showed, by look and size: one shown
+/// again (switching views brings a new preview) starts from it instead of
+/// black while its first frame is drawn.
+final Map<String, ui.Image> _lastFrames = {};
+
 /// Completes once every still asked for so far is drawn (before taking a
 /// picture of slides that show one).
 Future<void> dynamicStillsReady() => Future.wait(_stillsComing.values.toList());
@@ -122,6 +127,16 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   void _start() {
     if (_w == 0) return;
     if (widget.animate) {
+      // (something to show at once: the last frame of this look at this
+      // size, else its first moment, until the moving frames come)
+      if (_image == null) {
+        final last = _lastFrames['$_key|$_w|$_h'];
+        if (last != null) {
+          _show(last.clone(), fade: false);
+        } else {
+          _loadStill();
+        }
+      }
       _frames ??= DynamicFrames();
       _ticker ??= createTicker(_tick)..start();
     } else {
@@ -142,8 +157,10 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     }
     _still(_bg, key, w, h).then((_) {
       final image = _stills['$key|$w|$h'];
-      if (image == null || !mounted || widget.animate) return;
+      if (image == null || !mounted) return;
       if (key != _key || w != _w || h != _h) return;
+      // (moving: only while no moving frame has come yet)
+      if (widget.animate && _image != null) return;
       _show(image.clone(), fade: false);
     });
   }
@@ -191,6 +208,15 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   void dispose() {
     _ticker?.dispose();
     _frames?.dispose();
+    // (kept for the next one of this look and size)
+    final last = _image;
+    if (widget.animate && last != null && _w > 0) {
+      _lastFrames.remove('$_key|$_w|$_h')?.dispose();
+      _lastFrames['$_key|$_w|$_h'] = last.clone();
+      while (_lastFrames.length > 8) {
+        _lastFrames.remove(_lastFrames.keys.first)?.dispose();
+      }
+    }
     _image?.dispose();
     _before?.dispose();
     _repaint.dispose();
