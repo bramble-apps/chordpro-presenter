@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -71,7 +72,7 @@ class Sidebar extends StatefulWidget {
     required this.onEditStructure,
     required this.onOpenSettings,
     required this.onOpened,
-    this.toggleRoom = 0,
+    this.toggleRoom,
     this.trailing,
   });
 
@@ -79,9 +80,9 @@ class Sidebar extends StatefulWidget {
   /// button, which closes it).
   final Widget? trailing;
 
-  /// Room kept at the right of the top row for the sidebar button, which
-  /// rides there while the sidebar is open.
-  final double toggleRoom;
+  /// Room kept at the right of the top row for the sidebar button (its
+  /// size as drawn), which rides there while the sidebar is open.
+  final ValueListenable<Size>? toggleRoom;
 
   @override
   State<Sidebar> createState() => _SidebarState();
@@ -257,8 +258,12 @@ class _SidebarState extends State<Sidebar> {
                   Expanded(child: _topBar(openSet)),
                   if (widget.trailing case final t?)
                     t
-                  else if (widget.toggleRoom > 0)
-                    SizedBox(width: widget.toggleRoom - 6),
+                  else if (widget.toggleRoom case final room?)
+                    ValueListenableBuilder<Size>(
+                      valueListenable: room,
+                      builder: (context, size, _) =>
+                          SizedBox(width: size.width),
+                    ),
                 ],
               ),
             ),

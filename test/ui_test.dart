@@ -1616,7 +1616,7 @@ void main() {
       expect(menu.left, closeTo(300 - side.right, .5), reason: '${style.name}: same margins');
       expect(side.center.dy, closeTo(search.center.dy, 1), reason: style.name);
     }
-  });
+  }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.linux}));
 
   testWidgets('sidebar button lines up with the top bar in every theme', (
     tester,

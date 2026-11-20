@@ -734,15 +734,12 @@ class _OperatorScreenState extends State<OperatorScreen>
   static const _floatingWidth = 320.0;
   static const _slide = Duration(milliseconds: 260);
 
-  /// The sidebar button's width, like the menu button's at the other end
-  /// of the sidebar's top row: 40, plus a 4 touch margin each side where
-  /// the theme pads tap targets (phones, tablets). The row keeps that much
-  /// room at its right, after the same 6 gap as between its other buttons,
-  /// with the row's 4 of padding beyond it: even spacing.
-  double _toggleWidth(BuildContext context) =>
-      Theme.of(context).materialTapTargetSize == MaterialTapTargetSize.padded
-      ? 48
-      : 40;
+  /// The sidebar button's size as drawn (measured: it differs by platform
+  /// and theme). The sidebar's top row keeps that much room at its right,
+  /// after the same 6 gap as between its other buttons, with the row's 4 of
+  /// padding beyond it, and the button goes there: even spacing.
+  final _toggleSize = ValueNotifier<Size>(const Size(40, 40));
+  double get _toggleWidth => _toggleSize.value.width;
 
   /// Preview shows automatically while projecting; the button hides it.
   bool get _previewVisible =>
@@ -809,7 +806,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                 ),
               ),
               // (the sidebar button rides in its top row while it's open)
-              toggleRoom: narrow ? 0 : _toggleWidth(context) + 6,
+              toggleRoom: narrow ? null : _toggleSize,
               // (phones: the drawer covers the button, so it has its own)
               trailing: narrow
                   ? SidebarToggleButton(
@@ -853,22 +850,29 @@ class _OperatorScreenState extends State<OperatorScreen>
               // padding, then a row as tall as its buttons, at least the
               // search's 40); in the header bar, measured from the bar's
               // centre, where the button box puts it.
-              final rowH = math.max(40.0, _toggleWidth(context));
-              final double openTop = eink
+              double openTop() => eink
                   ? (extras.headerBar ? 0 : em)
                   : extras.headerBar
-                  ? 3 + rowH / 2 - (_headerHeight - inkW(1)) / 2
+                  ? 3 +
+                        // (its width: it's round, and the bar may squeeze
+                        // its height)
+                        math.max(40.0, _toggleWidth) / 2 -
+                        (_headerHeight - inkW(1)) / 2
                   : 8;
               // (from the pane's right edge: its 4 of padding and the button)
-              final inRow = _toggleWidth(context) + 4;
-              Widget toggle(Widget button) => extras.headerBar
-                  ? SizedBox(
-                      // Less the bar's bottom border, as its buttons are
-                      // centred above that line.
-                      height: _headerHeight - inkW(1),
-                      child: Center(child: button),
-                    )
-                  : button;
+              double inRow() => _toggleWidth + 4;
+              // (measured as drawn, for the room and the place above)
+              Widget toggle(Widget button) {
+                final measured = _ReportSize(size: _toggleSize, child: button);
+                return extras.headerBar
+                    ? SizedBox(
+                        // Less the bar's bottom border, as its buttons are
+                        // centred above that line.
+                        height: _headerHeight - inkW(1),
+                        child: Center(child: measured),
+                      )
+                    : measured;
+              }
 
               return Scaffold(
                 key: _scaffoldKey,
@@ -947,22 +951,28 @@ class _OperatorScreenState extends State<OperatorScreen>
                           child: toggle(_sidebarButton(narrow, extras, floating)),
                         )
                       else if (floating)
-                        AnimatedPositioned(
-                          duration: motion(context, _slide),
-                          curve: Curves.easeInOutCubic,
-                          // (the floating card: 8 in from the window)
-                          left: floatingOpen ? 8 + _floatingWidth - inRow : edge,
-                          top: floatingOpen ? 8 + openTop : closedTop,
+                        ValueListenableBuilder<Size>(
+                          valueListenable: _toggleSize,
+                          builder: (context, _, child) => AnimatedPositioned(
+                            duration: motion(context, _slide),
+                            curve: Curves.easeInOutCubic,
+                            // (the floating card: 8 in from the window)
+                            left: floatingOpen
+                                ? 8 + _floatingWidth - inRow()
+                                : edge,
+                            top: floatingOpen ? 8 + openTop() : closedTop,
+                            child: child!,
+                          ),
                           child: toggle(_sidebarButton(narrow, extras, floating)),
                         )
                       else
                         AnimatedBuilder(
-                          animation: _side,
+                          animation: Listenable.merge([_side, _toggleSize]),
                           builder: (context, child) {
                             final t = _side.value;
                             return Positioned(
-                              left: math.max(edge, _sidebarWidth * t - inRow),
-                              top: closedTop + (openTop - closedTop) * t,
+                              left: math.max(edge, _sidebarWidth * t - inRow()),
+                              top: closedTop + (openTop() - closedTop) * t,
                               child: child!,
                             );
                           },
