@@ -2040,9 +2040,18 @@ class _OperatorScreenState extends State<OperatorScreen>
           // bars as before.)
           final fullBleed = !presenting && !eink;
           final scheme = Theme.of(context).colorScheme;
+          // (the halo is the colour of what's behind the toolbars: the
+          // sheet's page, or in page view the backdrop round the pages, in
+          // the sheet's own colours when the music isn't themed)
+          final song = model.currentSong;
+          final sheetScheme = model.settings.themeMusic
+              ? scheme
+              : neutralScheme(scheme.brightness, oled: model.settings.oled);
           final behind = presenting
               ? (pane > 0 ? scheme.surfaceContainerHigh : scheme.surface)
-              : scheme.surfaceContainerLowest;
+              : song != null && model.layoutFor(song).pageMode
+              ? sheetScheme.surfaceContainer
+              : sheetScheme.surfaceContainerLowest;
           Widget halo(double right, double? top, double? bottom, Size size) =>
               Positioned(
                 right: right,

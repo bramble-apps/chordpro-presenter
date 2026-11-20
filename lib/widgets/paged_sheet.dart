@@ -295,7 +295,19 @@ class RenderPagedSheet extends RenderBox
         divider,
       );
     }
-    context.pushTransform(needsCompositing, offset, _transform, defaultPaint);
+    // The pages' content, only what's in view (a long song's other pages
+    // aren't drawn on every frame of a scroll or a zoom).
+    context.pushTransform(needsCompositing, offset, _transform, (ctx, o) {
+      final view = ctx.canvas.getLocalClipBounds().inflate(40);
+      var child = firstChild;
+      while (child != null) {
+        final data = child.parentData! as _PageParentData;
+        if (((o + data.offset) & child.size).overlaps(view)) {
+          ctx.paintChild(child, o + data.offset);
+        }
+        child = data.nextSibling;
+      }
+    });
   }
 
   @override
@@ -325,7 +337,8 @@ class RenderPagedSheet extends RenderBox
 }
 
 /// The page view's zoom, shared by every song (kept as you swipe between
-/// them): 1 is the page fitting the width.
+/// them): 1 fits the page to the width, but never larger than the scroll
+/// view's text (a wide window: the page centred at that size).
 final pageZoom = ValueNotifier<double>(1);
 
 /// Pages that scroll and zoom like Bramble Pages': a pinch (or a trackpad
@@ -511,8 +524,9 @@ class _ZoomablePagesState extends State<ZoomablePages>
     return LayoutBuilder(
       builder: (context, box) {
         final room = box.maxWidth - pad.horizontal;
-        // zoom 1: the page fits the width
-        _fit = math.max(0.1, room / widget.paperWidth);
+        // zoom 1: the page fits the width, its text at most the scroll
+        // view's size
+        _fit = (room / widget.paperWidth).clamp(0.1, 1.0);
         _room = room;
         final scale = _fit * pageZoom.value;
         final scroll = _pinching ? const NeverScrollableScrollPhysics() : null;
