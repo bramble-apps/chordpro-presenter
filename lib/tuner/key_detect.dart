@@ -1,19 +1,28 @@
 // Finding a song's key by ear: the microphone's sound is split into its
 // frequencies, each strong one counted toward its note (C, C♯ … B), and the
 // running counts compared with how often each note is heard in each of the
-// 24 keys (the Krumhansl–Kessler key profiles). Works for singing, piano or
-// guitar, single notes or chords.
+// 24 keys (the Krumhansl–Kessler key profiles). A single voice (or any one
+// note at a time) is followed with the tuner's pitch detector instead, and
+// its notes matched to profiles made from melodies (Aarden–Essen): a voice's
+// overtones are often louder than the note itself, so its spectrum misleads.
+// Works for singing, piano or guitar, single notes or chords.
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
 import '../music.dart';
+import 'pitch.dart';
 
 /// How much each note is heard in a major and a minor key, from the tonic
 /// up (Krumhansl & Kessler's listening tests).
 const _majorProfile = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
 const _minorProfile = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+
+/// How often each note comes in melodies in a major and a minor key, from
+/// the tonic up (Aarden's counts from the Essen folk song collection).
+const _majorMelody = [17.77, 0.15, 14.93, 0.16, 19.80, 11.36, 0.29, 22.06, 0.15, 8.15, 0.23, 4.95];
+const _minorMelody = [18.26, 0.74, 14.05, 16.86, 0.70, 14.44, 0.70, 18.62, 4.57, 1.93, 7.38, 1.76];
 
 /// One key's match with what was heard (Pearson correlation, −1…1).
 class KeyScore {
@@ -23,8 +32,9 @@ class KeyScore {
 }
 
 /// All 24 keys for a note profile ([chroma]: how much of C, C♯ … B was
-/// heard), best match first.
-List<KeyScore> rankKeys(List<double> chroma) {
+/// heard), best match first. [melody]: the notes were sung or played one
+/// at a time (compared with melodies' profiles, not chords').
+List<KeyScore> rankKeys(List<double> chroma, {bool melody = false}) {
   double corr(List<double> a, List<double> b) {
     final ma = a.reduce((x, y) => x + y) / 12;
     final mb = b.reduce((x, y) => x + y) / 12;
@@ -40,7 +50,9 @@ List<KeyScore> rankKeys(List<double> chroma) {
   final out = <KeyScore>[];
   for (var root = 0; root < 12; root++) {
     for (final minor in [false, true]) {
-      final p = minor ? _minorProfile : _majorProfile;
+      final p = melody
+          ? (minor ? _minorMelody : _majorMelody)
+          : (minor ? _minorProfile : _majorProfile);
       // the profile turned to start on this root
       final turned = [for (var i = 0; i < 12; i++) p[(i - root + 12) % 12]];
       out.add(KeyScore(MusicKey(root, minor), corr(chroma, turned)));
@@ -129,6 +141,11 @@ class KeyListener {
   var _half = false;
   double? _pending;
   final _chroma = List<double>.filled(12, 0);
+  // notes heard one at a time (a voice), and how much of each kind there's
+  // been (fading like the counts)
+  final _melody = List<double>.filled(12, 0);
+  var _chordWeight = 0.0, _melodyWeight = 0.0;
+  static const _voice = PitchDetector(minHz: 70, maxHz: 1100, threshold: .12);
   var _heardSamples = 0;
   late final _window = Float64List.fromList([
     for (var i = 0; i < _size; i++) .5 - .5 * math.cos(2 * math.pi * i / (_size - 1)),
@@ -150,6 +167,8 @@ class KeyListener {
   /// Forgets everything heard (start over).
   void reset() {
     _chroma.fillRange(0, 12, 0);
+    _melody.fillRange(0, 12, 0);
+    _chordWeight = _melodyWeight = 0;
     _heardSamples = 0;
     guess.value = null;
   }
@@ -197,6 +216,25 @@ class KeyListener {
     // (about −60 dB full scale is silence; −20 dB loud)
     level.value = ((20 * math.log(rms + 1e-9) / math.ln10 + 60) / 40).clamp(0.0, 1.0);
     if (rms < 0.004) return; // too quiet: nothing to count
+    // one clear note (a voice, a single line)? Then that note is what's
+    // counted (the latest tenth of a second, read like the tuner does)
+    const fade = .995; // older sound fades: about 25 s for most of it to go
+    final recent = Float32List(2048);
+    for (var i = 0; i < 2048; i++) {
+      recent[i] = _buffer[(start + _size - 2048 + i) % _size];
+    }
+    final sung = _voice.detect(recent, rate, a4: a4);
+    if (sung != null && sung.clarity > .85 && sung.cents.abs() < 35) {
+      for (var i = 0; i < 12; i++) {
+        _melody[i] *= fade;
+        _chroma[i] *= fade;
+      }
+      _melody[sung.midi % 12] += 1;
+      _melodyWeight = _melodyWeight * fade + 1;
+      _chordWeight *= fade;
+      _heard(hop);
+      return;
+    }
     fft(re, im);
     final binHz = rate / _size;
     final lo = (60 / binHz).floor(), hi = math.min(_size ~/ 2 - 2, (2100 / binHz).ceil());
@@ -235,26 +273,56 @@ class KeyListener {
     }
     final sum = frame.reduce((x, y) => x + y);
     if (sum == 0) return;
-    // older sound fades: about 25 s for most of it to go
     for (var i = 0; i < 12; i++) {
-      _chroma[i] = _chroma[i] * .995 + frame[i] / sum;
+      _chroma[i] = _chroma[i] * fade + frame[i] / sum;
+      _melody[i] *= fade;
     }
+    _chordWeight = _chordWeight * fade + 1;
+    _melodyWeight *= fade;
+    _heard(hop);
+  }
+
+  /// After each look: the guess from all that's been heard so far.
+  void _heard(int hop) {
+    final rate = _rate;
     _heardSamples += hop;
     final heard = Duration(milliseconds: _heardSamples * 1000 ~/ rate);
     if (heard < const Duration(seconds: 2)) return;
-    final ranked = rankKeys(_chroma);
+    // chords' and single notes' matches, mixed by how much of each
+    final total = _chordWeight + _melodyWeight;
+    final score = <String, double>{};
+    final keys = <String, MusicKey>{};
+    void mix(List<KeyScore> ranked, double weight) {
+      if (weight == 0) return;
+      for (final k in ranked) {
+        final id = '${k.key.root}${k.key.minor}';
+        keys[id] = k.key;
+        score[id] = (score[id] ?? 0) + k.score * weight / total;
+      }
+    }
+
+    mix(rankKeys(_chroma), _chordWeight);
+    mix(rankKeys(_melody, melody: true), _melodyWeight);
+    final ranked = [for (final e in score.entries) KeyScore(keys[e.key]!, e.value)]
+      ..sort((a, b) => b.score.compareTo(a.score));
     final best = ranked[0], second = ranked[1];
     // sure: a clear lead over the runner-up, and long enough listening
     final lead = ((best.score - second.score) / .12).clamp(0.0, 1.0);
     final time = (heard.inMilliseconds / 12000).clamp(0.0, 1.0);
     final fit = ((best.score - .3) / .5).clamp(0.0, 1.0);
-    final peak = _chroma.reduce(math.max);
+    // the notes heard, both kinds together
+    final cSum = _chroma.reduce((x, y) => x + y), mSum = _melody.reduce((x, y) => x + y);
+    final notes = [
+      for (var i = 0; i < 12; i++)
+        (cSum == 0 ? 0 : _chroma[i] / cSum * _chordWeight) + (mSum == 0 ? 0 : _melody[i] / mSum * _melodyWeight),
+    ];
+    final peak = notes.reduce(math.max);
     guess.value = KeyGuess(
       key: best.key,
       runnerUp: second.key,
       sure: (.5 * lead + .5 * fit) * (.35 + .65 * time),
       heard: heard,
-      notes: [for (final v in _chroma) peak == 0 ? 0 : v / peak],
+      notes: [for (final v in notes) peak == 0 ? 0.0 : v / peak],
     );
   }
 

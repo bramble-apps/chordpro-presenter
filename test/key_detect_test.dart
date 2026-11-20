@@ -31,6 +31,77 @@ Float32List tone(List<int> notes, double seconds, {double vibrato = 0, int seed 
   return out;
 }
 
+/// A sung line: [notes] as (MIDI, beats), like a real voice: the note
+/// itself quieter than its overtones, a formant boost, breath noise,
+/// vibrato, and a slide from one note into the next.
+Float32List voice(List<(int, double)> notes, {double beat = .42, int seed = 7}) {
+  final rnd = math.Random(seed);
+  final total = notes.fold(0.0, (a, n) => a + n.$2) * beat;
+  final out = Float32List((total * rate).round());
+  var phase = 0.0, t0 = 0.0, prev = hzOf(notes.first.$1);
+  for (final (m, beats) in notes) {
+    final len = beats * beat, target = hzOf(m);
+    final n0 = (t0 * rate).round(), n1 = math.min(out.length, ((t0 + len) * rate).round());
+    for (var i = n0; i < n1; i++) {
+      final t = (i - n0) / rate;
+      final slide = math.min(1.0, t / .07);
+      final f = (prev + (target - prev) * slide) * (1 + .007 * math.sin(2 * math.pi * 5.3 * (i / rate)));
+      phase += f / rate;
+      var s = 0.0;
+      for (var h = 1; h <= 14; h++) {
+        final hz = f * h;
+        // a weak fundamental, formants near 650 and 1150 Hz
+        final formant = math.exp(-math.pow((hz - 650) / 250, 2)) + .7 * math.exp(-math.pow((hz - 1150) / 300, 2));
+        final amp = (h == 1 ? .25 : 1 / h) * (.3 + 2.2 * formant);
+        s += amp * math.sin(2 * math.pi * phase * h);
+      }
+      final env = math.min(1.0, t / .03) * math.min(1.0, (len - t) / .05);
+      out[i] = (s * .06 * env + (rnd.nextDouble() - .5) * .02).toDouble();
+    }
+    prev = target;
+    t0 += len;
+  }
+  return out;
+}
+
+/// A harsher voice: a phone in a room (hardly any fundamental, breath and
+/// room noise, echoes).
+Float32List hard(List<(int, double)> notes, {double beat = .42, int seed = 7, double h1 = .06, double noise = .06, double gain = .05}) {
+  final rnd = math.Random(seed);
+  final total = notes.fold(0.0, (a, n) => a + n.$2) * beat;
+  final out = Float32List((total * rate).round() + rate);
+  var phase = 0.0, t0 = 0.0, prev = hzOf(notes.first.$1);
+  for (final (m, beats) in notes) {
+    final len = beats * beat, target = hzOf(m);
+    final n0 = (t0 * rate).round(), n1 = ((t0 + len) * rate).round();
+    for (var i = n0; i < n1; i++) {
+      final t = (i - n0) / rate;
+      final slide = math.min(1.0, t / .12);
+      final f = (prev + (target - prev) * slide) * (1 + .012 * math.sin(2 * math.pi * 5.3 * (i / rate)));
+      phase += f / rate;
+      var s = 0.0;
+      for (var h = 1; h <= 20; h++) {
+        final hz = f * h;
+        final formant = math.exp(-math.pow((hz - 550) / 200, 2)) + math.exp(-math.pow((hz - 1700) / 350, 2)) + .6 * math.exp(-math.pow((hz - 2600) / 400, 2));
+        final amp = (h == 1 ? h1 : 1 / math.sqrt(h)) * (.15 + 2.5 * formant);
+        s += amp * math.sin(2 * math.pi * phase * h);
+      }
+      final env = math.min(1.0, t / .03) * math.min(1.0, (len - t) / .05);
+      out[i] = (s * gain * env + (rnd.nextDouble() - .5) * noise * gain * 4).toDouble();
+    }
+    prev = target;
+    t0 += len;
+  }
+  // a room: a few echoes
+  for (final (delay, g) in [(.031, .35), (.047, .3), (.083, .25), (.121, .2)]) {
+    final dly = (delay * rate).round();
+    for (var i = out.length - 1; i >= dly; i--) {
+      out[i] += out[i - dly] * g;
+    }
+  }
+  return out;
+}
+
 MusicKey? listenTo(List<Float32List> parts) {
   final k = KeyListener(sampleRate: rate);
   for (final p in parts) {
@@ -83,6 +154,51 @@ void main() {
     const melody = [62, 64, 66, 67, 69, 67, 66, 64, 62, 66, 69, 71, 69, 66, 64, 62, 62, 69, 66, 62];
     final parts = [for (final m in melody) tone([m], .6, vibrato: .006, seed: m)];
     expect(listenTo(parts)?.name, 'D');
+  });
+
+  test('a voice alone: Amazing Grace in G (five notes only)', () {
+    const d3 = 50, e3 = 52, g3 = 55, a3 = 57, b3 = 59, d4 = 62;
+    final song = <(int, double)>[
+      (d3, 1), (g3, 2), (b3, .5), (g3, .5), (b3, 2), (a3, 1), (g3, 2), (e3, 1), (d3, 2),
+      (d3, 1), (g3, 2), (b3, .5), (g3, .5), (b3, 2), (a3, 1), (d4, 3),
+      (b3, 1), (d4, 1.5), (b3, .5), (d4, .5), (b3, .5), (g3, 2), (d3, 1), (e3, 1.5), (g3, .5), (g3, .5), (e3, .5), (d3, 2),
+      (d3, 1), (g3, 2), (b3, .5), (g3, .5), (b3, 2), (a3, 1), (g3, 3),
+    ];
+    expect(listenTo([voice(song)])?.name, 'G');
+  });
+
+  test('a voice alone: a tune in E minor', () {
+    // (a higher voice: E4 = 64)
+    const e = 64, fs = 66, g = 67, a = 69, b = 71, ds = 63, c5 = 72, b3 = 59;
+    final song = <(int, double)>[
+      (e, 1), (g, 1), (a, 1), (b, 2), (a, 1), (g, 1), (fs, 1), (e, 2),
+      (ds, 1), (e, 1), (fs, 1), (g, 2), (fs, 1), (e, 1), (ds, 1), (b3, 2),
+      (e, 1), (g, 1), (b, 1), (c5, 2), (b, 1), (a, 1), (g, 1), (fs, 1),
+      (g, 1), (fs, 1), (e, 1), (ds, 1), (e, 3),
+    ];
+    expect(listenTo([voice(song, seed: 9)])?.name, 'Em');
+  });
+
+  test('a voice in a room, in four keys (the old spectrum-only way got 2 of 8)', () {
+    const d3 = 50, e3 = 52, g3 = 55, a3 = 57, b3 = 59, d4 = 62;
+    final grace = <(int, double)>[
+      (d3, 1), (g3, 2), (b3, .5), (g3, .5), (b3, 2), (a3, 1), (g3, 2), (e3, 1), (d3, 2),
+      (d3, 1), (g3, 2), (b3, .5), (g3, .5), (b3, 2), (a3, 1), (d4, 3),
+      (b3, 1), (d4, 1.5), (b3, .5), (d4, .5), (b3, .5), (g3, 2), (d3, 1), (e3, 1.5), (g3, .5), (g3, .5), (e3, .5), (d3, 2),
+    ];
+    const e = 64, fs = 66, g = 67, a = 69, b = 71, ds = 63, c5 = 72, bl = 59;
+    final minor = <(int, double)>[
+      (e, 1), (g, 1), (a, 1), (b, 2), (a, 1), (g, 1), (fs, 1), (e, 2),
+      (ds, 1), (e, 1), (fs, 1), (g, 2), (fs, 1), (e, 1), (ds, 1), (bl, 2),
+      (e, 1), (g, 1), (b, 1), (c5, 2), (b, 1), (a, 1), (g, 1), (fs, 1),
+      (g, 1), (fs, 1), (e, 1), (ds, 1), (e, 3),
+    ];
+    for (final shift in [0, 3, -2, 5]) {
+      MusicKey? sung(List<(int, double)> song) =>
+          listenTo([hard([for (final (m, b) in song) (m + shift, b)], seed: shift + 20)]);
+      expect(sung(grace)?.name, const MusicKey(7, false).transposed(shift).name, reason: 'major, $shift');
+      expect(sung(minor)?.name, const MusicKey(4, true).transposed(shift).name, reason: 'minor, $shift');
+    }
   });
 
   test('says nothing in silence', () {
