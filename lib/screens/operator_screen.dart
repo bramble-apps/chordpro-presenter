@@ -1962,12 +1962,20 @@ class _OperatorScreenState extends State<OperatorScreen>
                     children: [
                       Positioned.fill(
                         child: Padding(
-                          // E-ink: the sheet runs to the bars and edges
+                          // The sheet edge to edge between the bars, as in
+                          // the floating-toolbar layout (its words where the
+                          // card's were). E-ink: to the bars and edges too
                           // (their lines frame it).
-                          padding: isEink(context)
+                          padding: isEink(context) || sheetArea != null
                               ? EdgeInsets.only(bottom: pane)
                               : EdgeInsets.fromLTRB(12, 12, 12, 12 + pane),
-                          child: sheetArea ?? PresentationView(model: model),
+                          child: sheetArea != null && !isEink(context)
+                              ? SheetInsets(
+                                  framed: false,
+                                  inset: const EdgeInsets.all(12),
+                                  child: sheetArea,
+                                )
+                              : sheetArea ?? PresentationView(model: model),
                         ),
                       ),
                       if (pane > 0) _bottomPane(pane),
