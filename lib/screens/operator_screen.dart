@@ -734,8 +734,15 @@ class _OperatorScreenState extends State<OperatorScreen>
   static const _floatingWidth = 320.0;
   static const _slide = Duration(milliseconds: 260);
 
-  /// Room at the right of the sidebar's top row for the sidebar button.
-  static const _toggleRoom = 56.0;
+  /// The sidebar button's width, like the menu button's at the other end
+  /// of the sidebar's top row: 40, plus a 4 touch margin each side where
+  /// the theme pads tap targets (phones, tablets). The row keeps that much
+  /// room at its right, after the same 6 gap as between its other buttons,
+  /// with the row's 4 of padding beyond it: even spacing.
+  double _toggleWidth(BuildContext context) =>
+      Theme.of(context).materialTapTargetSize == MaterialTapTargetSize.padded
+      ? 48
+      : 40;
 
   /// Preview shows automatically while projecting; the button hides it.
   bool get _previewVisible =>
@@ -802,7 +809,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                 ),
               ),
               // (the sidebar button rides in its top row while it's open)
-              toggleRoom: narrow ? 0 : _toggleRoom,
+              toggleRoom: narrow ? 0 : _toggleWidth(context) + 6,
               // (phones: the drawer covers the button, so it has its own)
               trailing: narrow
                   ? SidebarToggleButton(
@@ -846,16 +853,14 @@ class _OperatorScreenState extends State<OperatorScreen>
               // padding, then a row as tall as its buttons, at least the
               // search's 40); in the header bar, measured from the bar's
               // centre, where the button box puts it.
-              final rowH = math.max(
-                40.0,
-                48 + Theme.of(context).visualDensity.baseSizeAdjustment.dy,
-              );
+              final rowH = math.max(40.0, _toggleWidth(context));
               final double openTop = eink
                   ? (extras.headerBar ? 0 : em)
                   : extras.headerBar
                   ? 3 + rowH / 2 - (_headerHeight - inkW(1)) / 2
                   : 8;
-              const double inRow = _toggleRoom - 4;
+              // (from the pane's right edge: its 4 of padding and the button)
+              final inRow = _toggleWidth(context) + 4;
               Widget toggle(Widget button) => extras.headerBar
                   ? SizedBox(
                       // Less the bar's bottom border, as its buttons are

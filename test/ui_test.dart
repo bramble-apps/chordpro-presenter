@@ -1597,6 +1597,27 @@ void main() {
     expect(find.text('Find songs'), findsNothing);
   });
 
+  testWidgets('sidebar top row: menu, search and sidebar button evenly spaced', (
+    tester,
+  ) async {
+    final model = await pumpApp(tester);
+    // (Breeze: compact; the others as on phones, with padded tap targets)
+    for (final style in [UiStyle.material, UiStyle.breeze, UiStyle.adwaita]) {
+      model.updateSettings((s) => s.uiStyle = style);
+      await tester.pumpAndSettle();
+      final menu = tester.getRect(find.byTooltip('Menu').first);
+      final search = tester.getRect(find.byType(TextField).first);
+      final side = tester.getRect(find.byTooltip('Hide sidebar').first);
+      expect(
+        search.left - menu.right,
+        closeTo(side.left - search.right, .5),
+        reason: '${style.name}: same gaps',
+      );
+      expect(menu.left, closeTo(300 - side.right, .5), reason: '${style.name}: same margins');
+      expect(side.center.dy, closeTo(search.center.dy, 1), reason: style.name);
+    }
+  });
+
   testWidgets('sidebar button lines up with the top bar in every theme', (
     tester,
   ) async {
