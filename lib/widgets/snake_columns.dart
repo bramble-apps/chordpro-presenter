@@ -32,6 +32,11 @@ int snakeColumnsFor(int wanted, double width) {
 /// [controller] (the real one: section keys, annotations); the others are
 /// [others] (the same content without keys), each a column further on,
 /// following the same scroll. Drags and the wheel in any column scroll it.
+///
+/// Smooth at 120 Hz: each column's content is its own layer (scrolling
+/// moves it, nothing is repainted), and its lines' places are measured once
+/// per layout; scrolling just compares numbers and touches only the lines
+/// that come into or leave view.
 class SnakeColumns extends StatefulWidget {
   final ScrollController controller;
   final int columns;
@@ -54,8 +59,39 @@ class SnakeColumns extends StatefulWidget {
 
 class _SnakeColumnsState extends State<SnakeColumns> {
   Drag? _drag;
+  final _windows = <_Window>[];
 
   ScrollPosition? get _position => _newest(widget.controller);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_scrolled);
+  }
+
+  @override
+  void didUpdateWidget(SnakeColumns old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller.removeListener(_scrolled);
+      widget.controller.addListener(_scrolled);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_scrolled);
+    super.dispose();
+  }
+
+  double get _offset => _position?.pixels ?? 0;
+
+  void _scrolled() {
+    final s = _offset;
+    for (final w in _windows) {
+      w.update(s);
+    }
+  }
 
   Widget _following(Widget column) => Listener(
     // the wheel over a following column scrolls the first
@@ -88,33 +124,38 @@ class _SnakeColumnsState extends State<SnakeColumns> {
         // what a column shows between its top and bottom padding: the next
         // column carries on from there
         final step = math.max(40.0, box.maxHeight - pad.vertical);
+        while (_windows.length < widget.columns) {
+          _windows.add(_Window());
+        }
+        _windows.length = widget.columns;
         final cols = <Widget>[];
         for (var i = 0; i < widget.columns; i++) {
+          final w = _windows[i]
+            ..by = step * i
+            ..step = step
+            ..remeasure(_offset);
           final column = i == 0
               ? SingleChildScrollView(
                   controller: widget.controller,
                   padding: pad,
-                  child: widget.first,
+                  // (its own layer: scrolling moves it, no repaint)
+                  child: RepaintBoundary(child: w.root(widget.first)),
                 )
               : _following(
                   _Follower(
                     controller: widget.controller,
                     by: step * i,
                     padding: pad,
-                    child: widget.others(),
+                    child: RepaintBoundary(child: w.root(widget.others())),
                   ),
                 );
           if (i > 0) {
-            cols.add(VerticalDivider(width: 1, thickness: inkW(1), color: divider));
+            cols.add(
+              VerticalDivider(width: 1, thickness: inkW(1), color: divider),
+            );
           }
           cols.add(
-            Expanded(
-              child: _ColumnWindow(
-                controller: widget.controller,
-                padding: pad,
-                child: column,
-              ),
-            ),
+            Expanded(child: _WindowScope(window: w, child: column)),
           );
         }
         return Row(
@@ -127,7 +168,7 @@ class _SnakeColumnsState extends State<SnakeColumns> {
 }
 
 /// A column further on: the content laid out as in the first, moved up by
-/// the scroll plus [by].
+/// the scroll plus [by]. (Only the move is redone as it scrolls.)
 class _Follower extends StatelessWidget {
   final ScrollController controller;
   final double by;
@@ -144,37 +185,89 @@ class _Follower extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Padding(padding: padding, child: child);
     return ClipRect(
-      child: AnimatedBuilder(
-        animation: controller,
-        builder: (context, content) => OverflowBox(
-          alignment: Alignment.topLeft,
-          minHeight: 0,
-          maxHeight: double.infinity,
-          child: Transform.translate(
+      child: OverflowBox(
+        alignment: Alignment.topLeft,
+        minHeight: 0,
+        maxHeight: double.infinity,
+        child: AnimatedBuilder(
+          animation: controller,
+          builder: (context, content) => Transform.translate(
             offset: Offset(0, -((_newest(controller)?.pixels ?? 0) + by)),
             child: content,
           ),
+          child: content,
         ),
-        child: content,
       ),
     );
   }
 }
 
-/// A column's readable window (inside its top and bottom padding), for
-/// [SeamLine]s in it.
-class _ColumnWindow extends InheritedWidget {
-  final ScrollController controller;
-  final EdgeInsets padding;
-  const _ColumnWindow({
-    required this.controller,
-    required this.padding,
-    required super.child,
-  });
+/// One column's lines: where each sits in the content (measured once per
+/// layout), and which ones are whole inside the column at a scroll.
+class _Window {
+  double by = 0, step = 1;
+  final _rootKey = GlobalKey();
+  final _lines = <_SeamLineState>{};
+  final _top = <_SeamLineState, double>{};
+  final _bottom = <_SeamLineState, double>{};
+  var _measuring = false;
+
+  Widget root(Widget child) => KeyedSubtree(key: _rootKey, child: child);
+
+  void add(_SeamLineState l) {
+    _lines.add(l);
+    remeasure(null);
+  }
+
+  void remove(_SeamLineState l) {
+    _lines.remove(l);
+    _top.remove(l);
+    _bottom.remove(l);
+  }
+
+  double _s = 0;
+
+  /// The lines' places again, once laid out (a new size, a new song…).
+  void remeasure(double? s) {
+    if (s != null) _s = s;
+    if (_measuring) return;
+    _measuring = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _measuring = false;
+      final root = _rootKey.currentContext?.findRenderObject() as RenderBox?;
+      if (root == null || !root.attached) return;
+      _top.clear();
+      _bottom.clear();
+      for (final l in _lines) {
+        final box = l.context.findRenderObject() as RenderBox?;
+        if (box == null || !box.attached || !box.hasSize) continue;
+        final y = box.localToGlobal(Offset.zero, ancestor: root).dy;
+        _top[l] = y;
+        _bottom[l] = y + box.size.height;
+      }
+      update(_s);
+    });
+    SchedulerBinding.instance.ensureVisualUpdate();
+  }
+
+  /// At scroll [s]: each line shown while whole inside this column.
+  void update(double s) {
+    _s = s;
+    final from = s + by - .5, to = s + by + step + .5;
+    for (final l in _lines) {
+      final t = _top[l], b = _bottom[l];
+      if (t == null || b == null) continue;
+      l.show(t >= from && b <= to);
+    }
+  }
+}
+
+class _WindowScope extends InheritedWidget {
+  final _Window window;
+  const _WindowScope({required this.window, required super.child});
 
   @override
-  bool updateShouldNotify(_ColumnWindow old) =>
-      old.controller != controller || old.padding != padding;
+  bool updateShouldNotify(_WindowScope old) => old.window != window;
 }
 
 /// A line of the sheet: in columns, shown only while it fits whole in its
@@ -189,59 +282,37 @@ class SeamLine extends StatefulWidget {
 }
 
 class _SeamLineState extends State<SeamLine> {
-  _ColumnWindow? _window;
-  BuildContext? _windowContext;
+  _Window? _window;
   var _shown = true;
-  var _pending = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final element = context
-        .getElementForInheritedWidgetOfExactType<_ColumnWindow>();
-    final w = element?.widget as _ColumnWindow?;
-    context.dependOnInheritedWidgetOfExactType<_ColumnWindow>();
-    if (w?.controller != _window?.controller) {
-      _window?.controller.removeListener(_moved);
-      w?.controller.addListener(_moved);
+    final w = context
+        .dependOnInheritedWidgetOfExactType<_WindowScope>()
+        ?.window;
+    if (w != _window) {
+      _window?.remove(this);
+      _window = w;
+      w?.add(this);
     }
-    _window = w;
-    _windowContext = element;
-    _moved();
+  }
+
+  @override
+  void didUpdateWidget(SeamLine old) {
+    super.didUpdateWidget(old);
+    // (its content may have changed size: places measured again)
+    _window?.remeasure(null);
   }
 
   @override
   void dispose() {
-    _window?.controller.removeListener(_moved);
+    _window?.remove(this);
     super.dispose();
   }
 
-  /// (checked once the frame is laid out and painted, when every column is
-  /// where the scroll puts it)
-  void _moved() {
-    if (_window == null || _pending) return;
-    _pending = true;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _pending = false;
-      if (mounted) _check();
-    });
-    SchedulerBinding.instance.ensureVisualUpdate();
-  }
-
-  void _check() {
-    final w = _window, wc = _windowContext;
-    final me = context.findRenderObject() as RenderBox?;
-    final win = wc?.findRenderObject() as RenderBox?;
-    if (w == null || me == null || win == null || !me.attached || !win.attached) {
-      return;
-    }
-    final top = me.localToGlobal(Offset.zero).dy;
-    final bottom = top + me.size.height;
-    final at = win.localToGlobal(Offset.zero).dy;
-    final shown =
-        top >= at + w.padding.top - .5 &&
-        bottom <= at + win.size.height - w.padding.bottom + .5;
-    if (shown != _shown) setState(() => _shown = shown);
+  void show(bool shown) {
+    if (shown != _shown && mounted) setState(() => _shown = shown);
   }
 
   @override
