@@ -85,6 +85,8 @@ class _ShareDialogState extends State<ShareDialog> {
   bool _fade = true;
   bool _onePdf = true;
   bool _chords = true;
+  // section labels in a margin: 'left' / 'right', '' above as text
+  String _margin = '';
   double _scale = 1.0;
   late PaperSize _paper;
   late int _columns;
@@ -121,6 +123,7 @@ class _ShareDialogState extends State<ShareDialog> {
         : SheetLayout.of(first.format, first.song.extra);
     _paper = layout.paperA4 ? PaperSize.a4 : PaperSize.letter;
     _columns = layout.columns;
+    _margin = (first?.format ?? model.format).marginLabels;
   }
 
   // ---- Building the files ----
@@ -153,6 +156,7 @@ class _ShareDialogState extends State<ShareDialog> {
         scale: _scale,
         paper: _paper,
         columns: _columns,
+        marginLabels: _margin,
       );
     }
     return doc.save();
@@ -526,6 +530,38 @@ class _ShareDialogState extends State<ShareDialog> {
                         const Text('Include chords'),
                       ],
                     ),
+                  if (_format == ShareFormat.pdf)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Switch(
+                          value: _margin.isNotEmpty,
+                          onChanged: (v) =>
+                              setState(() => _margin = v ? 'left' : ''),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Labels in margins'),
+                        if (_margin.isNotEmpty) ...[
+                          const SizedBox(width: 10),
+                          SegmentedButton<String>(
+                            style: const ButtonStyle(
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            showSelectedIcon: false,
+                            segments: const [
+                              ButtonSegment(value: 'left', label: Text('Left')),
+                              ButtonSegment(
+                                value: 'right',
+                                label: Text('Right'),
+                              ),
+                            ],
+                            selected: {_margin},
+                            onSelectionChanged: (v) =>
+                                setState(() => _margin = v.first),
+                          ),
+                        ],
+                      ],
+                    ),
                   if (_format == ShareFormat.pdf && _isSet)
                     SegmentedButton<bool>(
                       segments: const [
@@ -752,7 +788,9 @@ class _ShareDialogState extends State<ShareDialog> {
       case ShareFormat.pdf:
         return box(
           PdfPreview(
-            key: ValueKey('$_scope|$_chords|$_scale|$_paper|$_columns'),
+            key: ValueKey(
+              '$_scope|$_chords|$_scale|$_paper|$_columns|$_margin',
+            ),
             build: (_) => _pdfOf(_sources),
             useActions: false,
             canChangePageFormat: false,

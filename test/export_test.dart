@@ -164,4 +164,21 @@ void main() {
       expect(hidden.length, lessThan(styled.length));
     });
   });
+
+  testWidgets('PDF export with labels in either margin, any columns', (t) async {
+    await t.runAsync(() async {
+      final m = await model();
+      for (final side in ['left', 'right']) {
+        for (final columns in [1, 2]) {
+          final bytes = await exportPdf(
+            ExportSource.from(m),
+            includeChords: true,
+            columns: columns,
+            marginLabels: side,
+          );
+          expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+        }
+      }
+    });
+  });
 }

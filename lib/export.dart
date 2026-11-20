@@ -431,6 +431,7 @@ Future<Uint8List> exportPdf(
   double scale = 1.0,
   PaperSize paper = PaperSize.letter,
   int columns = 1,
+  String? marginLabels,
 }) async {
   final doc = pw.Document(title: src.song.displayTitle);
   await addPdfPages(
@@ -440,11 +441,14 @@ Future<Uint8List> exportPdf(
     scale: scale,
     paper: paper,
     columns: columns,
+    marginLabels: marginLabels,
   );
   return doc.save();
 }
 
 /// Adds a song's pages to [doc] (one song, or one of a setlist's).
+/// [marginLabels] 'left' / 'right' puts section labels as badges on a rail
+/// in that margin, '' above as text (null: as in the song's Format).
 Future<void> addPdfPages(
   pw.Document doc,
   ExportSource src, {
@@ -452,8 +456,10 @@ Future<void> addPdfPages(
   double scale = 1.0,
   PaperSize paper = PaperSize.letter,
   int columns = 1,
+  String? marginLabels,
 }) async {
   final f = src.format;
+  final side = marginLabels ?? f.marginLabels;
   final textTheme = await _pdfTheme(src.settings.sheetFont);
   final textGlyphs = await _coverage(src.settings.sheetFont);
   final chordGlyphs = src.settings.chordFont == src.settings.sheetFont
@@ -601,6 +607,7 @@ Future<void> addPdfPages(
       continue;
     }
     final pieces = part.pieceLines;
+    String? marginLabel;
     for (var p = 0; p < pieces.length; p++) {
       // Linked pieces: hidden or styled as set in Format.
       if (p > 0 && !look.show) continue;
@@ -667,6 +674,11 @@ Future<void> addPdfPages(
         if (line.isEmpty) {
           children.add(pw.SizedBox(height: 4 * scale));
         } else if (ChordPro.isSectionLabel(line)) {
+          if (side.isNotEmpty) {
+            // (in the margin: the part's first label, as a badge)
+            marginLabel ??= ChordPro.sectionName(line);
+            continue;
+          }
           children.add(pw.SizedBox(height: 4 * scale));
           add(SheetElement.headings, line, color: grey);
         } else {
@@ -751,6 +763,9 @@ Future<void> addPdfPages(
       }
     }
     inLinked = false;
+    if (marginLabel != null) {
+      _railPart(children, partStarts.last, side, marginLabel, scale, grey);
+    }
     children.add(pw.SizedBox(height: 6 * scale));
   }
 
@@ -825,6 +840,82 @@ Future<void> addPdfPages(
       build: (_) => children,
     ),
   );
+}
+
+/// A part's lines (from [start]) put beside a rail in the [side] margin,
+/// with [name] shortened to a badge on it, by the part's middle line. Each
+/// line keeps its own piece of the rail, so the part can still break across
+/// pages and columns.
+void _railPart(
+  List<pw.Widget> children,
+  int start,
+  String side,
+  String name,
+  double scale,
+  PdfColor grey,
+) {
+  if (children.length <= start) return;
+  final gutter = 32 * scale;
+  final left = side == 'left';
+  final short = ChordPro.sectionAbbreviation(name);
+  final chorus = short.startsWith('C') && !short.startsWith('Co');
+  final rail = pw.BorderSide(color: chorus ? grey : PdfColors.grey500, width: .8);
+  final badge = pw.SizedBox(
+    width: gutter,
+    child: pw.Center(
+      child: pw.Container(
+        padding: pw.EdgeInsets.symmetric(horizontal: 4 * scale, vertical: 1.5 * scale),
+        decoration: pw.BoxDecoration(
+          color: chorus ? PdfColors.grey800 : PdfColors.white,
+          border: pw.Border.all(color: chorus ? PdfColors.grey800 : grey, width: .8),
+          borderRadius: pw.BorderRadius.circular(3 * scale),
+        ),
+        child: pw.Text(
+          short,
+          style: pw.TextStyle(
+            fontSize: 8 * scale,
+            fontWeight: pw.FontWeight.bold,
+            color: chorus ? PdfColors.white : grey,
+          ),
+        ),
+      ),
+    ),
+  );
+  final lines = children.sublist(start);
+  final middle = lines.length ~/ 2;
+  children.removeRange(start, children.length);
+  for (var i = 0; i < lines.length; i++) {
+    // (aligned: each line as wide as the page or column, so a right-hand
+    // rail runs straight)
+    final line = pw.Container(
+      alignment: pw.Alignment.topLeft,
+      margin: left
+          ? pw.EdgeInsets.only(left: gutter / 2)
+          : pw.EdgeInsets.only(right: gutter / 2),
+      padding: left
+          ? pw.EdgeInsets.only(left: gutter / 2)
+          : pw.EdgeInsets.only(right: gutter / 2),
+      decoration: pw.BoxDecoration(
+        border: left ? pw.Border(left: rail) : pw.Border(right: rail),
+      ),
+      child: lines[i],
+    );
+    children.add(
+      i != middle
+          ? line
+          : pw.Stack(
+              children: [
+                line,
+                pw.Positioned(
+                  left: left ? 0 : null,
+                  right: left ? null : 0,
+                  top: 0,
+                  child: badge,
+                ),
+              ],
+            ),
+    );
+  }
 }
 
 /// Lays a song out in [columns] newspaper-style columns: the title block
