@@ -1734,7 +1734,8 @@ class _OperatorScreenState extends State<OperatorScreen>
   /// Metronome, key, capo, and slide arrows while projecting.
   List<Widget> _bottomActions(Song? song) => [
     if (model.settings.showMetronome)
-      _MetronomeButton(metronome: model.metronome),
+      // (its own layer: the swinging pendulum repaints just itself)
+      RepaintBoundary(child: _MetronomeButton(metronome: model.metronome)),
     if (song != null &&
         model.settings.showPlayer &&
         song.audioUrl.trim().isNotEmpty)

@@ -91,6 +91,12 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar> {
   final _search = TextEditingController();
 
+  /// The search text alone (the field's controller also changes with the
+  /// caret and the keyboard's composing: no need to redo the list for
+  /// those), and what the pane rebuilds for.
+  late final _query = ValueNotifier(_search.text);
+  late final _rebuildFor = Listenable.merge([model, _query]);
+
   // ---- A–Z scrubber: jumping the grouped list to a letter ----
   final _listScroll = ScrollController();
   final _tagScroll = ScrollController();
@@ -153,6 +159,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   void initState() {
     super.initState();
+    _search.addListener(() => _query.value = _search.text);
     // Back where it was left (after closing the app, or rotating, which
     // rebuilds the pane as a drawer or docked).
     final m = model;
@@ -209,6 +216,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   void dispose() {
     _search.dispose();
+    _query.dispose();
     _listScroll.dispose();
     _tagScroll.dispose();
     super.dispose();
@@ -217,7 +225,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([model, _search]),
+      listenable: _rebuildFor,
       builder: (context, _) {
         final openSet = model.setlistById(_openSetlistId);
         // (After this build: e-ink pages are worked out while building.)
@@ -1238,8 +1246,10 @@ class _SidebarState extends State<Sidebar> {
       case _Sort.title:
         list.sort(byTitle);
       case _Sort.artist:
+        // (each artist folded once, not on every comparison)
+        final artist = {for (final s in list) s.id: foldAccents(s.artist)};
         list.sort((a, b) {
-          final c = foldAccents(a.artist).compareTo(foldAccents(b.artist));
+          final c = artist[a.id]!.compareTo(artist[b.id]!);
           return c != 0 ? c : byTitle(a, b);
         });
       case _Sort.key:
@@ -1266,13 +1276,17 @@ class _SidebarState extends State<Sidebar> {
         if (t.hidden && !_tagFilter.contains(t.id)) t.id,
     };
     final matches = <Song>[];
+    // (each match's search rank, worked out once)
+    final rank = <String, int>{};
     for (final s in model.songs) {
       if (!_tagFilter.every(s.tags.contains)) continue;
       if (_keyFilter != null && (_songKey(s) ?? 'No key') != _keyFilter) {
         continue;
       }
-      if (q.isNotEmpty && s.searchRank(q) == null) {
-        continue;
+      if (q.isNotEmpty) {
+        final r = s.searchRank(q);
+        if (r == null) continue;
+        rank[s.id] = r;
       }
       // (Songs with a hidden tag show when that tag is picked.)
       if (s.tags.any(hiddenTags.contains)) continue;
@@ -1284,7 +1298,6 @@ class _SidebarState extends State<Sidebar> {
     final ranked = q.isNotEmpty;
     if (ranked) {
       final order = {for (final (i, s) in songs.indexed) s.id: i};
-      final rank = {for (final s in songs) s.id: s.searchRank(q)!};
       songs = [...songs]
         ..sort((a, b) {
           final c = rank[a.id]!.compareTo(rank[b.id]!);

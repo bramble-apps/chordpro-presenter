@@ -1048,7 +1048,9 @@ class _ModernStageState extends State<_ModernStage> {
                                 ),
                               ),
                               SizedBox(height: 6 * unit),
-                              _Elapsed(
+                              // (its own layer: its tick repaints just it)
+                              RepaintBoundary(
+                                child: _Elapsed(
                                 since: _start,
                                 style: TextStyle(
                                   fontSize: 32 * unit,
@@ -1057,6 +1059,7 @@ class _ModernStageState extends State<_ModernStage> {
                                     FontFeature.tabularFigures(),
                                   ],
                                 ),
+                              ),
                               ),
                             ],
                           ),

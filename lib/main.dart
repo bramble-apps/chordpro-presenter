@@ -89,6 +89,14 @@ Future<void> secondaryDisplayMain() async {
 
 /// The operator app, re-themed whenever the settings change.
 class BilingualProjectorApp extends StatelessWidget {
+  /// The arrow keys move between slides (see OperatorScreen); they don't
+  /// hop the keyboard focus between buttons and list rows (Flutter's
+  /// default on desktop). Text fields keep theirs. (Made once.)
+  static final _shortcuts = {
+    for (final e in WidgetsApp.defaultShortcuts.entries)
+      if (e.value is! DirectionalFocusIntent) e.key: e.value,
+  };
+
   final PresenterModel model;
   final Widget? home;
   const BilingualProjectorApp({super.key, required this.model, this.home});
@@ -110,10 +118,7 @@ class BilingualProjectorApp extends StatelessWidget {
           // The arrow keys move between slides (see OperatorScreen); they
           // don't hop the keyboard focus between buttons and list rows
           // (Flutter's default on desktop). Text fields keep theirs.
-          shortcuts: {
-            for (final e in WidgetsApp.defaultShortcuts.entries)
-              if (e.value is! DirectionalFocusIntent) e.key: e.value,
-          },
+          shortcuts: _shortcuts,
           title: 'ChordPro Presenter',
           debugShowCheckedModeBanner: false,
           themeMode: switch (s.mode) {

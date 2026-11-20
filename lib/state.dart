@@ -166,15 +166,19 @@ class Song {
   /// Title for sorting (accents folded, leading punctuation dropped);
   /// remembered until the title changes (sorting asks for it a lot).
   String get sortKey {
-    final source = sortTitle.isNotEmpty ? sortTitle : displayTitle;
-    if (!identical(source, _sortSource)) {
-      _sortSource = source;
+    // (kept by what it's made from: a song with its title only in the
+    // ChordPro text isn't read again on every comparison)
+    if (!identical(sortTitle, _sortFrom.$1) ||
+        !identical(title, _sortFrom.$2) ||
+        !identical(raw, _sortFrom.$3)) {
+      _sortFrom = (sortTitle, title, raw);
+      final source = sortTitle.isNotEmpty ? sortTitle : displayTitle;
       _sortKey = foldAccents(source).replaceAll(_leadingPunctuation, '');
     }
     return _sortKey;
   }
 
-  String? _sortSource;
+  (String?, String?, String?) _sortFrom = (null, null, null);
   String _sortKey = '';
   static final _leadingPunctuation = RegExp(r'^[^\p{L}\p{N}]+', unicode: true);
 
@@ -244,6 +248,23 @@ class Song {
   /// title ("He is Lord of all", "He is … Lord … forever"), or null when
   /// the title or artist matched (or nothing did).
   String? searchSnippet(String query) {
+    // (remembered for the same query and song: each visible row asks on
+    // every rebuild)
+    if (query == _snipQuery &&
+        identical(raw, _snipFrom.$1) &&
+        identical(title, _snipFrom.$2) &&
+        identical(artist, _snipFrom.$3)) {
+      return _snip;
+    }
+    _snipQuery = query;
+    _snipFrom = (raw, title, artist);
+    return _snip = _searchSnippet(query);
+  }
+
+  String? _snipQuery, _snip;
+  (String?, String?, String?) _snipFrom = (null, null, null);
+
+  String? _searchSnippet(String query) {
     final rank = searchRank(query);
     if (rank == null || rank < 5) return null;
     final lines = [

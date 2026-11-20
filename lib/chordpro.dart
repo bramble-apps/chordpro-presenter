@@ -247,7 +247,7 @@ String _labelsFromComments(String line) {
   if (m == null) return line;
   final text = m.group(1)!;
   if (!_labelRegex.hasMatch(text) &&
-      !RegExp(r'^[^\[\]]{1,30}:$').hasMatch(text)) {
+      !_shortLabel.hasMatch(text)) {
     return line;
   }
   return text.endsWith(':') ? text : '$text:';
@@ -258,6 +258,17 @@ const String _metaKeys =
     'footer|ccli_license|ccli|capo|duration|sorttitle';
 
 final RegExp _hasLetter = RegExp(r'\p{L}', unicode: true);
+
+// (patterns used line by line, made once)
+final RegExp _metaLine = RegExp(
+  '^\\s*(?:\\{\\s*)?($_metaKeys)\\s*:\\s*(.*?)\\s*(?:\\}\\s*)?\$',
+  caseSensitive: false,
+);
+final RegExp _shortLabel = RegExp(r'^[^\[\]]{1,30}:$');
+final RegExp _dashes = RegExp(r'^-{3,}$');
+final RegExp _labelEnd = RegExp(r'[:.\-)]+$');
+final RegExp _dividerLine = RegExp(r'^\s*([-_=*~])\1{2,}\s*$');
+final RegExp _colonsSpaces = RegExp(r'[:\s]+');
 final RegExp _shortMeta = RegExp(
   r'^\s*\{\s*(t|st)\s*:\s*(.*?)\s*\}\s*$',
   caseSensitive: false,
@@ -331,10 +342,7 @@ class ChordProHeader {
             : header.subtitle = v;
         continue;
       }
-      final m = RegExp(
-        '^\\s*(?:\\{\\s*)?($_metaKeys)\\s*:\\s*(.*?)\\s*(?:\\}\\s*)?\$',
-        caseSensitive: false,
-      ).firstMatch(line);
+      final m = _metaLine.firstMatch(line);
       if (m == null) continue;
       final value = m.group(2)!.trim();
       switch (m.group(1)!.toLowerCase()) {
@@ -530,7 +538,7 @@ class ChordPro {
       }
       if (t.isEmpty ||
           _partBreak.hasMatch(t) ||
-          RegExp(r'^-{3,}$').hasMatch(t) ||
+          _dashes.hasMatch(t) ||
           (isSectionLabel(t) && !_hasLetter.hasMatch(t))) {
         flush();
         continue;
@@ -726,7 +734,7 @@ class ChordPro {
   /// Section name of a label line ("Verse 1:" -> "Verse 1"), or null.
   static String? sectionName(String line) {
     if (!isSectionLabel(line)) return null;
-    var name = line.trim().replaceAll(RegExp(r'[:.\-)]+$'), '').trim();
+    var name = line.trim().replaceAll(_labelEnd, '').trim();
     // "Verse 1 (FR):" keeps its closing bracket.
     if (name.contains('(') && !name.contains(')')) name = '$name)';
     return _hasLetter.hasMatch(name) ? name : null;
@@ -735,10 +743,10 @@ class ChordPro {
   /// A divider line ("----", "***", "___"): it ends the section above
   /// (e.g. before a translation pasted under the song with no label).
   static bool isDivider(String line) =>
-      RegExp(r'^\s*([-_=*~])\1{2,}\s*$').hasMatch(line);
+      _dividerLine.hasMatch(line);
 
   static String _sectionKey(String name) =>
-      name.toLowerCase().replaceAll(RegExp(r'[:\s]+'), ' ').trim();
+      name.toLowerCase().replaceAll(_colonsSpaces, ' ').trim();
 
   /// Section names in the order they appear in the song (duplicates kept).
   static List<String> sectionNames(String raw) => [

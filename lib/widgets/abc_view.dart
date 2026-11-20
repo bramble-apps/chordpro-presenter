@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -129,12 +128,12 @@ class _AbcViewState extends State<AbcView> with SingleTickerProviderStateMixin {
       _stop();
       return;
     }
-    setState(
-      () => _lit = {
-        for (final n in perf.notes)
-          if (n.start <= q && q < n.start + n.length) n.note,
-      },
-    );
+    // (only when the notes sounding change, not on every frame)
+    final lit = {
+      for (final n in perf.notes)
+        if (n.start <= q && q < n.start + n.length) n.note,
+    };
+    if (!setEquals(lit, _lit)) setState(() => _lit = lit);
   }
 
   void _stop() {
