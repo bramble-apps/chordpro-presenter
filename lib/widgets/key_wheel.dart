@@ -870,6 +870,9 @@ class KeyWheelPopover extends StatelessWidget {
   final String? title;
   final double maxWidth;
 
+  /// Buttons at the right of the title row (e.g. the key finder's mic).
+  final List<Widget> actions;
+
   /// The size given to [builder] from the panel's width and the height
   /// there is room for (default: the key wheel's).
   final double Function(double width, double room)? sizeFor;
@@ -880,6 +883,7 @@ class KeyWheelPopover extends StatelessWidget {
     required this.builder,
     this.title = 'Key',
     this.maxWidth = 360,
+    this.actions = const [],
     this.sizeFor,
   });
 
@@ -962,6 +966,8 @@ class KeyWheelPopover extends StatelessWidget {
                           ),
                         ],
                         // (no close button: tapping outside closes it)
+                        const Spacer(),
+                        ...actions,
                       ],
                     ),
                     Padding(

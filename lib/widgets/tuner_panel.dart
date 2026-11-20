@@ -44,7 +44,8 @@ class TunerPanel extends StatefulWidget {
   State<TunerPanel> createState() => _TunerPanelState();
 }
 
-enum _MicState { off, starting, listening, denied, insecure, blocked, failed }
+/// Where the microphone stands (shared with the key finder).
+enum MicState { off, starting, listening, denied, insecure, blocked, failed }
 
 class _TunerPanelState extends State<TunerPanel> {
   Microphone? _mic;
@@ -52,7 +53,7 @@ class _TunerPanelState extends State<TunerPanel> {
     sampleRate: 44100,
     a4: widget.model.settings.tunerA4.toDouble(),
   );
-  var _state = _MicState.starting;
+  var _state = MicState.starting;
 
   /// Showing the Levels tab (else the tuner).
   /// The Levels tab showing (remembered, like the rest of the screen).
@@ -82,15 +83,15 @@ class _TunerPanelState extends State<TunerPanel> {
 
   /// Switched on or off with the power button (on when opened).
   void _power() {
-    if (_state == _MicState.off) {
-      setState(() => _state = _MicState.starting);
+    if (_state == MicState.off) {
+      setState(() => _state = MicState.starting);
       _start();
     } else {
       _mic?.dispose();
       _mic = null;
       _tuner.stopListening();
       _levels.stopListening();
-      setState(() => _state = _MicState.off);
+      setState(() => _state = MicState.off);
     }
   }
 
@@ -100,11 +101,11 @@ class _TunerPanelState extends State<TunerPanel> {
       final samples = test.cast<Float32List>().asBroadcastStream();
       _tuner.listen(samples);
       _levels.listen(samples);
-      setState(() => _state = _MicState.listening);
+      setState(() => _state = MicState.listening);
       return;
     }
     if (!micAllowedHere) {
-      setState(() => _state = _MicState.insecure);
+      setState(() => _state = MicState.insecure);
       return;
     }
     try {
@@ -112,7 +113,7 @@ class _TunerPanelState extends State<TunerPanel> {
       final ok = await mic.start();
       if (!mounted) return;
       if (!ok) {
-        setState(() => _state = _MicState.denied);
+        setState(() => _state = MicState.denied);
         return;
       }
       _tuner
@@ -121,7 +122,7 @@ class _TunerPanelState extends State<TunerPanel> {
       _levels
         ..sampleRate = mic.sampleRate
         ..listen(mic.samples);
-      setState(() => _state = _MicState.listening);
+      setState(() => _state = MicState.listening);
     } catch (e) {
       debugLog('tuner failed: $e');
       if (mounted) {
@@ -131,8 +132,8 @@ class _TunerPanelState extends State<TunerPanel> {
           final text = '$e';
           _state =
               text.contains('NotFoundError') || text.contains('NotAllowedError')
-              ? _MicState.blocked
-              : _MicState.failed;
+              ? MicState.blocked
+              : MicState.failed;
           _error = text;
         });
       }
@@ -160,20 +161,20 @@ class _TunerPanelState extends State<TunerPanel> {
     final scheme = theme.colorScheme;
     final a4 = widget.model.settings.tunerA4;
     final solfege = widget.model.format.notation == ChordNotation.solfege;
-    final on = _state != _MicState.off;
+    final on = _state != MicState.off;
     final body = switch (_state) {
-      _MicState.listening => SizedBox(
+      MicState.listening => SizedBox(
         width: 340,
         child: _levelsTab
             ? _LevelsFace(meter: _levels)
             : _TunerFace(tuner: _tuner, solfege: solfege),
       ),
-      _MicState.starting => const SizedBox(
+      MicState.starting => const SizedBox(
         width: 340,
         height: 200,
         child: Center(child: AppSpinner()),
       ),
-      _MicState.off => SizedBox(
+      MicState.off => SizedBox(
         width: 340,
         height: 200,
         child: Column(
@@ -195,7 +196,7 @@ class _TunerPanelState extends State<TunerPanel> {
       ),
       _ => SizedBox(
         width: 340,
-        child: _Problem(state: _state, detail: _error),
+        child: MicProblem(state: _state, detail: _error),
       ),
     };
     return Material(
@@ -1182,28 +1183,30 @@ class _LevelsControlsState extends State<_LevelsControls> {
   }
 }
 
-class _Problem extends StatelessWidget {
-  final _MicState state;
+/// Why the microphone won't start, and what to do (shared with the key
+/// finder).
+class MicProblem extends StatelessWidget {
+  final MicState state;
   final String? detail;
-  const _Problem({required this.state, this.detail});
+  const MicProblem({super.key, required this.state, this.detail});
 
   @override
   Widget build(BuildContext context) {
     final (icon, text) = switch (state) {
-      _MicState.denied => (
+      MicState.denied => (
         Icons.mic_off_outlined,
         'Microphone access was turned down. Allow it for this app (in the '
             "browser's address bar or the system settings), then open the "
             'tuner again.',
       ),
-      _MicState.blocked => (
+      MicState.blocked => (
         Icons.mic_off_outlined,
         'Your computer is keeping the microphone from this browser. On a '
             'Mac: System Settings → Privacy & Security → Microphone, turn '
             'on your browser (e.g. Zen), then quit and reopen it. On '
             'Windows: Settings → Privacy → Microphone.',
       ),
-      _MicState.insecure => (
+      MicState.insecure => (
         Icons.lock_outline,
         'Browsers only allow the microphone on a secure page. Open the app '
             'on this computer (localhost) or over https to use the tuner '

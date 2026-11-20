@@ -43,6 +43,7 @@ import '../widgets/sidebar_icon.dart';
 import '../widgets/ink_layer.dart';
 import '../widgets/capo_icon.dart';
 import '../widgets/capo_neck.dart';
+import '../widgets/key_finder.dart';
 import '../widgets/key_wheel.dart';
 import '../widgets/ink_toolbar.dart';
 import '../toolbar_items.dart';
@@ -2624,15 +2625,32 @@ extension on _KeyButton {
       context: context,
       // (the song behind stays as bright as it is: it changes key as you turn)
       dim: false,
-      builder: (context) => KeyWheelPopover(
-        anchor: anchor,
-        setlistOnly: model.editingSetSpecific,
-        builder: (size) => KeyWheel(
+      // the wheel, and (the mic) the key finder in the same panel
+      builder: (context) => KeyMenu(
+        frame: ({required title, required actions, required builder}) => KeyWheelPopover(
+          anchor: anchor,
+          setlistOnly: model.editingSetSpecific,
+          title: title,
+          actions: actions,
+          builder: builder,
+        ),
+        wheel: (size) => KeyWheel(
+          // (a fresh wheel after the key finder moved the song)
+          key: ValueKey(model.currentTranspose),
           original: song.writtenKey,
           offset: model.currentTranspose,
           chords: chords,
           size: size,
           onChanged: model.setTranspose,
+        ),
+        finder: (size, back) => KeyFinderView(
+          size: size,
+          written: song.writtenKey,
+          transpose: model.currentTranspose,
+          onUse: (offset) {
+            model.setTranspose(offset);
+            back();
+          },
         ),
       ),
     );
