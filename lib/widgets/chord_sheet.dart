@@ -1274,7 +1274,7 @@ class _PartBlock extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (bar)
+                if (bar && !margin)
                   Positioned(
                     left: 0,
                     top: 0,
@@ -1300,14 +1300,20 @@ class _PartBlock extends StatelessWidget {
                   ),
                   child: content,
                 ),
+                // (selected: its rail is the selection bar, its badge filled)
                 if (margin)
                   Positioned(
-                    top: 6,
-                    bottom: 2,
+                    top: 0,
+                    bottom: 0,
                     left: marginSide == 'left' ? 8 : null,
                     right: marginSide == 'right' ? 4 : null,
                     width: _MarginBadge.width - 4,
-                    child: _MarginBadge(name: marginLabel!),
+                    child: _MarginBadge(
+                      name: marginLabel!,
+                      selected: selected,
+                      bar: bar,
+                      duration: d,
+                    ),
                   ),
               ],
             ),
@@ -1323,7 +1329,18 @@ class _PartBlock extends StatelessWidget {
 class _MarginBadge extends StatelessWidget {
   static const width = 44.0;
   final String name;
-  const _MarginBadge({required this.name});
+
+  /// The section shown: the rail becomes the selection bar (when the
+  /// selection style has one) and the badge is filled.
+  final bool selected;
+  final bool bar;
+  final Duration duration;
+  const _MarginBadge({
+    required this.name,
+    this.selected = false,
+    this.bar = true,
+    this.duration = Duration.zero,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1332,6 +1349,14 @@ class _MarginBadge extends StatelessWidget {
     final chorus = short.startsWith('C') && !short.startsWith('Co');
     final ink = einkActive;
     final line = ink ? scheme.onSurface : (chorus ? scheme.primary : scheme.outline);
+    final on = selected;
+    final railOn = on && bar;
+    final fill = on
+        ? (ink ? scheme.onSurface : scheme.primary)
+        : (ink ? scheme.surface : (chorus ? scheme.primaryContainer : scheme.surfaceContainerHighest));
+    final text = on
+        ? (ink ? scheme.surface : scheme.onPrimary)
+        : (ink ? scheme.onSurface : (chorus ? scheme.onPrimaryContainer : scheme.onSurfaceVariant));
     return Tooltip(
       message: name,
       child: Stack(
@@ -1341,24 +1366,32 @@ class _MarginBadge extends StatelessWidget {
           Positioned(
             top: 0,
             bottom: 0,
-            child: Container(width: ink ? einkStroke : 1, color: line.withValues(alpha: ink ? 1 : .6)),
+            child: AnimatedContainer(
+              duration: duration,
+              curve: Curves.easeOut,
+              width: railOn ? 4 : (ink ? einkStroke : 1),
+              decoration: BoxDecoration(
+                color: railOn
+                    ? (ink ? scheme.onSurface : scheme.primary)
+                    : line.withValues(alpha: ink ? 1 : .6),
+                borderRadius: BorderRadius.circular(railOn ? inkR(2) : 0),
+              ),
+            ),
           ),
           // the badge, centred on it
-          Container(
+          AnimatedContainer(
+            duration: duration,
+            curve: Curves.easeOut,
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
-              color: ink ? scheme.surface : (chorus ? scheme.primaryContainer : scheme.surfaceContainerHighest),
-              border: Border.all(color: line, width: ink ? einkStroke : 1),
+              color: fill,
+              border: Border.all(color: on ? fill : line, width: ink ? einkStroke : 1),
               borderRadius: BorderRadius.circular(inkR(5)),
             ),
-            child: Text(
-              short,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: ink ? scheme.onSurface : (chorus ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
-              ),
+            child: AnimatedDefaultTextStyle(
+              duration: duration,
+              style: DefaultTextStyle.of(context).style.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: text),
+              child: Text(short, maxLines: 1),
             ),
           ),
         ],

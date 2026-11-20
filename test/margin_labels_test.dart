@@ -53,4 +53,32 @@ void main() {
       expect(side == 'left' ? badge.dx < mid : badge.dx > mid, isTrue);
     });
   }
+
+  testWidgets('selected: the rail is the selection bar (no second bar)', (t) async {
+    const raw = 'Verse 1:\n[G]Amazing [C]grace\n\nChorus:\n[D]How sweet the [G]sound';
+    Future<void> pump(String side) => t.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ChordSheet(
+          song: Song(title: 'T', raw: raw),
+          raw: raw,
+          format: SheetFormat()..marginLabels = side,
+          transpose: 0,
+          displayKey: null,
+          parts: ChordPro.parts(raw),
+          selectedSlide: ValueNotifier(0),
+          slidePartIndex: const [0, 1],
+        ),
+      ),
+    ));
+    // 4-wide boxes: the selection bar, or a rail standing in for it
+    int bars() => t.widgetList<Container>(find.byType(Container)).where((c) => c.constraints?.maxWidth == 4).length +
+        t.widgetList<Positioned>(find.byType(Positioned)).where((p) => p.width == 4).length;
+    await pump('');
+    await t.pumpAndSettle();
+    expect(bars(), greaterThan(0));
+    await pump('left');
+    await t.pumpAndSettle();
+    expect(t.widgetList<Positioned>(find.byType(Positioned)).where((p) => p.width == 4), isEmpty);
+    expect(t.widgetList<AnimatedContainer>(find.byType(AnimatedContainer)).where((c) => c.constraints?.maxWidth == 4).length, 1);
+  });
 }
