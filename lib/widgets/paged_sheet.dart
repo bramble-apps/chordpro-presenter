@@ -325,13 +325,14 @@ class RenderPagedSheet extends RenderBox
 }
 
 /// The page view's zoom, shared by every song (kept as you swipe between
-/// them): 1 is the scroll view's text size.
+/// them): 1 is the page fitting the width.
 final pageZoom = ValueNotifier<double>(1);
 
 /// Pages that scroll and zoom like Bramble Pages': a pinch (or a trackpad
-/// pinch, or Ctrl + the wheel) scales what's on screen at once, the point
-/// under the fingers staying under them, and settles at the new zoom when
-/// it ends, laid out sharp again.
+/// pinch, or Ctrl + the wheel) zooms as it goes, the point under the
+/// fingers staying under them, and eases back to fit the width when let go
+/// close to it. (Zooming only rescales the pages: their text isn't laid
+/// out again, so following every step stays smooth.)
 class ZoomablePages extends StatefulWidget {
   final ScrollController controller;
   final EdgeInsets padding;
@@ -353,21 +354,29 @@ class ZoomablePages extends StatefulWidget {
   State<ZoomablePages> createState() => _ZoomablePagesState();
 }
 
-class _ZoomablePagesState extends State<ZoomablePages> {
-  static const _min = .5, _max = 3.0;
+class _ZoomablePagesState extends State<ZoomablePages>
+    with SingleTickerProviderStateMixin {
+  static const _min = .4, _max = 4.0;
+
+  /// How close to fitting the width a zoom snaps back to it.
+  static const _snapNear = .1;
   final _across = ScrollController();
   final _touches = <int, Offset>{};
-  // a pinch going on: where it started, and how far it has come
-  double? _startDist;
-  Offset _startFocal = Offset.zero;
-  double _pinch = 1;
-  Offset _focal = Offset.zero;
+  // two fingers down: their last spread and middle
+  double? _lastDist;
+  Offset _lastFocal = Offset.zero;
+  // a trackpad pinch (native): its last scale
+  double _lastPanScale = 1;
   double _fit = 1;
   double _room = 0;
   // where to scroll once laid out at a new zoom (down, across)
   (double, double)? _pending;
-  // the wheel / trackpad pinch settling once it stops
+  // the wheel / browser trackpad pinch: when it has stopped
   Timer? _settle;
+  late final _snap = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
 
   @override
   void initState() {
@@ -379,54 +388,37 @@ class _ZoomablePagesState extends State<ZoomablePages> {
   void dispose() {
     pageZoom.removeListener(_changed);
     _settle?.cancel();
+    _snap.dispose();
     _across.dispose();
     super.dispose();
   }
 
   void _changed() => setState(() {});
 
-  bool get _pinching => _startDist != null || _pinch != 1;
+  bool get _pinching => _lastDist != null;
 
-  void _startPinch(Offset focal, [double? dist]) {
-    _startDist = dist ?? 1;
-    _startFocal = focal;
-    _focal = focal;
-    _pinch = 1;
-  }
-
-  void _movePinch(double scale, Offset focal) {
-    final z = pageZoom.value;
-    setState(() {
-      _pinch = (z * scale).clamp(_min, _max) / z;
-      _focal = focal;
-    });
-  }
-
-  /// Settles a pinch (or a wheel step) at the new zoom: the page point that
-  /// was under [from] ends up under [to].
-  void _commit(double factor, Offset from, Offset to) {
+  /// Zooms to [z] (clamped), the page point that was under [from] ending
+  /// up under [to]; the scroll is set as the pages are laid out at it, in
+  /// the same frame.
+  void _zoomTo(double z, Offset from, Offset to) {
     final z0 = pageZoom.value;
-    final z1 = (z0 * factor).clamp(_min, _max);
+    final z1 = z.clamp(_min, _max);
+    if (z1 == z0 && from == to) return;
     final r = z1 / z0;
     final v = widget.controller, h = _across;
     final top = widget.padding.top, left = widget.padding.left;
-    final vAt = v.hasClients ? v.offset : 0.0;
-    final hAt = h.hasClients ? h.offset : 0.0;
+    // (from where the last step left it, if it isn't laid out yet)
+    final vAt = _pending?.$1 ?? (v.hasClients ? v.offset : 0.0);
+    final hAt = _pending?.$2 ?? (h.hasClients ? h.offset : 0.0);
     // (across, the page is centred while narrower than the room: the point
     // is taken from the page's own edge)
     double centred(double z) =>
         math.max(0, (_room - widget.paperWidth * _fit * z) / 2);
     final onPage = hAt + from.dx - left - centred(z0);
     _pending = (
-      (vAt + from.dy - top) * r + top - to.dy,
-      onPage * r + centred(z1) + left - to.dx,
+      math.max(0, (vAt + from.dy - top) * r + top - to.dy),
+      math.max(0, onPage * r + centred(z1) + left - to.dx),
     );
-    // The new zoom, the scroll set as it's laid out (_laidOut) and the
-    // pinch's picture dropped, all in one frame: no flash in between.
-    setState(() {
-      _startDist = null;
-      _pinch = 1;
-    });
     pageZoom.value = z1;
   }
 
@@ -437,8 +429,8 @@ class _ZoomablePagesState extends State<ZoomablePages> {
     if (want == null) return;
     _pending = null;
     final v = widget.controller, h = _across;
-    if (v.hasClients) v.position.correctPixels(math.max(0, want.$1));
-    if (h.hasClients) h.position.correctPixels(math.max(0, want.$2));
+    if (v.hasClients) v.position.correctPixels(want.$1);
+    if (h.hasClients) h.position.correctPixels(want.$2);
     // (past the end: back to it, once the new length is known)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (final c in [v, h]) {
@@ -449,15 +441,33 @@ class _ZoomablePagesState extends State<ZoomablePages> {
     });
   }
 
+  /// A pinch let go: close to fitting the width, it eases there.
+  void _ended(Offset at) {
+    final z = pageZoom.value;
+    if (z == 1 || (z - 1).abs() > _snapNear) return;
+    _snap.stop();
+    final from = z;
+    void step() => _zoomTo(from + (1 - from) * Curves.easeOut.transform(_snap.value), at, at);
+    _snap
+      ..removeListener(_snapStep ?? () {})
+      ..value = 0;
+    _snapStep = step;
+    _snap
+      ..addListener(step)
+      ..forward();
+  }
+
+  VoidCallback? _snapStep;
+
   /// A wheel step with Ctrl, or a trackpad pinch (which a browser sends as
-  /// zoom steps): scaled at once like a touch pinch, about the pointer, and
-  /// settled a moment after the last step.
+  /// zoom steps): zoomed at once about the pointer; a moment after the last
+  /// step, it's over.
   void _zoomStep(double factor, Offset at) {
-    if (_startDist == null) _startPinch(at);
-    _movePinch(_pinch * factor, _startFocal);
+    _snap.stop();
+    _zoomTo(pageZoom.value * factor, at, at);
     _settle?.cancel();
     _settle = Timer(const Duration(milliseconds: 160), () {
-      if (mounted) _commit(_pinch, _startFocal, _startFocal);
+      if (mounted) _ended(at);
     });
   }
 
@@ -466,24 +476,32 @@ class _ZoomablePagesState extends State<ZoomablePages> {
     _touches[e.pointer] = e.localPosition;
     if (_touches.length == 2) {
       final [a, b] = _touches.values.toList();
-      _startPinch((a + b) / 2, (a - b).distance);
-      setState(() {});
+      _snap.stop();
+      setState(() {
+        _lastDist = (a - b).distance;
+        _lastFocal = (a + b) / 2;
+      });
     }
   }
 
   void _move(PointerMoveEvent e) {
     if (!_touches.containsKey(e.pointer)) return;
     _touches[e.pointer] = e.localPosition;
-    if (_touches.length == 2 && _startDist != null) {
+    final last = _lastDist;
+    if (_touches.length == 2 && last != null && last > 0) {
       final [a, b] = _touches.values.toList();
-      _movePinch((a - b).distance / _startDist!, (a + b) / 2);
+      final dist = (a - b).distance, focal = (a + b) / 2;
+      _zoomTo(pageZoom.value * dist / last, _lastFocal, focal);
+      _lastDist = dist;
+      _lastFocal = focal;
     }
   }
 
   void _up(PointerEvent e) {
     _touches.remove(e.pointer);
-    if (_startDist != null && _touches.length < 2) {
-      _commit(_pinch, _startFocal, _focal);
+    if (_lastDist != null && _touches.length < 2) {
+      setState(() => _lastDist = null);
+      _ended(_lastFocal);
     }
   }
 
@@ -493,86 +511,81 @@ class _ZoomablePagesState extends State<ZoomablePages> {
     return LayoutBuilder(
       builder: (context, box) {
         final room = box.maxWidth - pad.horizontal;
-        // (narrower than a page: the page shrinks to fit at zoom 1)
-        _fit = (room / widget.paperWidth).clamp(0.1, 1.0);
+        // zoom 1: the page fits the width
+        _fit = math.max(0.1, room / widget.paperWidth);
         _room = room;
         final scale = _fit * pageZoom.value;
-        // the pinch so far: what's on screen scaled about where it began,
-        // and moved with the fingers
-        final shown = Matrix4.identity()
-          ..translateByDouble(_focal.dx, _focal.dy, 0, 1)
-          ..scaleByDouble(_pinch, _pinch, 1, 1)
-          ..translateByDouble(-_startFocal.dx, -_startFocal.dy, 0, 1);
         final scroll = _pinching ? const NeverScrollableScrollPhysics() : null;
         return Listener(
           onPointerDown: _down,
           onPointerMove: _move,
           onPointerUp: _up,
           onPointerCancel: _up,
-          // a trackpad pinch
-          onPointerPanZoomStart: (e) => _startPinch(e.localPosition),
+          // a trackpad pinch (native)
+          onPointerPanZoomStart: (e) => _lastPanScale = 1,
           onPointerPanZoomUpdate: (e) {
-            if ((e.scale - 1).abs() > .01 || _pinch != 1) {
-              _movePinch(e.scale, e.localPosition);
-            }
+            if ((e.scale - 1).abs() < .01 && _lastPanScale == 1) return;
+            _snap.stop();
+            _zoomTo(
+              pageZoom.value * e.scale / _lastPanScale,
+              e.localPosition,
+              e.localPosition,
+            );
+            _lastPanScale = e.scale;
           },
           onPointerPanZoomEnd: (e) {
-            if (_pinch != 1) {
-              _commit(_pinch, _startFocal, _focal);
-            } else {
-              _startDist = null;
-            }
+            if (_lastPanScale != 1) _ended(e.localPosition);
+            _lastPanScale = 1;
           },
           child: ClipRect(
-            child: Transform(
-              transform: shown,
+            child: SingleChildScrollView(
+              controller: widget.controller,
+              physics: scroll,
+              padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom),
               child: SingleChildScrollView(
-                controller: widget.controller,
+                controller: _across,
                 physics: scroll,
-                padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom),
-                child: SingleChildScrollView(
-                  controller: _across,
-                  physics: scroll,
-                  scrollDirection: Axis.horizontal,
-                  // (not cut off at the top padding: the pages run up behind
-                  // the toolbars; the window's own edges clip them)
-                  clipBehavior: Clip.none,
-                  padding: EdgeInsets.only(left: pad.left, right: pad.right),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: room),
-                    // Ctrl (⌘) + the wheel: zoom about the pointer (caught
-                    // here, inside the scroll views, so it isn't a scroll)
-                    child: Listener(
-                      onPointerSignal: (e) {
-                        Offset here() {
-                          final at = context.findRenderObject() as RenderBox?;
-                          return at?.globalToLocal(e.position) ?? Offset.zero;
-                        }
+                scrollDirection: Axis.horizontal,
+                // (not cut off at the top padding: the pages run up behind
+                // the toolbars; the window's own edges clip them)
+                clipBehavior: Clip.none,
+                padding: EdgeInsets.only(left: pad.left, right: pad.right),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: room),
+                  // Ctrl (⌘) + the wheel, or a browser's trackpad pinch:
+                  // zoom about the pointer (caught here, inside the scroll
+                  // views, so it isn't a scroll)
+                  child: Listener(
+                    onPointerSignal: (e) {
+                      Offset here() {
+                        final at = context.findRenderObject() as RenderBox?;
+                        return at?.globalToLocal(e.position) ?? Offset.zero;
+                      }
 
-                        // a trackpad pinch in a browser (the desktop app)
-                        if (e is PointerScaleEvent) {
-                          GestureBinding.instance.pointerSignalResolver
-                              .register(e, (_) => _zoomStep(e.scale, here()));
-                          return;
-                        }
-                        if (e is! PointerScrollEvent) return;
-                        final keys = HardwareKeyboard.instance;
-                        if (!keys.isControlPressed && !keys.isMetaPressed) {
-                          return;
-                        }
+                      if (e is PointerScaleEvent) {
                         GestureBinding.instance.pointerSignalResolver.register(
                           e,
-                          (_) => _zoomStep(
-                            math.exp(-e.scrollDelta.dy / 300),
-                            here(),
-                          ),
+                          (_) => _zoomStep(e.scale, here()),
                         );
-                      },
-                      // (centred in the room while narrower than it)
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: widget.builder(scale, _laidOut),
-                      ),
+                        return;
+                      }
+                      if (e is! PointerScrollEvent) return;
+                      final keys = HardwareKeyboard.instance;
+                      if (!keys.isControlPressed && !keys.isMetaPressed) {
+                        return;
+                      }
+                      GestureBinding.instance.pointerSignalResolver.register(
+                        e,
+                        (_) => _zoomStep(
+                          math.exp(-e.scrollDelta.dy / 300),
+                          here(),
+                        ),
+                      );
+                    },
+                    // (centred in the room while narrower than it)
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: widget.builder(scale, _laidOut),
                     ),
                   ),
                 ),
