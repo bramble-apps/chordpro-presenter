@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'margin_side.dart';
 import '../browser.dart';
 import '../dynamic_bg.dart';
 import '../fonts.dart';
@@ -861,15 +862,13 @@ class _FormatPaneState extends State<FormatPane> {
             if (f.marginLabels.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
-                child: SegmentedButton<String>(
-                  style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                  segments: const [
-                    ButtonSegment(value: 'left', label: Text('Left')),
-                    ButtonSegment(value: 'right', label: Text('Right')),
-                  ],
-                  selected: {f.marginLabels},
-                  onSelectionChanged: (v) =>
-                      model.updateFormat((f) => f.marginLabels = v.first),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: MarginSidePicker(
+                    side: f.marginLabels,
+                    onChanged: (v) =>
+                        model.updateFormat((f) => f.marginLabels = v),
+                  ),
                 ),
               ),
             SwitchListTile(

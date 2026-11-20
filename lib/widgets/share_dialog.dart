@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'margin_side.dart';
 import '../browser.dart';
 import '../export.dart';
 import '../justchords.dart';
@@ -541,26 +542,13 @@ class _ShareDialogState extends State<ShareDialog> {
                         ),
                         const SizedBox(width: 6),
                         const Text('Labels in margins'),
-                        if (_margin.isNotEmpty) ...[
-                          const SizedBox(width: 10),
-                          SegmentedButton<String>(
-                            style: const ButtonStyle(
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            showSelectedIcon: false,
-                            segments: const [
-                              ButtonSegment(value: 'left', label: Text('Left')),
-                              ButtonSegment(
-                                value: 'right',
-                                label: Text('Right'),
-                              ),
-                            ],
-                            selected: {_margin},
-                            onSelectionChanged: (v) =>
-                                setState(() => _margin = v.first),
-                          ),
-                        ],
                       ],
+                    ),
+                  // (its own item: on a narrow screen it goes to the next line)
+                  if (_format == ShareFormat.pdf && _margin.isNotEmpty)
+                    MarginSidePicker(
+                      side: _margin,
+                      onChanged: (v) => setState(() => _margin = v),
                     ),
                   if (_format == ShareFormat.pdf && _isSet)
                     SegmentedButton<bool>(
@@ -725,7 +713,26 @@ class _ShareDialogState extends State<ShareDialog> {
     );
   }
 
-  Widget _pdfOptions() => Row(
+  // (narrow, e.g. a phone: the size slider on a line of its own, the paper
+  // and columns under it)
+  Widget _pdfOptions() => LayoutBuilder(
+    builder: (context, c) {
+      final size = _sizeSlider();
+      final rest = _pageChoices();
+      if (c.maxWidth >= 520) {
+        return Row(children: [Expanded(child: size), const SizedBox(width: 12), ...rest]);
+      }
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          size,
+          Row(children: [rest[0], const SizedBox(width: 12), rest[2]]),
+        ],
+      );
+    },
+  );
+
+  Widget _sizeSlider() => Row(
     children: [
       const Text('Size'),
       Expanded(
@@ -745,7 +752,10 @@ class _ShareDialogState extends State<ShareDialog> {
           style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
         ),
       ),
-      const SizedBox(width: 12),
+    ],
+  );
+
+  List<Widget> _pageChoices() => [
       AppDropdown<PaperSize>(
         value: _paper,
         items: const [
@@ -767,8 +777,7 @@ class _ShareDialogState extends State<ShareDialog> {
           onChanged: (v) => setState(() => _columns = v!),
         ),
       ),
-    ],
-  );
+  ];
 
   Widget _preview(ThemeData theme) {
     final scheme = theme.colorScheme;
