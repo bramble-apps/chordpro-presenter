@@ -70,7 +70,12 @@ class Sidebar extends StatefulWidget {
     required this.onEditStructure,
     required this.onOpenSettings,
     required this.onOpened,
+    this.toggleRoom = 0,
   });
+
+  /// Room kept at the right of the top row for the sidebar button, which
+  /// rides there while the sidebar is open.
+  final double toggleRoom;
 
   @override
   State<Sidebar> createState() => _SidebarState();
@@ -244,6 +249,8 @@ class _SidebarState extends State<Sidebar> {
                 children: [
                   _menu(),
                   Expanded(child: _topBar(openSet)),
+                  if (widget.toggleRoom > 0)
+                    SizedBox(width: widget.toggleRoom - 6),
                 ],
               ),
             ),
@@ -584,11 +591,21 @@ class _SidebarState extends State<Sidebar> {
         (eink && _tagFilter.isNotEmpty);
     final tags = [...model.tags]..sort((a, b) => a.name.compareTo(b.name));
 
+    final scheme = Theme.of(context).colorScheme;
     return MenuAnchor(
+      // (inside the search bar, drawn like its magnifying glass; a dot
+      // while sorting or filtering)
       builder: (context, controller, _) => IconButton(
         tooltip: 'Sort & filter',
-        isSelected: active,
-        icon: const Icon(Icons.filter_list),
+        visualDensity: VisualDensity.compact,
+        iconSize: 20,
+        color: scheme.onSurfaceVariant,
+        icon: Badge(
+          isLabelVisible: active,
+          smallSize: 6,
+          backgroundColor: eink ? scheme.onSurface : scheme.primary,
+          child: const Icon(Icons.filter_list),
+        ),
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
       ),
@@ -705,7 +722,7 @@ class _SidebarState extends State<Sidebar> {
               child: TextField(
                 controller: _search,
                 decoration: InputDecoration(
-                  hintText: 'Search title, artist, lyrics',
+                  hintText: 'Search',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   // Same height as the buttons beside it, in every style
                   // (icons otherwise make the field 48 px tall).
@@ -719,14 +736,20 @@ class _SidebarState extends State<Sidebar> {
                   ),
                   constraints: const BoxConstraints(maxHeight: 40),
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  suffixIcon: _search.text.isEmpty
-                      ? null
-                      : IconButton(
+                  // clear (while searching), and sort & filter
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_search.text.isNotEmpty)
+                        IconButton(
                           tooltip: 'Clear',
                           visualDensity: VisualDensity.compact,
                           icon: const Icon(Icons.close, size: 18),
                           onPressed: _search.clear,
                         ),
+                      _filterMenu(),
+                    ],
+                  ),
                   isDense: true,
                   filled: true,
                   border: OutlineInputBorder(
@@ -736,7 +759,6 @@ class _SidebarState extends State<Sidebar> {
                 ),
               ),
             ),
-            _filterMenu(),
           ],
         );
       case _Mode.trash:

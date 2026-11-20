@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// The sidebar toggle drawn like Apple's stock "sidebar.left" symbol: a
-/// rounded window with a pane on the left holding three short lines.
-/// Takes its colour and size from the surrounding [IconTheme], like [Icon].
+import '../eink.dart';
+
+/// The sidebar toggle, drawn like Bramble Notes': a rounded window with a
+/// divider near its left edge. With [chevron] going 0 → 1 the divider bends
+/// into a chevron pointing which way the sidebar will go ([pointLeft]: it
+/// will close). Takes its colour and size from the surrounding [IconTheme],
+/// like [Icon].
 class SidebarIcon extends StatelessWidget {
   final double? size;
   final Color? color;
-  const SidebarIcon({super.key, this.size, this.color});
+  final double chevron;
+  final bool pointLeft;
+  const SidebarIcon({
+    super.key,
+    this.size,
+    this.color,
+    this.chevron = 0,
+    this.pointLeft = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +29,8 @@ class SidebarIcon extends StatelessWidget {
       child: CustomPaint(
         painter: _SidebarPainter(
           color ?? theme.color ?? Theme.of(context).colorScheme.onSurface,
+          chevron,
+          pointLeft,
         ),
       ),
     );
@@ -25,7 +39,9 @@ class SidebarIcon extends StatelessWidget {
 
 class _SidebarPainter extends CustomPainter {
   final Color color;
-  const _SidebarPainter(this.color);
+  final double chevron;
+  final bool pointLeft;
+  const _SidebarPainter(this.color, this.chevron, this.pointLeft);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -35,21 +51,63 @@ class _SidebarPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
     canvas.drawRRect(
       RRect.fromLTRBR(2.8, 4.8, 21.2, 19.2, const Radius.circular(3.4)),
       stroke,
     );
-    canvas.drawLine(const Offset(9.2, 4.8), const Offset(9.2, 19.2), stroke);
-    final lines = Paint()
-      ..color = color
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
-    for (final y in [8.4, 10.9, 13.4]) {
-      canvas.drawLine(Offset(5.0, y), Offset(7.0, y), lines);
-    }
+    // The divider, its ends drawn in and its middle pushed out as it bends
+    // into the chevron (‹ to close, › to open).
+    final t = Curves.easeInOut.transform(chevron.clamp(0.0, 1.0));
+    const x = 9.0;
+    final tip = pointLeft ? x - 1.6 : x + 1.6;
+    final back = pointLeft ? x + 1.0 : x - 1.0;
+    double lerp(double a, double b) => a + (b - a) * t;
+    final path = Path()
+      ..moveTo(lerp(x, back), lerp(4.8, 8.7))
+      ..lineTo(lerp(x, tip), 12)
+      ..lineTo(lerp(x, back), lerp(19.2, 15.3));
+    canvas.drawPath(path, stroke);
   }
 
   @override
-  bool shouldRepaint(_SidebarPainter old) => old.color != color;
+  bool shouldRepaint(_SidebarPainter old) =>
+      old.color != color || old.chevron != chevron || old.pointLeft != pointLeft;
+}
+
+/// The sidebar button: [SidebarIcon] whose divider bends into a chevron
+/// while the pointer is over it (which way: [open] → ‹, closing).
+class SidebarToggleButton extends StatefulWidget {
+  final bool open;
+  final VoidCallback onPressed;
+  const SidebarToggleButton({
+    super.key,
+    required this.open,
+    required this.onPressed,
+  });
+
+  @override
+  State<SidebarToggleButton> createState() => _SidebarToggleButtonState();
+}
+
+class _SidebarToggleButtonState extends State<SidebarToggleButton> {
+  var _hover = false;
+
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+    onEnter: (_) => setState(() => _hover = true),
+    onExit: (_) => setState(() => _hover = false),
+    child: IconButton(
+      tooltip: widget.open ? 'Hide sidebar' : 'Show sidebar',
+      onPressed: widget.onPressed,
+      icon: TweenAnimationBuilder<double>(
+        tween: Tween(end: _hover ? 1 : 0),
+        duration: motion(context, const Duration(milliseconds: 180)),
+        curve: Curves.easeOut,
+        builder: (context, v, _) =>
+            SidebarIcon(chevron: v, pointLeft: widget.open),
+      ),
+    ),
+  );
 }

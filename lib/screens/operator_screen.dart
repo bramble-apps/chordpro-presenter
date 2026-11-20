@@ -658,9 +658,19 @@ class _OperatorScreenState extends State<OperatorScreen>
         _side.value = _sidebarOpen ? 1 : 0;
         return;
       }
+      // Bramble Notes' (Apple's) sidebar motion: quick off the mark, a
+      // long gentle settle; opening a touch slower than closing
       _sidebarOpen
-          ? _side.animateTo(1, curve: Curves.easeInOutCubic)
-          : _side.animateBack(0, curve: Curves.easeInOutCubic);
+          ? _side.animateTo(
+              1,
+              duration: const Duration(milliseconds: 250),
+              curve: _NotesSlide.show,
+            )
+          : _side.animateBack(
+              0,
+              duration: const Duration(milliseconds: 217),
+              curve: _NotesSlide.hide,
+            );
     }
   }
 
@@ -695,9 +705,14 @@ class _OperatorScreenState extends State<OperatorScreen>
               builder: (context, child) => Offstage(
                 // Kept (scroll position, search) while hidden.
                 offstage: _side.value == 0,
-                child: Transform.translate(
-                  offset: Offset((_side.value - 1) * w, 0),
-                  child: child,
+                // (mid-slide it's out of reach anyway: not offered to screen
+                // readers, whose parts may be off the window)
+                child: ExcludeSemantics(
+                  excluding: _side.value < 1,
+                  child: Transform.translate(
+                    offset: Offset((_side.value - 1) * w, 0),
+                    child: child,
+                  ),
                 ),
               ),
               child: RepaintBoundary(
@@ -718,6 +733,9 @@ class _OperatorScreenState extends State<OperatorScreen>
   static const _sidebarWidth = 300.0;
   static const _floatingWidth = 320.0;
   static const _slide = Duration(milliseconds: 260);
+
+  /// Room at the right of the sidebar's top row for the sidebar button.
+  static const _toggleRoom = 56.0;
 
   /// Preview shows automatically while projecting; the button hides it.
   bool get _previewVisible =>
@@ -783,6 +801,8 @@ class _OperatorScreenState extends State<OperatorScreen>
                   onCustomizeToolbar: () => _openToolbarEditor(narrow),
                 ),
               ),
+              // (the sidebar button rides in its top row while it's open)
+              toggleRoom: narrow ? 0 : _toggleRoom,
               onOpened: () {
                 if (narrow) _scaffoldKey.currentState?.closeDrawer();
                 if (floating) {
@@ -804,20 +824,38 @@ class _OperatorScreenState extends State<OperatorScreen>
           return ValueListenableBuilder<bool>(
             valueListenable: _open,
             builder: (context, _, _) {
-              final docked = !narrow && !floating && _sidebarOpen;
               final floatingOpen = floating && _sidebarOpen;
 
-              // The sidebar button sits just right of the sidebar and slides
-              // with it, so it can always be reached.
+              // The sidebar button, like Bramble Notes': in the sidebar's top
+              // row (right of the search) while it's open, at the left of
+              // the song while it's closed. Docked, it rides the sidebar's
+              // edge as it slides, and parks at the left.
               final eink = isEink(context);
               final em = _einkMargin(_compact);
               final double edge = eink ? em : 8;
-              final double toggleLeft = narrow
-                  ? edge
-                  : floating
-                  ? (floatingOpen ? _floatingWidth + 16 : edge)
-                  : (docked ? _sidebarWidth + edge : edge);
-              final double toggleTop = extras.headerBar ? 3 : (eink ? em : 12);
+              final double closedTop = extras.headerBar ? 0 : (eink ? em : 12);
+              // Open: centred on the sidebar's top row (its 3 or 8 of
+              // padding, then a row as tall as its buttons, at least the
+              // search's 40); in the header bar, measured from the bar's
+              // centre, where the button box puts it.
+              final rowH = math.max(
+                40.0,
+                48 + Theme.of(context).visualDensity.baseSizeAdjustment.dy,
+              );
+              final double openTop = eink
+                  ? (extras.headerBar ? 0 : em)
+                  : extras.headerBar
+                  ? 3 + rowH / 2 - (_headerHeight - inkW(1)) / 2
+                  : 8;
+              const double inRow = _toggleRoom - 4;
+              Widget toggle(Widget button) => extras.headerBar
+                  ? SizedBox(
+                      // Less the bar's bottom border, as its buttons are
+                      // centred above that line.
+                      height: _headerHeight - inkW(1),
+                      child: Center(child: button),
+                    )
+                  : button;
 
               return Scaffold(
                 key: _scaffoldKey,
@@ -889,28 +927,34 @@ class _OperatorScreenState extends State<OperatorScreen>
                       ],
                       if (_tunerOpen && !_tunerFull) _tuner(),
                       if (_padsOpen && !_padsFull) _padPanel(),
-                      AnimatedPositioned(
-                        duration: motion(context, _slide),
-                        curve: Curves.easeInOutCubic,
-                        left: toggleLeft,
-                        top: extras.headerBar ? 0 : toggleTop,
-                        // In the header bar: centred on the bar like the other
-                        // header buttons (whatever their size on this device).
-                        child: extras.headerBar
-                            ? SizedBox(
-                                // Less the bar's bottom border, as its
-                                // buttons are centred above that line.
-                                height: _headerHeight - inkW(1),
-                                child: Center(
-                                  child: _sidebarButton(
-                                    narrow,
-                                    extras,
-                                    floating,
-                                  ),
-                                ),
-                              )
-                            : _sidebarButton(narrow, extras, floating),
-                      ),
+                      if (narrow)
+                        Positioned(
+                          left: edge,
+                          top: closedTop,
+                          child: toggle(_sidebarButton(narrow, extras, floating)),
+                        )
+                      else if (floating)
+                        AnimatedPositioned(
+                          duration: motion(context, _slide),
+                          curve: Curves.easeInOutCubic,
+                          // (the floating card: 8 in from the window)
+                          left: floatingOpen ? 8 + _floatingWidth - inRow : edge,
+                          top: floatingOpen ? 8 + openTop : closedTop,
+                          child: toggle(_sidebarButton(narrow, extras, floating)),
+                        )
+                      else
+                        AnimatedBuilder(
+                          animation: _side,
+                          builder: (context, child) {
+                            final t = _side.value;
+                            return Positioned(
+                              left: math.max(edge, _sidebarWidth * t - inRow),
+                              top: closedTop + (openTop - closedTop) * t,
+                              child: child!,
+                            );
+                          },
+                          child: toggle(_sidebarButton(narrow, extras, floating)),
+                        ),
                       if (model.currentSong case final song?)
                         Positioned.fill(
                           child: StickyLayer(
@@ -956,10 +1000,9 @@ class _OperatorScreenState extends State<OperatorScreen>
 
   Widget _sidebarButton(bool narrow, StyleExtras extras, bool floating) {
     final shown = !narrow && _sidebarOpen;
-    final button = IconButton(
-      tooltip: shown ? 'Hide sidebar' : 'Show sidebar',
-      isSelected: shown,
-      icon: const SidebarIcon(),
+    // (the divider bends into ‹ or › while the pointer is over it)
+    final button = SidebarToggleButton(
+      open: shown,
       onPressed: () => _toggleSidebar(narrow),
     );
     // In the header bar it sits flat like other header buttons, except
@@ -1850,26 +1893,39 @@ class _OperatorScreenState extends State<OperatorScreen>
               color: extras.headerColor,
               border: Border(bottom: border),
             ),
-            // Left gap for the sidebar button, which floats over the bar.
-            padding: const EdgeInsets.only(left: 56, right: 6),
-            child: LayoutBuilder(
-              builder: (context, c) => Row(
-                spacing: 2,
-                children: [
-                  Expanded(
-                    child: extras.centeredTitle
-                        ? Center(child: title)
-                        : Align(alignment: Alignment.centerLeft, child: title),
-                  ),
-                  const SizedBox(width: 4),
-                  // The buttons first; the title keeps a little room on
-                  // phones (the rest goes into ⋯).
-                  ..._topActions(
-                    narrow,
-                    song,
-                    width: c.maxWidth - 6 - math.min(120, c.maxWidth * 0.3),
-                  ),
-                ],
+            padding: const EdgeInsets.only(right: 6),
+            // Left gap for the sidebar button, which floats over the bar
+            // (docked: only while the sidebar is closed; open, the button
+            // is in the sidebar, and the gap closes as it slides)
+            child: AnimatedBuilder(
+              animation: _side,
+              builder: (context, child) => Padding(
+                padding: EdgeInsets.only(
+                  left: narrow || model.settings.floatingSidebar
+                      ? 56
+                      : 12 + 44 * (1 - _side.value),
+                ),
+                child: child,
+              ),
+              child: LayoutBuilder(
+                builder: (context, c) => Row(
+                  spacing: 2,
+                  children: [
+                    Expanded(
+                      child: extras.centeredTitle
+                          ? Center(child: title)
+                          : Align(alignment: Alignment.centerLeft, child: title),
+                    ),
+                    const SizedBox(width: 4),
+                    // The buttons first; the title keeps a little room on
+                    // phones (the rest goes into ⋯).
+                    ..._topActions(
+                      narrow,
+                      song,
+                      width: c.maxWidth - 6 - math.min(120, c.maxWidth * 0.3),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -3028,5 +3084,33 @@ class _DropTarget extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Bramble Notes' sidebar motion: the frames where Apple's sidebar edge
+/// moved, as (time, progress), followed straight between them.
+class _NotesSlide extends Curve {
+  final List<(double, double)> points;
+  const _NotesSlide(this.points);
+
+  static const show = _NotesSlide([
+    (0, 0), (1 / 14, .03), (2 / 14, .21), (3 / 14, .31), (5 / 14, .42),
+    (7 / 14, .64), (9 / 14, .84), (11 / 14, .955), (13 / 14, .998), (1, 1),
+  ]);
+  static const hide = _NotesSlide([
+    (0, 0), (1 / 13, .03), (3 / 13, .199), (4 / 13, .419), (6 / 13, .644),
+    (10 / 13, .851), (12 / 13, .998), (1, 1),
+  ]);
+
+  @override
+  double transformInternal(double t) {
+    for (var i = 1; i < points.length; i++) {
+      final (t1, p1) = points[i];
+      if (t <= t1) {
+        final (t0, p0) = points[i - 1];
+        return p0 + (p1 - p0) * ((t - t0) / (t1 - t0));
+      }
+    }
+    return 1;
   }
 }

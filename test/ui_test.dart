@@ -1604,10 +1604,22 @@ void main() {
     for (final style in UiStyle.values) {
       model.updateSettings((s) => s.uiStyle = style);
       await tester.pumpAndSettle();
-      final side = tester.getRect(find.byType(SidebarIcon));
+      // open: in the sidebar's top row, beside the search, inside the pane
+      var side = tester.getRect(find.byType(SidebarIcon));
+      final search = tester.getRect(find.byType(TextField).first);
+      expect(side.center.dy, closeTo(search.center.dy, 4), reason: style.name);
+      expect(side.left, greaterThan(search.right), reason: style.name);
+      expect(side.right, lessThan(301), reason: '${style.name}: in the pane');
+      // closed: at the song's left, lined up with its top bar
+      await tester.tap(find.byTooltip('Hide sidebar'));
+      await tester.pumpAndSettle();
+      side = tester.getRect(find.byType(SidebarIcon));
       final edit = tester.getRect(find.byType(EditSongIcon));
       expect(side.center.dy, edit.center.dy, reason: style.name);
       expect(side.height, edit.height, reason: style.name);
+      expect(side.left, lessThan(60), reason: style.name);
+      await tester.tap(find.byTooltip('Show sidebar'));
+      await tester.pumpAndSettle();
     }
   });
 
