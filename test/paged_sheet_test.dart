@@ -12,10 +12,11 @@ void main() {
         controller: c,
         padding: const EdgeInsets.all(16),
         paperWidth: 600,
-        builder: (scale, laidOut) => PagedSheet(
+        builder: (scale, content, laidOut) => PagedSheet(
           scale: scale,
           onLayout: laidOut,
-          paper: const Size(600, 800),
+          paper: const Size(600, 800) / content,
+          margin: 40 / content,
           columns: 1,
           spanning: 0,
           pageColor: Colors.white,
@@ -38,8 +39,10 @@ void main() {
     expect(t.getRect(find.byType(PagedSheet)).left, 0);
     expect(t.getSize(find.byType(PagedSheet)).width, closeTo(1000, .5));
     expect(t.getTopLeft(find.text('Line 0')).dx, closeTo(40 * fit, 1));
-    // 40 lines of 60 on 720-high columns: 12 a page, 4 pages, no gaps
-    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(4 * 800 * fit, 1));
+    // the text at its own size (as in the scroll view), not 1.67 ×: the
+    // page holds more instead (20 lines of 60 a page, 2 pages, no gaps)
+    expect(t.getRect(find.text('Line 0')).height, closeTo(60, .5));
+    expect(t.getSize(find.byType(PagedSheet)).height, closeTo(2 * 800 * fit, 1));
     // a phone too
     t.view.physicalSize = const Size(400, 700);
     await t.pump();
@@ -88,7 +91,7 @@ void main() {
     await t.pumpAndSettle();
     expect(pageZoom.value, closeTo(.6, .01), reason: '2.4 × 25/100');
     // the whole page, half size, centred
-    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(200, t.getTopLeft(find.byType(PagedSheet)).dy, 600, 4 * 800 * 1000 / 600 * .6), epsilon: 1));
+    expect(t.getRect(find.byType(PagedSheet)), rectMoreOrLessEquals(Rect.fromLTWH(200, t.getTopLeft(find.byType(PagedSheet)).dy, 600, 2 * 800 * 1000 / 600 * .6), epsilon: 1));
   });
 
   testWidgets('let go close to fitting the width, it snaps back to it', (t) async {
@@ -96,9 +99,18 @@ void main() {
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     await t.pumpWidget(pages(ScrollController()));
-    await pinch(t, const Offset(500, 300), 100, 106);
+    // passing Fit Width, it holds there a moment (the notch)
+    final (a, b) = await pinch(t, const Offset(500, 300), 100, 103, release: false);
+    expect(pageZoom.value, 1);
+    await a.up();
+    await b.up();
+    await t.pumpAndSettle();
+    // let go within a fifth of it: eases back
+    await pinch(t, const Offset(500, 300), 100, 118);
     await t.pump();
-    expect(pageZoom.value, closeTo(1.06, .01));
+    expect(pageZoom.value, closeTo(1.18, .01));
+    await t.pump(const Duration(milliseconds: 150));
+    expect(pageZoom.value, inExclusiveRange(1, 1.18), reason: 'easing, not jumping');
     await t.pumpAndSettle();
     expect(pageZoom.value, 1);
     // further off, it stays

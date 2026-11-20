@@ -351,9 +351,12 @@ class ZoomablePages extends StatefulWidget {
   final EdgeInsets padding;
   final double paperWidth;
 
-  /// The pages at a scale (screen pixels a point); [onLayout] goes to the
-  /// [PagedSheet].
-  final Widget Function(double scale, VoidCallback onLayout) builder;
+  /// The pages: drawn at [scale] screen pixels a point, their content set
+  /// [content] times its size on the paper (so the page holds more: lay
+  /// them out on paper 1 / [content] times as large, margins too);
+  /// [onLayout] goes to the [PagedSheet].
+  final Widget Function(double scale, double content, VoidCallback onLayout)
+  builder;
 
   const ZoomablePages({
     super.key,
@@ -371,8 +374,15 @@ class _ZoomablePagesState extends State<ZoomablePages>
     with SingleTickerProviderStateMixin {
   static const _min = .4, _max = 4.0;
 
-  /// How close to fitting the width a zoom snaps back to it.
-  static const _snapNear = .1;
+  /// How close to Fit Width a zoom let go snaps back to it.
+  static const _snapNear = .2;
+
+  /// How close to Fit Width a pinch holds there, a little notch you feel
+  /// as you pass it.
+  static const _detent = .04;
+
+  // the zoom the fingers ask for (the one shown may sit in the notch)
+  double _asked = 1;
   final _across = ScrollController();
   final _touches = <int, Offset>{};
   // two fingers down: their last spread and middle
@@ -388,7 +398,7 @@ class _ZoomablePagesState extends State<ZoomablePages>
   Timer? _settle;
   late final _snap = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 220),
+    duration: const Duration(milliseconds: 300),
   );
 
   @override
@@ -456,13 +466,30 @@ class _ZoomablePagesState extends State<ZoomablePages>
     });
   }
 
-  /// A pinch let go: close to fitting the width, it eases there.
+  /// One step of a pinch: the zoom asked for, held at Fit Width while it's
+  /// within the notch.
+  void _pinchBy(double factor, Offset from, Offset to) {
+    _asked = (_asked * factor).clamp(_min, _max);
+    _zoomTo((_asked - 1).abs() < _detent ? 1 : _asked, from, to);
+  }
+
+  /// A pinch starting: from the zoom shown.
+  void _began() {
+    _snap.stop();
+    _asked = pageZoom.value;
+  }
+
+  /// A pinch let go: close to Fit Width, it eases there.
   void _ended(Offset at) {
     final z = pageZoom.value;
     if (z == 1 || (z - 1).abs() > _snapNear) return;
     _snap.stop();
     final from = z;
-    void step() => _zoomTo(from + (1 - from) * Curves.easeOut.transform(_snap.value), at, at);
+    void step() => _zoomTo(
+      from + (1 - from) * Curves.easeOutCubic.transform(_snap.value),
+      at,
+      at,
+    );
     _snap
       ..removeListener(_snapStep ?? () {})
       ..value = 0;
@@ -478,8 +505,9 @@ class _ZoomablePagesState extends State<ZoomablePages>
   /// zoom steps): zoomed at once about the pointer; a moment after the last
   /// step, it's over.
   void _zoomStep(double factor, Offset at) {
+    if (_settle == null || !_settle!.isActive) _began();
     _snap.stop();
-    _zoomTo(pageZoom.value * factor, at, at);
+    _pinchBy(factor, at, at);
     _settle?.cancel();
     _settle = Timer(const Duration(milliseconds: 160), () {
       if (mounted) _ended(at);
@@ -491,7 +519,7 @@ class _ZoomablePagesState extends State<ZoomablePages>
     _touches[e.pointer] = e.localPosition;
     if (_touches.length == 2) {
       final [a, b] = _touches.values.toList();
-      _snap.stop();
+      _began();
       setState(() {
         _lastDist = (a - b).distance;
         _lastFocal = (a + b) / 2;
@@ -506,7 +534,7 @@ class _ZoomablePagesState extends State<ZoomablePages>
     if (_touches.length == 2 && last != null && last > 0) {
       final [a, b] = _touches.values.toList();
       final dist = (a - b).distance, focal = (a + b) / 2;
-      _zoomTo(pageZoom.value * dist / last, _lastFocal, focal);
+      _pinchBy(dist / last, _lastFocal, focal);
       _lastDist = dist;
       _lastFocal = focal;
     }
@@ -530,7 +558,11 @@ class _ZoomablePagesState extends State<ZoomablePages>
         // zoom 1: Fit Width
         _fit = math.max(0.1, room / widget.paperWidth);
         _room = room;
-        final scale = _fit * pageZoom.value;
+        // At Fit Width the text is the size of the scroll view's: a page
+        // wider than the paper holds more instead of growing its text.
+        // (narrower, as on a phone, it just shrinks)
+        final content = _fit > 1 ? 1 / _fit : 1.0;
+        final scale = _fit * pageZoom.value * content;
         final scroll = _pinching ? const NeverScrollableScrollPhysics() : null;
         return Listener(
           onPointerDown: _down,
@@ -538,15 +570,13 @@ class _ZoomablePagesState extends State<ZoomablePages>
           onPointerUp: _up,
           onPointerCancel: _up,
           // a trackpad pinch (native)
-          onPointerPanZoomStart: (e) => _lastPanScale = 1,
+          onPointerPanZoomStart: (e) {
+            _lastPanScale = 1;
+            _began();
+          },
           onPointerPanZoomUpdate: (e) {
             if ((e.scale - 1).abs() < .01 && _lastPanScale == 1) return;
-            _snap.stop();
-            _zoomTo(
-              pageZoom.value * e.scale / _lastPanScale,
-              e.localPosition,
-              e.localPosition,
-            );
+            _pinchBy(e.scale / _lastPanScale, e.localPosition, e.localPosition);
             _lastPanScale = e.scale;
           },
           onPointerPanZoomEnd: (e) {
@@ -600,7 +630,7 @@ class _ZoomablePagesState extends State<ZoomablePages>
                     // (centred in the room while narrower than it)
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: widget.builder(scale, _laidOut),
+                      child: widget.builder(scale, content, _laidOut),
                     ),
                   ),
                 ),
