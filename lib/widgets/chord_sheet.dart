@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -330,8 +331,31 @@ class _ChordSheetState extends State<ChordSheet>
     widget.autoscroll?.removeListener(_onAutoscroll);
     widget.autoscroll?.seek.removeListener(_onSeek);
     _autoTicker.dispose();
+    _columnsSettle?.cancel();
     _scroll.dispose();
     super.dispose();
+  }
+
+  // How many columns are shown: changed only once a window being resized
+  // has settled (not back and forth across the threshold on every frame).
+  int? _columns;
+  int _columnsWanted = 1;
+  Timer? _columnsSettle;
+
+  int _columnsFor(int wanted, double width) {
+    final fits = snakeColumnsFor(wanted, width);
+    final shown = _columns;
+    if (shown == null || _columnsWanted != wanted) {
+      _columnsWanted = wanted;
+      return _columns = fits;
+    }
+    if (fits != shown) {
+      _columnsSettle?.cancel();
+      _columnsSettle = Timer(const Duration(milliseconds: 150), () {
+        if (mounted) setState(() => _columns = null);
+      });
+    }
+    return shown;
   }
 
   GlobalKey _keyFor(int i) {
@@ -777,7 +801,7 @@ class _ChordSheetState extends State<ChordSheet>
           ? single
           : LayoutBuilder(
               builder: (context, box) {
-                final n = snakeColumnsFor(wanted, box.maxWidth);
+                final n = _columnsFor(wanted, box.maxWidth);
                 if (n < 2) return single;
                 return SnakeColumns(
                   controller: _scroll,
