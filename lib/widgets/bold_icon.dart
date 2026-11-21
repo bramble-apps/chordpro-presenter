@@ -29,3 +29,34 @@ class BoldIcon extends StatelessWidget {
     );
   }
 }
+
+/// The All caps button's icon: "AA" in the interface font, at the line
+/// weight of the icons beside it (the icon sets' capitals are rounded).
+class CapsIcon extends StatelessWidget {
+  final double? size;
+  const CapsIcon({super.key, this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = IconTheme.of(context);
+    final s = size ?? theme.size ?? 24;
+    return SizedBox.square(
+      dimension: s,
+      child: Center(
+        child: Text(
+          'AA',
+          textScaler: TextScaler.noScaling,
+          softWrap: false,
+          overflow: TextOverflow.visible,
+          style: TextStyle(
+            fontSize: s * .62,
+            height: 1,
+            letterSpacing: s * .02,
+            fontWeight: FontWeight.w500,
+            color: theme.color,
+          ),
+        ),
+      ),
+    );
+  }
+}

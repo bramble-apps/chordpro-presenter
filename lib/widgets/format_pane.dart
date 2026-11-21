@@ -233,7 +233,7 @@ class _FormatPaneState extends State<FormatPane> {
                   ),
                   _Toggle(
                     'All caps',
-                    BrambleIcons.tbLetterCaseUpper,
+                    const CapsIcon(),
                     p.textCaps,
                     (v) => set((p) => p.textCaps = v),
                   ),
@@ -1329,10 +1329,15 @@ class _ElementEditor extends StatelessWidget {
       );
     }
 
-    return Card.outlined(
-      margin: const EdgeInsets.only(bottom: 8),
+    // (as the pane's groups: a divider above, no box)
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: scheme.outlineVariant, width: inkW(1)),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 4, 8),
+        padding: const EdgeInsets.fromLTRB(4, 8, 0, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1378,7 +1383,7 @@ class _ElementEditor extends StatelessWidget {
                     toggle(
                       'All caps',
                       // (an icon, as B, I and U beside it)
-                      const Icon(BrambleIcons.tbLetterCaseUpper),
+                      const CapsIcon(),
                       s.caps,
                       (v) => s.caps = v,
                     ),
@@ -1416,9 +1421,10 @@ class _ElementEditor extends StatelessWidget {
                 swatches: [
                   for (final name in [null, ...namedColors.keys])
                     _Swatch(
-                      tooltip: name ?? 'Default',
+                      tooltip: name ?? 'Default (light or dark mode)',
                       color: namedColors[name] ?? scheme.onSurface,
                       selected: s.color == name,
+                      split: name == null,
                       onTap: () => update((s) => s.color = name),
                     ),
                 ],
@@ -1467,17 +1473,23 @@ class _Swatch {
   final bool selected;
   final IconData? icon;
   final VoidCallback onTap;
+
+  /// Split corner to corner, white and black: the default colour, which
+  /// follows light or dark mode.
+  final bool split;
   const _Swatch({
     required this.tooltip,
     required this.color,
     required this.selected,
     required this.onTap,
     this.icon,
+    this.split = false,
   });
 }
 
-/// One scrollable row of colour circles; the + at the end opens the full
-/// colour picker. A custom colour shows as its own (selected) circle.
+/// One scrollable row of colour swatches (rounded squares); the + at the
+/// end opens the full colour picker. A custom colour shows as its own
+/// (selected) swatch.
 class _SwatchRow extends StatelessWidget {
   final String label;
   final List<_Swatch> swatches;
@@ -1494,29 +1506,37 @@ class _SwatchRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(inkR(6));
     Widget circle({
       required String tooltip,
       required Color color,
       required bool selected,
       required VoidCallback onTap,
       IconData? icon,
+      bool split = false,
     }) => Tooltip(
       message: tooltip,
       child: InkWell(
-        customBorder: const CircleBorder(),
+        borderRadius: radius,
         onTap: onTap,
         child: Container(
           width: 24,
           height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
+          foregroundDecoration: BoxDecoration(
+            borderRadius: radius,
             border: Border.all(
               width: inkW(selected ? 2.5 : 1),
               color: selected ? scheme.primary : scheme.outlineVariant,
             ),
           ),
-          child: icon == null
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            color: split ? null : color,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: split
+              ? const CustomPaint(painter: _SplitPainter())
+              : icon == null
               ? null
               : Icon(icon, size: 14, color: scheme.outline),
         ),
@@ -1541,6 +1561,7 @@ class _SwatchRow extends StatelessWidget {
                       selected: sw.selected,
                       onTap: sw.onTap,
                       icon: sw.icon,
+                      split: sw.split,
                     ),
                   ),
                   if (custom != null)
@@ -1556,7 +1577,7 @@ class _SwatchRow extends StatelessWidget {
                   Tooltip(
                     message: 'Custom colour…',
                     child: InkWell(
-                      customBorder: const CircleBorder(),
+                      borderRadius: radius,
                       onTap: () async {
                         final c = await pickColor(
                           context,
@@ -1568,7 +1589,7 @@ class _SwatchRow extends StatelessWidget {
                         width: 24,
                         height: 24,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          borderRadius: radius,
                           border: Border.all(
                             color: scheme.outline,
                             width: inkW(1),
@@ -2628,4 +2649,27 @@ class _ExtensionSample extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The default colour's swatch: white above the diagonal, black below it
+/// (light mode's text, dark mode's).
+class _SplitPainter extends CustomPainter {
+  const _SplitPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas
+      ..drawRect(Offset.zero & size, Paint()..color = const Color(0xFFFFFFFF))
+      ..drawPath(
+        Path()
+          ..moveTo(size.width, 0)
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close(),
+        Paint()..color = const Color(0xFF000000),
+      );
+  }
+
+  @override
+  bool shouldRepaint(_SplitPainter old) => false;
 }

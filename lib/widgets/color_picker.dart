@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../eink.dart';
+import '../format.dart' show namedColors;
+import 'dialog_buttons.dart';
 
 /// A colour swatch that opens a picker (saturation/brightness square, hue
 /// slider, hex code) when tapped.
@@ -118,12 +120,52 @@ class _PickerDialogState extends State<_PickerDialog> {
   @override
   Widget build(BuildContext context) {
     final color = _hsv.toColor();
+    final scheme = Theme.of(context).colorScheme;
+    // On top: the colour and its hex code, then ✕ and ✓ (as the app's
+    // other dialogs); the preset colours along the bottom.
     return AlertDialog(
-      title: const Text('Colour'),
+      title: Row(
+        spacing: 12,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(inkR(8)),
+              border: Border.all(color: scheme.outlineVariant, width: inkW(1)),
+            ),
+          ),
+          Expanded(
+            child: TextField(
+              controller: _hex,
+              style: Theme.of(context).textTheme.titleMedium,
+              decoration: const InputDecoration(
+                labelText: 'Hex',
+                isDense: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[#0-9a-fA-F]')),
+                LengthLimitingTextInputFormatter(7),
+              ],
+              onChanged: (t) {
+                final c = parseHex(t);
+                if (c != null) setState(() => _hsv = HSVColor.fromColor(c));
+              },
+            ),
+          ),
+          DialogCancelButton(onPressed: () => Navigator.pop(context)),
+          DialogDoneButton(
+            tooltip: 'Use colour',
+            onPressed: () => Navigator.pop(context, color),
+          ),
+        ],
+      ),
       content: SizedBox(
         width: 300,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 14,
           children: [
             // Saturation (x) × brightness (y) for the current hue.
@@ -235,57 +277,40 @@ class _PickerDialogState extends State<_PickerDialog> {
                 );
               },
             ),
-            Row(
-              spacing: 12,
+            // The preset colours (as the Format pane's swatches), from the
+            // left edge.
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(inkR(8)),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                      width: inkW(1),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _hex,
-                    decoration: const InputDecoration(
-                      labelText: 'Hex',
-                      isDense: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'[#0-9a-fA-F]'),
+                for (final MapEntry(key: name, value: c) in namedColors.entries)
+                  Tooltip(
+                    message: name,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(inkR(6)),
+                      onTap: () => _set(HSVColor.fromColor(c)),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: c,
+                          borderRadius: BorderRadius.circular(inkR(6)),
+                          border: Border.all(
+                            width: inkW(c == color ? 2.5 : 1),
+                            color: c == color
+                                ? scheme.primary
+                                : scheme.outlineVariant,
+                          ),
+                        ),
                       ),
-                      LengthLimitingTextInputFormatter(7),
-                    ],
-                    onChanged: (t) {
-                      final c = parseHex(t);
-                      if (c != null) {
-                        setState(() => _hsv = HSVColor.fromColor(c));
-                      }
-                    },
+                    ),
                   ),
-                ),
               ],
             ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, color),
-          child: const Text('Use colour'),
-        ),
-      ],
     );
   }
 }

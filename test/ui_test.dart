@@ -2032,8 +2032,12 @@ void main() {
     await tester.tap(find.byTooltip('Show Format'));
     await tester.pumpAndSettle();
     // Title has an all-caps button, Chords does not.
-    Finder card(String label) =>
-        find.ancestor(of: find.text(label), matching: find.byType(Card));
+    Finder card(String label) => find.ancestor(
+      of: find.text(label),
+      matching: find.byWidgetPredicate(
+        (w) => w.runtimeType.toString() == '_ElementEditor',
+      ),
+    );
     final paneScroll = find
         .descendant(
           of: find.byType(FormatPane),
@@ -2237,7 +2241,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Hex'), '#123456');
     await tester.pump();
-    await tester.tap(find.text('Use colour'));
+    await tester.tap(find.byTooltip('Use colour'));
     await tester.pumpAndSettle();
     final title = model.format[SheetElement.title];
     expect(title.color, '#123456');

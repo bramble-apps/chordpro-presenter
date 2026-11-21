@@ -85,7 +85,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '#3584E4');
     await tester.pump();
-    await tester.tap(find.text('Use colour'));
+    await tester.tap(find.byTooltip('Use colour'));
     await tester.pumpAndSettle();
     expect(picked, const Color(0xFF3584E4));
   });

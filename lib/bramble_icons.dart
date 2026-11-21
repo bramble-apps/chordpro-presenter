@@ -834,186 +834,180 @@ abstract final class BrambleIcons {
     fontFamily: 'BrambleIcons',
   );
 
-  /// tb:letter-case-upper
-  static const IconData tbLetterCaseUpper = IconData(
-    0xE0A8,
-    fontFamily: 'BrambleIcons',
-  );
-
   /// tb:library-plus
   static const IconData tbLibraryPlus = IconData(
-    0xE0A9,
+    0xE0A8,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:list-tree
   static const IconData tbListTree = IconData(
-    0xE0AA,
+    0xE0A9,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:new-section
   static const IconData tbNewSection = IconData(
-    0xE0AB,
+    0xE0AA,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:note
-  static const IconData tbNote = IconData(0xE0AC, fontFamily: 'BrambleIcons');
+  static const IconData tbNote = IconData(0xE0AB, fontFamily: 'BrambleIcons');
 
   /// tb:photo-plus
   static const IconData tbPhotoPlus = IconData(
-    0xE0AD,
+    0xE0AC,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:photo-video
   static const IconData tbPhotoVideo = IconData(
-    0xE0AE,
+    0xE0AD,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:picture-in-picture
   static const IconData tbPictureInPicture = IconData(
-    0xE0AF,
+    0xE0AE,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:player-play
   static const IconData tbPlayerPlay = IconData(
-    0xE0B0,
+    0xE0AF,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:playlist
   static const IconData tbPlaylist = IconData(
-    0xE0B1,
+    0xE0B0,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:replace
   static const IconData tbReplace = IconData(
-    0xE0B2,
+    0xE0B1,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:sparkles
   static const IconData tbSparkles = IconData(
-    0xE0B3,
+    0xE0B2,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:stack-pop
   static const IconData tbStackPop = IconData(
-    0xE0B4,
+    0xE0B3,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:television
   static const IconData television = IconData(
-    0xE0B5,
+    0xE0B4,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:television-simple
   static const IconData televisionSimple = IconData(
-    0xE0B6,
+    0xE0B5,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-aa
-  static const IconData textAa = IconData(0xE0B7, fontFamily: 'BrambleIcons');
+  static const IconData textAa = IconData(0xE0B6, fontFamily: 'BrambleIcons');
 
   /// ph:text-align-center
   static const IconData textAlignCenter = IconData(
-    0xE0B8,
+    0xE0B7,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-align-left
   static const IconData textAlignLeft = IconData(
-    0xE0B9,
+    0xE0B8,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-align-right
   static const IconData textAlignRight = IconData(
-    0xE0BA,
+    0xE0B9,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-b
-  static const IconData textB = IconData(0xE0BB, fontFamily: 'BrambleIcons');
+  static const IconData textB = IconData(0xE0BA, fontFamily: 'BrambleIcons');
 
   /// ph:text-italic
   static const IconData textItalic = IconData(
-    0xE0BC,
+    0xE0BB,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-t
-  static const IconData textT = IconData(0xE0BD, fontFamily: 'BrambleIcons');
+  static const IconData textT = IconData(0xE0BC, fontFamily: 'BrambleIcons');
 
   /// ph:text-underline
   static const IconData textUnderline = IconData(
-    0xE0BE,
+    0xE0BD,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:timer
-  static const IconData timer = IconData(0xE0BF, fontFamily: 'BrambleIcons');
+  static const IconData timer = IconData(0xE0BE, fontFamily: 'BrambleIcons');
 
   /// ph:translate
   static const IconData translate = IconData(
-    0xE0C0,
+    0xE0BF,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:trash
-  static const IconData trash = IconData(0xE0C1, fontFamily: 'BrambleIcons');
+  static const IconData trash = IconData(0xE0C0, fontFamily: 'BrambleIcons');
 
   /// ph:tree
-  static const IconData tree = IconData(0xE0C2, fontFamily: 'BrambleIcons');
+  static const IconData tree = IconData(0xE0C1, fontFamily: 'BrambleIcons');
 
   /// ph:users-three
   static const IconData usersThree = IconData(
-    0xE0C3,
+    0xE0C2,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:vinyl-record
   static const IconData vinylRecord = IconData(
-    0xE0C4,
+    0xE0C3,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:warning
-  static const IconData warning = IconData(0xE0C5, fontFamily: 'BrambleIcons');
+  static const IconData warning = IconData(0xE0C4, fontFamily: 'BrambleIcons');
 
   /// ph:warning-circle
   static const IconData warningCircle = IconData(
-    0xE0C6,
+    0xE0C5,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:waveform
-  static const IconData waveform = IconData(0xE0C7, fontFamily: 'BrambleIcons');
+  static const IconData waveform = IconData(0xE0C6, fontFamily: 'BrambleIcons');
 
   /// ph:waves
-  static const IconData waves = IconData(0xE0C8, fontFamily: 'BrambleIcons');
+  static const IconData waves = IconData(0xE0C7, fontFamily: 'BrambleIcons');
 
   /// ph:wifi-slash
   static const IconData wifiSlash = IconData(
-    0xE0C9,
+    0xE0C8,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:wrench
-  static const IconData wrench = IconData(0xE0CA, fontFamily: 'BrambleIcons');
+  static const IconData wrench = IconData(0xE0C9, fontFamily: 'BrambleIcons');
 
   /// ph:x
-  static const IconData x = IconData(0xE0CB, fontFamily: 'BrambleIcons');
+  static const IconData x = IconData(0xE0CA, fontFamily: 'BrambleIcons');
 
   /// ph:x-circle
-  static const IconData xCircle = IconData(0xE0CC, fontFamily: 'BrambleIcons');
+  static const IconData xCircle = IconData(0xE0CB, fontFamily: 'BrambleIcons');
 }
