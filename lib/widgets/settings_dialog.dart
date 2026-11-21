@@ -9,6 +9,7 @@ import '../themes.dart';
 import 'sidebar_icon.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
+import 'dialog_buttons.dart';
 
 /// Appearance and layout settings.
 class SettingsDialog extends StatelessWidget {
@@ -43,14 +44,7 @@ class SettingsDialog extends StatelessWidget {
           title: Row(
             children: [
               const Expanded(child: Text('Settings')),
-              IconButton.filled(
-                tooltip: 'Done',
-                style: IconButton.styleFrom(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(BrambleIcons.check),
-              ),
+              DialogDoneButton(onPressed: () => Navigator.pop(context)),
             ],
           ),
           insetPadding: compact

@@ -195,7 +195,8 @@ class InkToolbar extends StatelessWidget {
                           onPressed: c.canRedo ? c.redo : null,
                         ),
                         const SizedBox(width: 4),
-                        IconButton.filledTonal(
+                        // (✓ in the theme's accent, as every dialog's)
+                        IconButton.filled(
                           tooltip: 'Done',
                           iconSize: 26,
                           icon: const Icon(BrambleIcons.check),

@@ -6,6 +6,7 @@ import '../translation.dart';
 import 'translate_dialog.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
+import 'dialog_buttons.dart';
 
 class StructureResult {
   final List<StructureItem> structure;
@@ -207,11 +208,7 @@ class _StructureEditorState extends State<StructureEditor> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  IconButton.filledTonal(
-                    tooltip: 'Cancel',
-                    icon: const Icon(BrambleIcons.x),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  DialogCancelButton(onPressed: () => Navigator.pop(context)),
                   Expanded(
                     child: Column(
                       children: [
@@ -234,9 +231,8 @@ class _StructureEditorState extends State<StructureEditor> {
                     onPressed: _translate,
                   ),
                   const SizedBox(width: 4),
-                  IconButton.filledTonal(
+                  DialogDoneButton(
                     tooltip: 'Save',
-                    icon: const Icon(BrambleIcons.check),
                     onPressed: () => Navigator.pop(
                       context,
                       StructureResult([for (final i in _items) i.value], _raw),

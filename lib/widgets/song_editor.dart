@@ -14,6 +14,7 @@ import 'structure_editor.dart';
 import '../eink.dart';
 import 'detent_sheet.dart';
 import '../bramble_icons.dart';
+import 'dialog_buttons.dart';
 
 /// Edit dialog with three tabs: the ChordPro text, each chord's beats, and
 /// song details (key, tempo, CCLI, tags...). "Save" (⌘S) keeps the changes; "Cancel" drops
@@ -195,20 +196,15 @@ class _SongEditorState extends State<SongEditor> {
                     _rewriteButton(),
                     const SizedBox(width: 4),
                     // Round ✕ and ✓ (cancel, save)
-                    IconButton.filledTonal(
-                      tooltip: 'Cancel',
-                      style: _roundButton(context, tonal: true),
+                    DialogCancelButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(BrambleIcons.x),
                     ),
                     const SizedBox(width: 8),
                     ListenableBuilder(
                       listenable: _title,
-                      builder: (context, _) => IconButton.filled(
+                      builder: (context, _) => DialogDoneButton(
                         tooltip: 'Save',
-                        style: _roundButton(context),
                         onPressed: _canSave ? _save : null,
-                        icon: const Icon(BrambleIcons.check),
                       ),
                     ),
                   ],
@@ -234,18 +230,6 @@ class _SongEditorState extends State<SongEditor> {
   }
 
   /// A dialog on a desktop or tablet; in a phone's sheet, just the page.
-  /// ✕ and ✓: no room around them for touch (the circle is the edge, so
-  /// the padding to it is what's seen); ✕ in the surface's own tint, not
-  /// the theme's second colour.
-  static ButtonStyle _roundButton(BuildContext context, {bool tonal = false}) {
-    final scheme = Theme.of(context).colorScheme;
-    return IconButton.styleFrom(
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      backgroundColor: tonal ? scheme.surfaceContainerHighest : null,
-      foregroundColor: tonal ? scheme.onSurface : null,
-    );
-  }
-
   Widget _frame(Widget page) => widget.sheet
       ? Material(type: MaterialType.transparency, child: page)
       : Dialog(
