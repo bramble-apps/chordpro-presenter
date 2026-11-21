@@ -172,46 +172,41 @@ class _SongEditorState extends State<SongEditor> {
             children: [
               Padding(
                 padding: widget.sheet
-                    ? const EdgeInsets.fromLTRB(12, 0, 8, 0)
+                    ? const EdgeInsets.fromLTRB(8, 8, 8, 0)
                     : const EdgeInsets.fromLTRB(20, 16, 16, 0),
+                // The title, then the buttons on the same line
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        'Edit Song',
-                        style: Theme.of(context).textTheme.titleLarge,
-                        overflow: TextOverflow.ellipsis,
+                      child: TextField(
+                        controller: _title,
+                        autofocus: widget.song.title.isEmpty,
+                        decoration: const InputDecoration(
+                          labelText: 'Title',
+                          hintText: 'Song title',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     _rewriteButton(),
                     const SizedBox(width: 4),
-                    TextButton(
+                    // Round ✕ and ✓ (cancel, save)
+                    IconButton.filledTonal(
+                      tooltip: 'Cancel',
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
+                      icon: const Icon(Icons.close),
                     ),
                     const SizedBox(width: 8),
                     ListenableBuilder(
                       listenable: _title,
-                      builder: (context, _) => FilledButton(
+                      builder: (context, _) => IconButton.filled(
+                        tooltip: 'Save',
                         onPressed: _canSave ? _save : null,
-                        child: const Text('Save'),
+                        icon: const Icon(Icons.check),
                       ),
                     ),
                   ],
-                ),
-              ),
-              Padding(
-                padding: widget.sheet
-                    ? const EdgeInsets.fromLTRB(8, 8, 8, 0)
-                    : const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: TextField(
-                  controller: _title,
-                  autofocus: widget.song.title.isEmpty,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    hintText: 'Song title',
-                    border: OutlineInputBorder(),
-                  ),
                 ),
               ),
               const TabBar(

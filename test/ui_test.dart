@@ -1525,15 +1525,15 @@ void main() {
     await tester.tap(find.text('Add to library'));
     await tester.pumpAndSettle();
     // The full editor opens; nothing is added until Save.
-    expect(find.text('Edit Song'), findsOneWidget);
+    expect(find.byTooltip('Save'), findsOneWidget); // the song editor
     expect(find.text('Apply'), findsNothing, reason: 'not in the library yet');
     expect(model.songs.length, before);
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(find.byTooltip('Cancel'));
     await tester.pumpAndSettle();
     expect(model.songs.length, before, reason: 'cancelled: not added');
     await tester.tap(find.text('Add to library'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     expect(model.songs.length, before + 1);
     final added = model.currentSong!;
@@ -1587,8 +1587,8 @@ void main() {
     await tester.ensureVisible(find.text('Add to library').last);
     await tester.tap(find.text('Add to library').last);
     await tester.pumpAndSettle();
-    expect(find.text('Edit Song'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    expect(find.byTooltip('Save'), findsOneWidget); // the song editor
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     expect(model.currentSong!.title, 'River Song');
     expect(model.currentSong!.artist, 'Someone');
@@ -2043,7 +2043,7 @@ void main() {
     await pumpApp(tester);
     await tester.tap(find.byTooltip('Edit song'));
     await tester.pumpAndSettle();
-    expect(find.text('Edit Song'), findsOneWidget);
+    expect(find.byTooltip('Save'), findsOneWidget); // the song editor
   });
 
   testWidgets('every desktop style renders, light and dark', (tester) async {
