@@ -551,9 +551,7 @@ class _LiveBarState extends State<_LiveBar> {
         IconButton(
           tooltip: live.playing ? 'Pause' : 'Play',
           visualDensity: VisualDensity.compact,
-          icon: Icon(
-            live.playing ? BrambleIcons.pauseFill : BrambleIcons.playFill,
-          ),
+          icon: Icon(live.playing ? BrambleIcons.pause : BrambleIcons.play),
           onPressed: () => model.setLivePlaying(!live.playing),
         ),
         IconButton(
@@ -566,7 +564,7 @@ class _LiveBarState extends State<_LiveBar> {
       IconButton(
         tooltip: 'Stop (back to the lyrics)',
         visualDensity: VisualDensity.compact,
-        icon: const Icon(BrambleIcons.stopFill),
+        icon: const Icon(BrambleIcons.stop),
         onPressed: model.stopLive,
       ),
     ];
@@ -709,7 +707,7 @@ class _FolderTile extends StatelessWidget {
           color: scheme.primaryContainer,
           child: Center(
             child: Icon(
-              BrambleIcons.folderFill,
+              BrambleIcons.folder,
               size: 52,
               color: scheme.onPrimaryContainer,
             ),
@@ -746,7 +744,7 @@ class _ItemTile extends StatelessWidget {
         entry(
           'play',
           item.kind == MediaKind.audio
-              ? BrambleIcons.playFill
+              ? BrambleIcons.play
               : BrambleIcons.presentation,
           item.kind == MediaKind.audio
               ? 'Play'
@@ -1058,11 +1056,7 @@ class _ThumbState extends State<_Thumb> {
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
           const Center(
-            child: Icon(
-              BrambleIcons.playCircleFill,
-              color: Colors.white,
-              size: 36,
-            ),
+            child: Icon(BrambleIcons.playCircle, color: Colors.white, size: 36),
           ),
         ],
       );
@@ -1104,7 +1098,7 @@ Future<String?> _pickFolder(
             child: Row(
               children: [
                 SizedBox(width: 16.0 * '/'.allMatches(f).length),
-                Icon(f.isEmpty ? BrambleIcons.images : BrambleIcons.folderFill),
+                Icon(f.isEmpty ? BrambleIcons.images : BrambleIcons.folder),
                 const SizedBox(width: 10),
                 Text(f.isEmpty ? 'All media (top)' : folderName(f)),
               ],

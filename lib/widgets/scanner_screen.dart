@@ -1263,7 +1263,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               }),
             ),
             TextButton.icon(
-              icon: const Icon(BrambleIcons.playFill),
+              icon: const Icon(BrambleIcons.play),
               label: const Text('Play from here'),
               onPressed: () => _playMeasure(n.measure),
             ),
@@ -1297,18 +1297,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                         dimension: 22,
                         child: AppSpinner(strokeWidth: 2.5),
                       )
-                    : Icon(
-                        _playing
-                            ? BrambleIcons.pauseFill
-                            : BrambleIcons.playFill,
-                      ),
+                    : Icon(_playing ? BrambleIcons.pause : BrambleIcons.play),
                 onPressed: _preparing
                     ? null
                     : () => _playing ? _stop() : _start(),
               ),
               IconButton(
                 tooltip: 'Back to the start',
-                icon: const Icon(BrambleIcons.skipBackFill),
+                icon: const Icon(BrambleIcons.skipBack),
                 onPressed: () {
                   final was = _playing;
                   _stop(toStart: true);

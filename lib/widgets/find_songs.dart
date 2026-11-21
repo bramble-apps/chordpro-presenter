@@ -262,7 +262,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
                 ? null
                 : IconButton(
                     tooltip: 'Clear',
-                    icon: const Icon(BrambleIcons.xCircleFill, size: 18),
+                    icon: const Icon(BrambleIcons.xCircle, size: 18),
                     onPressed: () => setState(() {
                       _query.clear();
                       _results.clear();

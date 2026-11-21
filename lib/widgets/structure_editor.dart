@@ -191,7 +191,7 @@ class _StructureEditorState extends State<StructureEditor> {
       visualDensity: VisualDensity.compact,
       onPressed: onTap,
       icon: const Icon(
-        BrambleIcons.minusCircleFill,
+        BrambleIcons.minusCircle,
         size: 20,
         color: Color(0xFFE5534B),
       ),

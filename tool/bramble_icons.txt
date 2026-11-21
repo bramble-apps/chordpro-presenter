@@ -4,7 +4,7 @@
 # Extra glyphs the app uses by name (not swapped from a Material icon) start with "+".
 account_tree_outlined tb:list-tree
 add ph:plus
-add_circle fill:plus-circle
+add_circle ph:plus-circle
 add_photo_alternate_outlined tb:photo-plus
 airplay ph:screencast
 arrow_back ph:arrow-left rtl
@@ -29,7 +29,7 @@ bookmark_add_outlined ph:bookmark-simple
 bookmarks_outlined ph:bookmarks-simple
 brightness_auto tb:brightness-auto
 brush_outlined ph:paint-brush
-cancel fill:x-circle
+cancel ph:x-circle
 cast ph:screencast
 cast_connected fill:screencast
 cast_connected_rounded fill:screencast
@@ -94,11 +94,11 @@ filter_list ph:funnel-simple
 find_replace_rounded tb:replace
 fit_screen_outlined ph:frame-corners
 flag_rounded ph:flag
-folder fill:folder
+folder ph:folder
 folder_copy_outlined ph:folders
 folder_open ph:folder-open
 folder_outlined ph:folder
-folder_rounded fill:folder
+folder_rounded ph:folder
 font_download_outlined ph:text-aa
 format_align_center ph:text-align-center
 format_align_left ph:text-align-left
@@ -130,12 +130,12 @@ keyboard_double_arrow_up ph:caret-double-up
 label_outline ph:tag-simple rtl
 language_rounded ph:globe
 laptop_mac ph:laptop
-layers fill:stack
+layers ph:stack
 layers_clear_outlined tb:stack-pop
 layers_outlined ph:stack
 library_add tb:library-plus
 library_add_outlined tb:library-plus
-library_music fill:music-notes-simple
+library_music ph:music-notes-simple
 library_music_outlined ph:vinyl-record
 light_mode ph:sun
 link ph:link-simple
@@ -167,16 +167,16 @@ open_in_new ph:arrow-square-out rtl
 open_in_new_rounded ph:arrow-square-out rtl
 open_with ph:arrows-out-cardinal
 park_rounded ph:tree
-pause fill:pause
-pause_rounded fill:pause
+pause ph:pause
+pause_rounded ph:pause
 perm_media_outlined ph:images
 piano ph:piano-keys
 piano_outlined ph:piano-keys
 picture_as_pdf_outlined ph:file-pdf
 picture_in_picture_alt_outlined tb:picture-in-picture
-play_arrow fill:play
-play_arrow_rounded fill:play
-play_circle fill:play-circle
+play_arrow ph:play
+play_arrow_rounded ph:play
+play_circle ph:play-circle
 play_circle_outline tb:player-play
 playlist_add ph:list-plus rtl
 playlist_play tb:playlist
@@ -196,7 +196,7 @@ radio_button_off ph:circle
 redo ph:arrow-clockwise rtl
 refresh ph:arrows-clockwise
 remove ph:minus
-remove_circle fill:minus-circle
+remove_circle ph:minus-circle
 remove_circle_outline ph:minus-circle
 replay ph:arrow-counter-clockwise
 restart_alt ph:arrow-counter-clockwise
@@ -204,18 +204,18 @@ search ph:magnifying-glass
 sell_outlined ph:tag
 settings_outlined ph:sliders-horizontal
 share_outlined ph:share-network
-skip_next fill:skip-forward
-skip_previous fill:skip-back
+skip_next ph:skip-forward
+skip_previous ph:skip-back
 slideshow fill:presentation
 slideshow_outlined ph:presentation
-smart_display fill:monitor-play
+smart_display ph:monitor-play
 smart_display_outlined ph:monitor-play
 south_east ph:arrow-down-right
 south_west ph:arrow-down-left
 star_rounded fill:star
 sticky_note_2_outlined tb:note
 stop_circle_outlined ph:stop-circle
-stop_rounded fill:stop
+stop_rounded ph:stop
 surround_sound_outlined ph:speaker-hifi
 swap_vert ph:arrows-down-up
 sync ph:arrows-clockwise

@@ -1272,7 +1272,7 @@ class _ElementEditor extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(BrambleIcons.minusCircleFill),
+                    icon: const Icon(BrambleIcons.minusCircle),
                     onPressed: s.size > 8
                         ? () => update((s) => s.size -= 1)
                         : null,
@@ -1286,7 +1286,7 @@ class _ElementEditor extends StatelessWidget {
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(BrambleIcons.plusCircleFill),
+                    icon: const Icon(BrambleIcons.plusCircle),
                     onPressed: s.size < 60
                         ? () => update((s) => s.size += 1)
                         : null,

@@ -1002,7 +1002,7 @@ class _BiblePaneState extends State<BiblePane> {
               TextButton(onPressed: lib.clearQueue, child: const Text('Clear')),
               const SizedBox(width: 4),
               FilledButton.tonalIcon(
-                icon: const Icon(BrambleIcons.skipForwardFill),
+                icon: const Icon(BrambleIcons.skipForward),
                 label: const Text('Show next'),
                 onPressed: () {
                   final p = lib.queue.first;

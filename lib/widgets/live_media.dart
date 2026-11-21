@@ -158,7 +158,7 @@ class _LiveMediaViewState extends State<LiveMediaView> {
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
-          Center(child: _badge(BrambleIcons.monitorPlayFill)),
+          Center(child: _badge(BrambleIcons.monitorPlay)),
         ],
       );
     }

@@ -1335,7 +1335,7 @@ class _OperatorScreenState extends State<OperatorScreen>
         PopupMenuItem(
           value: 'stop',
           child: _menuRow(
-            BrambleIcons.stopFill,
+            BrambleIcons.stop,
             'Stop projecting',
             subtitle: 'Closes every projector screen and cast',
             color: scheme.error,
@@ -2677,7 +2677,7 @@ class _AutoscrollButton extends StatelessWidget {
                 isSelected: a.running,
                 icon: Icon(
                   a.running
-                      ? BrambleIcons.pauseFill
+                      ? BrambleIcons.pause
                       : BrambleIcons.caretDoubleDown,
                   color: a.running ? scheme.primary : null,
                 ),

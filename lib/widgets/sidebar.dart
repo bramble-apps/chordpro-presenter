@@ -1220,7 +1220,7 @@ class _SidebarState extends State<Sidebar> {
     final inSongs = _mode == _Mode.songs;
     final toggle = FilledButton.tonalIcon(
       style: buttonStyle,
-      icon: Icon(inSongs ? BrambleIcons.playlist : BrambleIcons.musicNotesSimpleFill, size: 18),
+      icon: Icon(inSongs ? BrambleIcons.playlist : BrambleIcons.musicNotesSimple, size: 18),
       label: Text(inSongs ? 'Setlists' : 'Songs'),
       onPressed: () => setState(() {
         _mode = inSongs ? _Mode.setlists : _Mode.songs;
@@ -3489,7 +3489,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
       Padding(
         padding: const EdgeInsets.all(10),
         child: FilledButton.tonalIcon(
-          icon: const Icon(BrambleIcons.stopFill),
+          icon: const Icon(BrambleIcons.stop),
           label: const Text('Stop session'),
           onPressed: band.stopLeading,
         ),

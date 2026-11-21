@@ -907,8 +907,8 @@ class _TimerPanelState extends State<_TimerPanel> {
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
                         model.timerRunning
-                            ? BrambleIcons.pauseFill
-                            : BrambleIcons.playFill,
+                            ? BrambleIcons.pause
+                            : BrambleIcons.play,
                       ),
                       onPressed: left == 0 && !model.timerRunning
                           ? null
@@ -978,7 +978,7 @@ class _TimerPanelState extends State<_TimerPanel> {
                           'projector)',
                       visualDensity: VisualDensity.compact,
                       style: _iconStyle,
-                      icon: const Icon(BrambleIcons.stopFill),
+                      icon: const Icon(BrambleIcons.stop),
                       onPressed: model.timerStop,
                     ),
                     IconButton(

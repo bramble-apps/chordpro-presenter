@@ -206,9 +206,7 @@ class _FilePlayer extends StatelessWidget {
                     tooltip: v.isPlaying ? 'Pause' : 'Play',
                     color: Colors.white,
                     icon: Icon(
-                      v.isPlaying
-                          ? BrambleIcons.pauseFill
-                          : BrambleIcons.playFill,
+                      v.isPlaying ? BrambleIcons.pause : BrambleIcons.play,
                     ),
                     onPressed: v.isPlaying ? controller.pause : controller.play,
                   ),

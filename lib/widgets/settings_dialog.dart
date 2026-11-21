@@ -162,7 +162,7 @@ class SettingsDialog extends StatelessWidget {
                     ButtonSegment(
                       value: true,
                       label: Text('Floating'),
-                      icon: Icon(BrambleIcons.stackFill),
+                      icon: Icon(BrambleIcons.stack),
                     ),
                   ],
                   selected: {s.floatingSidebar},

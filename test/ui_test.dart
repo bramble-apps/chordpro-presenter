@@ -342,7 +342,7 @@ void main() {
   testWidgets('screen menu: open window, copy link, stop', (tester) async {
     final model = await pumpApp(tester);
     expect(find.byTooltip('Project'), findsOneWidget);
-    expect(find.byIcon(BrambleIcons.playFill), findsNothing);
+    expect(find.byIcon(BrambleIcons.play), findsNothing);
     expect(find.byIcon(BrambleIcons.screencast), findsNothing, reason: 'one button now');
 
     await tester.tap(find.byTooltip('Project'));
