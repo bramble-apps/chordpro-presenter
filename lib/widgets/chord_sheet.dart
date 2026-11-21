@@ -364,7 +364,42 @@ class _ChordSheetState extends State<ChordSheet>
     dual: format.dualNotation,
     minorStyle: format.minorStyle,
     accidentals: SongAccidentals.of(format, song.extra).accidentals,
+    symbols: format.symbols,
   );
+
+  /// A chord in running text, its extension raised or lowered when chosen
+  /// (as the chord lines draw it).
+  InlineSpan _chordSpan(String chord, TextStyle style) {
+    final place = format.chordExtensions;
+    final word = chord.trimRight();
+    final split = place == ChordExtensions.inline
+        ? null
+        : splitChordExtension(word);
+    if (split == null) return TextSpan(text: chord, style: style);
+    final (root, extension, bass) = split;
+    final size = style.fontSize ?? 14;
+    return TextSpan(
+      style: style,
+      children: [
+        TextSpan(text: root),
+        WidgetSpan(
+          alignment: PlaceholderAlignment.baseline,
+          baseline: TextBaseline.alphabetic,
+          child: Transform.translate(
+            offset: Offset(
+              0,
+              place == ChordExtensions.raised ? -size * .34 : size * .2,
+            ),
+            child: Text(
+              extension,
+              style: style.copyWith(fontSize: size * .72),
+            ),
+          ),
+        ),
+        TextSpan(text: '$bass${chord.substring(word.length)}'),
+      ],
+    );
+  }
 
   String _tempoOf(ChordProHeader header) =>
       song.tempo.isNotEmpty ? song.tempo : (header.tempo ?? '');
@@ -1060,9 +1095,9 @@ class _ChordSheetState extends State<ChordSheet>
           children: [
             for (final (i, seg) in segments.indexed) ...[
               if (chordAt(i))
-                TextSpan(
-                  text: '${segments[i].passing ? bracketed(i) : chordText(i)} ',
-                  style: chordStyle,
+                _chordSpan(
+                  '${segments[i].passing ? bracketed(i) : chordText(i)} ',
+                  chordStyle,
                 ),
               if (styledAt(i) case final styled?)
                 for (final r in styled)
@@ -1096,6 +1131,7 @@ class _ChordSheetState extends State<ChordSheet>
     // One render object for the whole line (fast to resize).
     return ChordLine(
       onChordTap: tapChord,
+      extensions: format.chordExtensions,
       glowing: glow
           ? {
               for (var i = 0; i < segments.length; i++)

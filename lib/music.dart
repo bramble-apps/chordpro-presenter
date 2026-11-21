@@ -6,6 +6,65 @@ enum MinorStyle { m, mi, min, dash, lower }
 
 enum Accidentals { auto, sharps, flats }
 
+/// How a major seventh (ninth…) is written: as in the song, or one way.
+enum MajorSymbol { asWritten, maj, ma, upperM, triangle }
+
+/// How a half-diminished chord is written: as in the song, m7♭5 or ø7.
+enum HalfDimSymbol { asWritten, m7b5, slashedO }
+
+/// How a diminished chord is written: as in the song, dim or °.
+enum DimSymbol { asWritten, dim, circle }
+
+/// Where a chord's extension (7, maj7, sus4, add9…) sits: on the line,
+/// raised as a superscript, or lowered as a subscript.
+enum ChordExtensions { inline, raised, lowered }
+
+extension MajorSymbolText on MajorSymbol {
+  String get text => switch (this) {
+    MajorSymbol.asWritten => '',
+    MajorSymbol.maj => 'maj',
+    MajorSymbol.ma => 'ma',
+    MajorSymbol.upperM => 'M',
+    MajorSymbol.triangle => '\u2206',
+  };
+}
+
+/// The chord symbols chosen in the Format pane (all "as written" by
+/// default: the song's own text).
+class ChordSymbols {
+  final MajorSymbol major;
+  final HalfDimSymbol halfDim;
+  final DimSymbol dim;
+  const ChordSymbols({
+    this.major = MajorSymbol.asWritten,
+    this.halfDim = HalfDimSymbol.asWritten,
+    this.dim = DimSymbol.asWritten,
+  });
+}
+
+final _majorQuality = RegExp(r'^(maj|Maj|MAJ|ma|M|\u0394|\u2206|\u25B3)(?=\d)');
+final _halfDimMinor = RegExp(r'^7\(?[b\u266D]5\)?');
+final _halfDimSign = RegExp(r'^[\u00F8\u00D8]7?');
+final _dimQuality = RegExp(r'^(dim|\u00B0|o(?=\d|$))');
+const _noteHead =
+    r'(?:[A-G]|[a-g]|Do|R\u00E9|Re|Mi|Fa|Sol|La|Si|Ti|[ivIV]{1,4}|[1-7])[#b\u266F\u266D]?';
+final _shownChord = RegExp(
+  // (an extension never starts with the bass's slash: "G/B" has none)
+  '^($_noteHead(?:min|mi|m(?!aj|a\\d)|-)?)([^/].*?)?(/$_noteHead)?\$',
+);
+
+/// A chord as shown ("Cmaj7/E", "Am7", "G (1)") cut where its extension
+/// starts and ends: (root and minor marker, extension, bass and the rest).
+/// Null when it has no extension or isn't a chord.
+(String, String, String)? splitChordExtension(String shown) {
+  final cut = shown.indexOf(' (');
+  final main = cut < 0 ? shown : shown.substring(0, cut);
+  final after = cut < 0 ? '' : shown.substring(cut);
+  final m = _shownChord.firstMatch(main);
+  if (m == null || (m.group(2) ?? '').isEmpty) return null;
+  return (m.group(1)!, m.group(2)!, '${m.group(3) ?? ''}$after');
+}
+
 extension AccidentalsLabel on Accidentals {
   String get label => switch (this) {
     Accidentals.auto => 'Auto',
@@ -129,7 +188,8 @@ class Chord {
   static final _chordPattern = RegExp(
     r'^([A-G])([#b♯♭]?)(.*?)(?:/([A-G])([#b♯♭]?))?$',
   );
-  static final _minorPattern = RegExp(r'^(min|mi|m(?!aj)|-)(.*)$');
+  // ("ma7" is a major seventh, not minor + "a7")
+  static final _minorPattern = RegExp(r'^(min|mi|m(?!aj|a\d)|-)(.*)$');
 
   static Chord? parse(String text) {
     final m = _chordPattern.firstMatch(text.trim());
@@ -264,6 +324,7 @@ String renderDualChord(
   required ChordNotation? dual,
   required MinorStyle minorStyle,
   required Accidentals accidentals,
+  ChordSymbols symbols = const ChordSymbols(),
 }) {
   String as(ChordNotation n) => renderChord(
     text,
@@ -272,6 +333,7 @@ String renderDualChord(
     notation: n,
     minorStyle: minorStyle,
     accidentals: accidentals,
+    symbols: symbols,
   );
   final main = as(notation);
   if (dual == null || dual == notation) return main;
@@ -290,6 +352,7 @@ String renderChord(
   required ChordNotation notation,
   required MinorStyle minorStyle,
   required Accidentals accidentals,
+  ChordSymbols symbols = const ChordSymbols(),
 }) {
   // A Gospelizer chord's mark (U+2064, see gospelizer.dart) isn't shown.
   if (text.startsWith('\u2064') || text.startsWith('\u2062')) {
@@ -328,8 +391,39 @@ String renderChord(
   }
 
   var rootName = noteName(c.root, c.spelledRoot);
+  // The chosen symbols for major sevenths, half-diminished and diminished
+  // chords (as written unless chosen).
+  var rest = c.rest;
+  var minor = c.minor;
+  if (symbols.major != MajorSymbol.asWritten) {
+    final m = _majorQuality.firstMatch(rest);
+    if (m != null) rest = symbols.major.text + rest.substring(m.end);
+  }
+  if (symbols.halfDim != HalfDimSymbol.asWritten) {
+    final m = minor
+        ? _halfDimMinor.firstMatch(rest)
+        : _halfDimSign.firstMatch(rest);
+    if (m != null) {
+      final tail = rest.substring(m.end);
+      if (symbols.halfDim == HalfDimSymbol.slashedO) {
+        minor = false;
+        rest = '\u00F87$tail';
+      } else {
+        minor = true;
+        rest = '7\u266D5$tail';
+      }
+    }
+  }
+  if (symbols.dim != DimSymbol.asWritten) {
+    final m = _dimQuality.firstMatch(rest);
+    if (m != null) {
+      rest =
+          (symbols.dim == DimSymbol.circle ? '\u00B0' : 'dim') +
+          rest.substring(m.end);
+    }
+  }
   var marker = '';
-  if (c.minor) {
+  if (minor) {
     switch (minorStyle) {
       case MinorStyle.m:
         marker = 'm';
@@ -349,5 +443,5 @@ String renderChord(
     }
   }
   final bass = c.bass == null ? '' : '/${noteName(c.bass!, c.spelledBass!)}';
-  return '$rootName$marker${c.rest}$bass';
+  return '$rootName$marker$rest$bass';
 }

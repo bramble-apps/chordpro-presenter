@@ -188,6 +188,16 @@ class SheetFormat {
   MinorStyle minorStyle = MinorStyle.m;
   Accidentals accidentals = Accidentals.auto;
 
+  /// How major sevenths, half-diminished and diminished chords are written
+  /// (as in the song unless chosen), and where extensions sit.
+  MajorSymbol majorSymbol = MajorSymbol.asWritten;
+  HalfDimSymbol halfDimSymbol = HalfDimSymbol.asWritten;
+  DimSymbol dimSymbol = DimSymbol.asWritten;
+  ChordExtensions chordExtensions = ChordExtensions.inline;
+
+  ChordSymbols get symbols =>
+      ChordSymbols(major: majorSymbol, halfDim: halfDimSymbol, dim: dimSymbol);
+
   ElementStyle operator [](SheetElement e) => styles[e]!;
 
   /// How linked sections (a verse's translation…) look on the chord sheet,
@@ -213,6 +223,10 @@ class SheetFormat {
     'dualNotation': dualNotation?.name,
     'minorStyle': minorStyle.name,
     'accidentals': accidentals.name,
+    'majorSymbol': majorSymbol.name,
+    'halfDimSymbol': halfDimSymbol.name,
+    'dimSymbol': dimSymbol.name,
+    'chordExtensions': chordExtensions.name,
   };
 
   void updateFrom(Map<String, dynamic> j) {
@@ -249,6 +263,14 @@ class SheetFormat {
     minorStyle = MinorStyle.values.asNameMap()[j['minorStyle']] ?? minorStyle;
     accidentals =
         Accidentals.values.asNameMap()[j['accidentals']] ?? accidentals;
+    majorSymbol =
+        MajorSymbol.values.asNameMap()[j['majorSymbol']] ?? majorSymbol;
+    halfDimSymbol =
+        HalfDimSymbol.values.asNameMap()[j['halfDimSymbol']] ?? halfDimSymbol;
+    dimSymbol = DimSymbol.values.asNameMap()[j['dimSymbol']] ?? dimSymbol;
+    chordExtensions =
+        ChordExtensions.values.asNameMap()[j['chordExtensions']] ??
+        chordExtensions;
   }
 }
 

@@ -67,6 +67,7 @@ class ExportSource {
     dual: standard ? null : format.dualNotation,
     minorStyle: standard ? MinorStyle.m : format.minorStyle,
     accidentals: standard ? Accidentals.auto : format.accidentals,
+    symbols: standard ? const ChordSymbols() : format.symbols,
   );
 
   /// The song's tempo as written ("73", "73 BPM"), or ''.
@@ -634,16 +635,39 @@ Future<void> addPdfPages(
       pw.RichText(text: pw.TextSpan(children: spans(e, value, st)));
 
   /// Chord text (some libraries put words like "To Chorus" in chords).
-  pw.Widget chordText(String value) => pw.RichText(
-    text: pw.TextSpan(
-      children: spans(
-        SheetElement.chords,
-        value,
-        style(SheetElement.chords, chord: true),
-        chord: true,
+  pw.Widget chordText(String value) {
+    final st = style(SheetElement.chords, chord: true);
+    // (the PDF fonts have the Greek Δ, not the ∆ sign the screen uses)
+    value = value.replaceAll('\u2206', '\u0394');
+    List<pw.InlineSpan> run(String t, pw.TextStyle s) =>
+        spans(SheetElement.chords, t, s, chord: true);
+    // (its extension raised or lowered when chosen, as on screen)
+    final place = f.chordExtensions;
+    final word = value.trimRight();
+    final split = place == ChordExtensions.inline
+        ? null
+        : splitChordExtension(word);
+    if (split == null) {
+      return pw.RichText(text: pw.TextSpan(children: run(value, st)));
+    }
+    final (root, extension, bass) = split;
+    final size = st.fontSize ?? 12;
+    return pw.RichText(
+      text: pw.TextSpan(
+        children: [
+          ...run(root, st),
+          // (shifted span by span: the PDF moves only spans with text)
+          for (final span in run(extension, st.copyWith(fontSize: size * .72)))
+            span.copyWith(
+              baseline: place == ChordExtensions.raised
+                  ? size * .34
+                  : -size * .2,
+            ),
+          ...run('$bass${value.substring(word.length)}', st),
+        ],
       ),
-    ),
-  );
+    );
+  }
 
   final children = <pw.Widget>[];
   void add(SheetElement e, String value, {PdfColor color = PdfColors.black}) {

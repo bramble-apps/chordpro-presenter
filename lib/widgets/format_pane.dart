@@ -1014,6 +1014,88 @@ class _FormatPaneState extends State<FormatPane> {
             ),
             const SizedBox(height: 12),
             _AccidentalsControls(model: model),
+            const SizedBox(height: 12),
+            // How the chord symbols are written (as in the song unless
+            // chosen) and where their extensions sit.
+            const Text('Extensions'),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final e in ChordExtensions.values)
+                  ChoiceChip(
+                    tooltip: switch (e) {
+                      ChordExtensions.inline => 'On the line',
+                      ChordExtensions.raised => 'Raised (superscript)',
+                      ChordExtensions.lowered => 'Lowered (subscript)',
+                    },
+                    label: _ExtensionSample(e),
+                    selected: f.chordExtensions == e,
+                    onSelected: (_) =>
+                        model.updateFormat((f) => f.chordExtensions = e),
+                  ),
+              ],
+            ),
+            for (final (title, options) in [
+              (
+                'Major sevenths',
+                [
+                  for (final m in MajorSymbol.values)
+                    (
+                      m == MajorSymbol.asWritten ? 'As written' : 'C${m.text}7',
+                      f.majorSymbol == m,
+                      () => model.updateFormat((f) => f.majorSymbol = m),
+                    ),
+                ],
+              ),
+              (
+                'Half-diminished',
+                [
+                  for (final m in HalfDimSymbol.values)
+                    (
+                      switch (m) {
+                        HalfDimSymbol.asWritten => 'As written',
+                        HalfDimSymbol.m7b5 => 'Cm7\u266D5',
+                        HalfDimSymbol.slashedO => 'C\u00F87',
+                      },
+                      f.halfDimSymbol == m,
+                      () => model.updateFormat((f) => f.halfDimSymbol = m),
+                    ),
+                ],
+              ),
+              (
+                'Diminished',
+                [
+                  for (final m in DimSymbol.values)
+                    (
+                      switch (m) {
+                        DimSymbol.asWritten => 'As written',
+                        DimSymbol.dim => 'Cdim7',
+                        DimSymbol.circle => 'C\u00B07',
+                      },
+                      f.dimSymbol == m,
+                      () => model.updateFormat((f) => f.dimSymbol = m),
+                    ),
+                ],
+              ),
+            ]) ...[
+              const SizedBox(height: 12),
+              Text(title),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final (label, selected, pick) in options)
+                    ChoiceChip(
+                      label: Text(label),
+                      selected: selected,
+                      onSelected: (_) => pick(),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -2478,6 +2560,37 @@ class _ChordDiagramControls extends StatelessWidget {
           onPressed: () => showChordLibrary(context, model),
         ),
       ],
+    );
+  }
+}
+
+/// "C7" with its 7 on the line, raised or lowered: the choice it shows.
+class _ExtensionSample extends StatelessWidget {
+  final ChordExtensions place;
+  const _ExtensionSample(this.place);
+
+  @override
+  Widget build(BuildContext context) {
+    final style = DefaultTextStyle.of(context).style;
+    final size = style.fontSize ?? 14;
+    if (place == ChordExtensions.inline) return const Text('C7');
+    return Text.rich(
+      TextSpan(
+        children: [
+          const TextSpan(text: 'C'),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: Transform.translate(
+              offset: Offset(
+                0,
+                place == ChordExtensions.raised ? -size * .34 : size * .2,
+              ),
+              child: Text('7', style: TextStyle(fontSize: size * .72)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

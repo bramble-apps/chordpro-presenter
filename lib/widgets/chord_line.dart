@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../inline_format.dart';
+import '../music.dart' show ChordExtensions, splitChordExtension;
 import '../eink.dart';
 
 /// A chord (or none) over the words that follow it; [runs]: the words
@@ -32,6 +33,9 @@ class ChordLine extends LeafRenderObjectWidget {
   /// Pieces whose chord gets the Gospelizer's rainbow glow behind it.
   final Set<int> glowing;
 
+  /// Where the chords' extensions (7, maj7, sus4…) sit.
+  final ChordExtensions extensions;
+
   const ChordLine({
     super.key,
     required this.pieces,
@@ -39,6 +43,7 @@ class ChordLine extends LeafRenderObjectWidget {
     required this.lyricStyle,
     this.onChordTap,
     this.glowing = const {},
+    this.extensions = ChordExtensions.inline,
   });
 
   @override
@@ -52,7 +57,8 @@ class ChordLine extends LeafRenderObjectWidget {
         textDirection: Directionality.of(context),
       )
       ..onChordTap = onChordTap
-      ..glowing = glowing;
+      ..glowing = glowing
+      ..extensions = extensions;
   }
 
   @override
@@ -67,7 +73,8 @@ class ChordLine extends LeafRenderObjectWidget {
     );
     renderObject
       ..onChordTap = onChordTap
-      ..glowing = glowing;
+      ..glowing = glowing
+      ..extensions = extensions;
   }
 }
 
@@ -89,6 +96,16 @@ class RenderChordLine extends RenderBox
 
   late List<ChordPiece> _pieces;
 
+  /// See [ChordLine.extensions].
+  ChordExtensions get extensions => _extensions;
+  ChordExtensions _extensions = ChordExtensions.inline;
+  set extensions(ChordExtensions v) {
+    if (v == _extensions) return;
+    _extensions = v;
+    _dispose();
+    markNeedsLayout();
+  }
+
   /// See [ChordLine.glowing].
   Set<int> get glowing => _glowing;
   Set<int> _glowing = const {};
@@ -104,7 +121,7 @@ class RenderChordLine extends RenderBox
   late TextDirection _textDirection;
 
   /// Measured text: [chord, lyric] per piece (null until needed).
-  List<(TextPainter, TextPainter)>? _painters;
+  List<(_ChordText, TextPainter)>? _painters;
 
   /// Where each piece goes (from the last layout).
   final List<Offset> _chordAt = [];
@@ -159,13 +176,19 @@ class RenderChordLine extends RenderBox
   @visibleForTesting
   int measures = 0;
 
-  List<(TextPainter, TextPainter)> get _measured =>
+  List<(_ChordText, TextPainter)> get _measured =>
       _painters ?? (measures++, _painters = _measure()).$2;
 
-  List<(TextPainter, TextPainter)> _measure() => [
+  List<(_ChordText, TextPainter)> _measure() => [
     for (final p in _pieces)
       (
-        _painter(p.chord, _chordStyle),
+        _ChordText.of(
+          p.chord,
+          _chordStyle,
+          _extensions,
+          _textDirection,
+          _textScaler,
+        ),
         p.runs == null
             ? _painter(p.lyric, _lyricStyle)
             : (TextPainter(
@@ -186,7 +209,7 @@ class RenderChordLine extends RenderBox
   ];
 
   void _dispose() {
-    for (final (c, l) in _painters ?? const <(TextPainter, TextPainter)>[]) {
+    for (final (c, l) in _painters ?? const <(_ChordText, TextPainter)>[]) {
       c.dispose();
       l.dispose();
     }
@@ -323,12 +346,10 @@ class RenderChordLine extends RenderBox
   /// The Gospelizer's glow: a soft coloured shadow behind the chord's name
   /// (blue → violet → magenta → red → amber, as Apple Intelligence's glow),
   /// blurred until it has no edge.
-  void _paintGlow(Canvas canvas, Offset at, TextPainter c, int i) {
+  void _paintGlow(Canvas canvas, Offset at, _ChordText c, int i) {
     final text = _pieces[i].chord.trimRight();
     if (text.isEmpty) return;
-    final w = text.length == _pieces[i].chord.length
-        ? c.width
-        : c.getOffsetForCaret(TextPosition(offset: text.length), Rect.zero).dx;
+    final w = c.letters;
     final h = c.height;
     // A little below the letters, like a shadow.
     final r = Rect.fromLTWH(at.dx, at.dy + h * 0.22, w, h * 0.66);
@@ -399,5 +420,107 @@ class RenderChordLine extends RenderBox
       ..isSemanticBoundary = true
       ..label = _pieces.map((p) => p.lyric).join()
       ..textDirection = _textDirection;
+  }
+}
+
+/// A chord's name as drawn: its root and minor marker, then its extension
+/// (smaller, raised or lowered when chosen), then its bass ("C", "maj7",
+/// "/E"). Measured once; laid out as one piece of text would be.
+class _ChordText {
+  final TextPainter head;
+  final TextPainter? ext, tail;
+
+  /// Where the extension sits from the top, and how far everything is
+  /// moved down so a raised one stays inside the chord's box.
+  final double extTop, top;
+
+  /// The width of the letters, without the spaces after them.
+  final double letters;
+
+  _ChordText._(
+    this.head,
+    this.ext,
+    this.tail,
+    this.extTop,
+    this.top,
+    this.letters,
+  );
+
+  factory _ChordText.of(
+    String chord,
+    TextStyle style,
+    ChordExtensions place,
+    TextDirection direction,
+    TextScaler scaler,
+  ) {
+    TextPainter paint(String t, TextStyle st) => TextPainter(
+      text: TextSpan(text: t, style: st),
+      textDirection: direction,
+      textScaler: scaler,
+    )..layout();
+    final word = chord.trimRight();
+    final spaces = chord.substring(word.length);
+    final split = place == ChordExtensions.inline
+        ? null
+        : splitChordExtension(word);
+    if (split == null) {
+      final p = paint(chord, style);
+      final letters = spaces.isEmpty
+          ? p.width
+          : p
+                .getOffsetForCaret(TextPosition(offset: word.length), Rect.zero)
+                .dx;
+      return _ChordText._(p, null, null, 0, 0, letters);
+    }
+    final (root, extension, bass) = split;
+    final size = style.fontSize ?? 14;
+    final head = paint(root, style);
+    final ext = paint(extension, style.copyWith(fontSize: size * .72));
+    final tail = paint('$bass$spaces', style);
+    double base(TextPainter p) =>
+        p.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    // (its baseline a third of the size up, or a fifth down)
+    final shift = place == ChordExtensions.raised ? -size * .34 : size * .2;
+    final extTop = base(head) - base(ext) + scaler.scale(shift);
+    final top = extTop < 0 ? -extTop : 0.0;
+    final bassLetters = bass.isEmpty
+        ? 0.0
+        : tail
+              .getOffsetForCaret(TextPosition(offset: bass.length), Rect.zero)
+              .dx;
+    return _ChordText._(
+      head,
+      ext,
+      tail,
+      extTop,
+      top,
+      head.width + ext.width + bassLetters,
+    );
+  }
+
+  double get width => head.width + (ext?.width ?? 0) + (tail?.width ?? 0);
+
+  // (a chord never wraps: its narrowest and widest are its width)
+  double get minIntrinsicWidth => width;
+  double get maxIntrinsicWidth => width;
+
+  double get height => ext == null
+      ? head.height
+      : math.max(head.height + top, top + extTop + ext!.height);
+
+  Size get size => Size(width, height);
+
+  void paint(Canvas canvas, Offset at) {
+    head.paint(canvas, at + Offset(0, top));
+    if (ext case final e?) {
+      e.paint(canvas, at + Offset(head.width, top + extTop));
+      tail!.paint(canvas, at + Offset(head.width + e.width, top));
+    }
+  }
+
+  void dispose() {
+    head.dispose();
+    ext?.dispose();
+    tail?.dispose();
   }
 }
