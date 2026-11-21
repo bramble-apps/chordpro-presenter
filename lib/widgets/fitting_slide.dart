@@ -175,6 +175,22 @@ class FittingSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A font arriving (on the web, the fallback for letters the app's fonts
+    // lack, e.g. styled 𝘐𝘵𝘢𝘭𝘪𝘤𝘴) changes the sizes: measured again.
+    final fonts = PaintingBinding.instance.systemFonts;
+    if (!_watchingFonts) {
+      _watchingFonts = true;
+      fonts.addListener(_cache.clear);
+    }
+    return ListenableBuilder(
+      listenable: fonts,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  static var _watchingFonts = false;
+
+  Widget _build(BuildContext context) {
     String prep(String s) {
       final clean = ChordPro.stripArtifacts(s);
       return caps ? clean.toUpperCase() : clean;

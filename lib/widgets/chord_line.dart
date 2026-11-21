@@ -71,7 +71,8 @@ class ChordLine extends LeafRenderObjectWidget {
   }
 }
 
-class RenderChordLine extends RenderBox with EinkLine {
+class RenderChordLine extends RenderBox
+    with EinkLine, RelayoutWhenSystemFontsChangeMixin {
   RenderChordLine({
     required List<ChordPiece> pieces,
     required TextStyle chordStyle,
@@ -154,7 +155,14 @@ class RenderChordLine extends RenderBox with EinkLine {
     textScaler: _textScaler,
   )..layout();
 
-  List<(TextPainter, TextPainter)> get _measured => _painters ??= [
+  /// How many times the text was measured (tests).
+  @visibleForTesting
+  int measures = 0;
+
+  List<(TextPainter, TextPainter)> get _measured =>
+      _painters ?? (measures++, _painters = _measure()).$2;
+
+  List<(TextPainter, TextPainter)> _measure() => [
     for (final p in _pieces)
       (
         _painter(p.chord, _chordStyle),
@@ -183,6 +191,15 @@ class RenderChordLine extends RenderBox with EinkLine {
       l.dispose();
     }
     _painters = null;
+  }
+
+  /// A font arrived (on the web, the fallback font for letters the app's
+  /// fonts lack, e.g. styled 𝘐𝘵𝘢𝘭𝘪𝘤𝘴, loads after the first layout): the
+  /// text measured with boxes is measured again.
+  @override
+  void systemFontsDidChange() {
+    _dispose();
+    super.systemFontsDidChange();
   }
 
   @override
