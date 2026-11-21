@@ -151,4 +151,62 @@ void main() {
     expect(caret.bottom, lessThan(bar.top));
     expect(caret.top, greaterThan(view.top));
   }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
+
+  // Find & replace lines up with the title: its fields 20 from the left,
+  // its ✕ 20 from the right.
+  testWidgets('the find bar is padded as the top line', (tester) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => SongEditor.show(
+                context,
+                Song(title: 'Song', raw: '[G]Bless'),
+                tags: const [],
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Find & replace'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Replace…'));
+    await tester.pumpAndSettle();
+    final frame = tester.getRect(
+      find
+          .ancestor(of: find.byType(TabBar), matching: find.byType(Material))
+          .last,
+    );
+    final title = visibleRect(tester, find.byType(TextField).first);
+    final findField = visibleRect(
+      tester,
+      find.widgetWithText(TextField, 'Find'),
+    );
+    final replaceField = visibleRect(
+      tester,
+      find.widgetWithText(TextField, 'Replace with'),
+    );
+    final close = tester.getRect(
+      find.descendant(
+        of: find.byTooltip('Close (Esc)'),
+        matching: find.byType(Icon),
+      ),
+    );
+    expect(findField.left, closeTo(title.left, .5));
+    expect(replaceField.left, closeTo(title.left, .5));
+    expect(frame.right - close.right, closeTo(title.left - frame.left, .5));
+    // a gap under the tabs' line
+    expect(
+      findField.top - tester.getRect(find.byType(TabBar)).bottom,
+      greaterThanOrEqualTo(8),
+    );
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 }

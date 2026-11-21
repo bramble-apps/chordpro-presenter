@@ -478,7 +478,9 @@ class _ChordProFieldState extends State<ChordProField> {
   Widget _findBar(BuildContext context) {
     final p = _findParts(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      // 20 from the edges to the fields, as the title above (the close
+      // button's ✕ too: its button has 8 round the icon)
+      padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
       child: Column(
         spacing: 4,
         children: [
@@ -588,7 +590,14 @@ class _ChordProFieldState extends State<ChordProField> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final themed = Theme.of(context).chipTheme.backgroundColor != null;
-    Widget chip(String label, VoidCallback onTap, {String? tooltip}) => Padding(
+    Widget chip(
+      String label,
+      VoidCallback onTap, {
+      String? tooltip,
+      IconData? icon,
+      Color? fill,
+      Color? ink,
+    }) => Padding(
       padding: const EdgeInsets.only(right: 4),
       child: Tooltip(
         message: tooltip ?? 'Insert [$label]',
@@ -605,20 +614,28 @@ class _ChordProFieldState extends State<ChordProField> {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             label: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 20),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
+              child: icon != null
+                  // (an icon at the text's height: the same size chip)
+                  ? SizedBox(
+                      height: 20,
+                      child: Icon(icon, size: 20, color: ink),
+                    )
+                  : Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: ink,
+                      ),
+                    ),
             ),
             // Seen on any colour theme: a solid fill set off from the
-            // editor's tinted surface with a hairline (Material); the
-            // desktop styles' own bordered buttons otherwise.
-            backgroundColor: themed ? null : scheme.surfaceContainerLowest,
-            side: themed ? null : BorderSide(color: scheme.outlineVariant),
+            // editor's tinted surface by its shadow (Material); the
+            // desktop styles' own buttons otherwise.
+            backgroundColor:
+                fill ?? (themed ? null : scheme.surfaceContainerLowest),
+            side: themed ? null : BorderSide.none,
             shape: themed ? null : const StadiumBorder(),
             onPressed: onTap,
           ),
@@ -752,7 +769,15 @@ class _ChordProFieldState extends State<ChordProField> {
 
   Widget _bar(
     BuildContext context,
-    Widget Function(String, VoidCallback, {String? tooltip}) chip,
+    Widget Function(
+      String,
+      VoidCallback, {
+      String? tooltip,
+      IconData? icon,
+      Color? fill,
+      Color? ink,
+    })
+    chip,
   ) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
@@ -767,20 +792,15 @@ class _ChordProFieldState extends State<ChordProField> {
             // Find & replace: hidden until wanted (also ⌘F /
             // Ctrl+F).
             const SizedBox(width: 12),
-            ExcludeFocus(
-              child: IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  elevation: 2,
-                  shadowColor: Colors.black,
-                  backgroundColor: scheme.surfaceContainerLowest,
-                  foregroundColor: scheme.onSurfaceVariant,
-                ),
-                tooltip: 'Find & replace',
-                visualDensity: VisualDensity.compact,
-                isSelected: _findOpen,
-                icon: const Icon(Icons.search),
-                onPressed: _findOpen ? _closeFind : _openFind,
-              ),
+            // (a chip as the others, in the accent colour; stronger
+            // while the find bar is open)
+            chip(
+              '',
+              _findOpen ? _closeFind : _openFind,
+              tooltip: 'Find & replace',
+              icon: Icons.search,
+              fill: _findOpen ? scheme.primary : scheme.primaryContainer,
+              ink: _findOpen ? scheme.onPrimary : scheme.onPrimaryContainer,
             ),
             Expanded(
               child: Listener(
