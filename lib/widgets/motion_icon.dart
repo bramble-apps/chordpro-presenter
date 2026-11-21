@@ -1,9 +1,11 @@
 // Toolbar icons that move a little when the pointer comes over their button
 // (or a finger touches it), like the sidebar button's divider bending into a
-// chevron: Share's arrow lifts, the pen draws a squiggle, the list's rows
-// ripple, the brush sways, the four squares pop one after another… Each part
-// moves on its own: the icons are drawn from their shapes in the icon font
-// (motion_paths.dart). Still on e-ink and with the system's reduced motion.
+// chevron: quick and small, each easing into its "hovered" pose, holding it
+// while the pointer stays and easing back when it leaves. Share's arrow
+// lifts, the brush tilts, the projection screen pulls down a little, the
+// settings knobs swap… Each part moves on its own: the icons are drawn from
+// their shapes in the icon font (motion_paths.dart). Still on e-ink and with
+// the system's reduced motion.
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -16,28 +18,28 @@ import 'edit_song_icon.dart';
 import 'metronome_icon.dart';
 import 'motion_paths.dart';
 
-/// What an icon is and how it moves.
+/// What an icon is and its hovered pose.
 enum IconMotion {
-  share, // the arrow lifts out of the tray and settles
-  sticky, // the note tips and its folded corner flicks
-  insert, // the plus turns a quarter and pops
-  annotate, // the pen draws a squiggle
+  share, // the arrow lifts out of the tray
+  sticky, // the note tips a little
+  insert, // the plus turns a quarter
+  annotate, // the pen lifts, leaving a short stroke
   editSong, // the brackets open around the cursor
-  structure, // the rows ripple, one after another
-  format, // the brush sways as if painting
-  present, // the four squares grow and shrink, one after another
+  structure, // the rows step right, one after another
+  format, // the brush tilts
+  present, // the four squares spread apart
   preview, // the small picture grows out of its corner
   projector, // the screen pulls down
-  settings, // the sliders' knobs swap sides (back when the pointer leaves)
-  more, // the three dots hop in turn
+  settings, // the sliders' knobs swap sides
+  more, // the three dots spread
   play, // the triangle nudges forward
-  autoscroll, // the two carets drop in turn
-  tuner, // the bars rise and fall (while the pointer stays)
-  pads, // the waves swell (while the pointer stays)
-  blackout, // the eye blinks
-  metronome, // the pendulum swings (while the pointer stays)
-  capo, // the capo slides down a fret and back
-  note, // the note hops and tilts
+  autoscroll, // the two carets drop
+  tuner, // the bars change height
+  pads, // the waves shift
+  blackout, // the eye half closes
+  metronome, // the pendulum swings once (a preview of the beat)
+  capo, // the capo slides down a fret
+  note, // the note lifts and tilts
 }
 
 /// The pointer over a button (or a touch on it), for the [MotionIcon]
@@ -52,22 +54,17 @@ class MotionHover extends StatefulWidget {
 
 class _MotionHoverState extends State<MotionHover>
     with TickerProviderStateMixin {
-  /// 0 → 1 while the pointer is over the button (eased back when it leaves).
+  /// 0 → 1 while the pointer is over the button, back when it leaves.
   late final hover = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 260),
+    duration: const Duration(milliseconds: 180),
+    reverseDuration: const Duration(milliseconds: 160),
   );
 
-  /// One run, 0 → 1, each time the pointer comes over.
+  /// One short run each time the pointer comes over (the metronome's swing).
   late final pulse = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
-  );
-
-  /// Round and round while the pointer stays (a phase, 0 → 1).
-  late final loop = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: const Duration(milliseconds: 650),
   );
 
   bool _still(BuildContext context) =>
@@ -77,24 +74,18 @@ class _MotionHoverState extends State<MotionHover>
     if (_still(context)) return;
     hover.forward();
     if (!pulse.isAnimating) pulse.forward(from: 0);
-    if (!loop.isAnimating) loop.repeat();
   }
 
-  /// (a touch: the pointer "leaves" once the motion has played)
+  /// (a touch: the pointer "leaves" once the pose has shown)
   Timer? _touch;
 
-  void _leave() {
-    hover.reverse().whenComplete(() {
-      if (mounted && hover.value == 0) loop.stop();
-    });
-  }
+  void _leave() => hover.reverse();
 
   @override
   void dispose() {
     _touch?.cancel();
     hover.dispose();
     pulse.dispose();
-    loop.dispose();
     super.dispose();
   }
 
@@ -103,12 +94,11 @@ class _MotionHoverState extends State<MotionHover>
     onEnter: (_) => _enter(),
     onExit: (_) => _leave(),
     child: Listener(
-      // (touch: the motion plays once as the finger comes down)
       onPointerDown: (e) {
         if (e.kind == PointerDeviceKind.mouse) return;
         _enter();
         _touch?.cancel();
-        _touch = Timer(const Duration(milliseconds: 900), _leave);
+        _touch = Timer(const Duration(milliseconds: 450), _leave);
       },
       child: _MotionScope(state: this, child: widget.child),
     ),
@@ -141,31 +131,27 @@ class MotionIcon extends StatelessWidget {
     final color =
         this.color ?? theme.color ?? Theme.of(context).colorScheme.onSurface;
     return AnimatedBuilder(
-      animation: Listenable.merge([s.hover, s.pulse, s.loop]),
+      animation: Listenable.merge([s.hover, s.pulse]),
       builder: (context, _) {
-        final h = Curves.easeInOutCubic.transform(s.hover.value);
-        final p = s.pulse.value;
-        final l = s.loop.value;
+        // (eased like the sidebar button's chevron)
+        final h = Curves.easeOut.transform(s.hover.value);
         switch (motion) {
           case IconMotion.metronome:
-            // (up to ~23°, settling as the pointer leaves)
+            // one swing out and back, small
+            final p = s.pulse.value;
             return MetronomeIcon(
-              swing: h * .8 * math.sin(l * 2 * math.pi),
+              swing: p <= 0 || p >= 1 ? 0 : .5 * math.sin(p * 2 * math.pi),
               size: size,
               color: color,
             );
           case IconMotion.capo:
-            return CapoIcon(size: size, color: color, slide: _bump(p, 0, .8));
+            return CapoIcon(size: size, color: color, slide: h);
           case IconMotion.editSong:
-            return EditSongIcon(
-              size: size,
-              color: color,
-              open: _bump(p, 0, .7),
-            );
+            return EditSongIcon(size: size, color: color, open: h * .8);
           default:
             return CustomPaint(
               size: Size.square(size),
-              painter: _MotionPainter(motion, color, h: h, p: p, l: l),
+              painter: _MotionPainter(motion, color, h),
             );
         }
       },
@@ -173,15 +159,12 @@ class MotionIcon extends StatelessWidget {
   }
 }
 
-/// 0 outside [from]…[to], rising to 1 and back inside it (a smooth bump).
-double _bump(double t, double from, double to) {
-  if (t <= from || t >= to) return 0;
-  return math.sin(math.pi * (t - from) / (to - from));
+/// [h] (0–1) as the share of it reached by item [i] of [n], each starting a
+/// little after the one before (a gentle stagger that ends with all there).
+double _stagger(double h, int i, int n, {double gap = .25}) {
+  final start = i * gap / math.max(1, n - 1);
+  return ((h - start) / (1 - gap)).clamp(0.0, 1.0);
 }
-
-/// A wiggle that dies away over the run: [turns] swings, starting with [first].
-double _wiggle(double t, {double turns = 2.5}) =>
-    t <= 0 || t >= 1 ? 0 : math.sin(t * turns * 2 * math.pi) * (1 - t);
 
 final _shapes = <String, List<Path>>{};
 
@@ -227,16 +210,10 @@ class _MotionPainter extends CustomPainter {
   final IconMotion motion;
   final Color color;
 
-  /// Hover (eased, 0–1), the one-shot run (0–1), the loop's phase (0–1).
-  final double h, p, l;
+  /// How far into its hovered pose (eased, 0–1).
+  final double h;
 
-  _MotionPainter(
-    this.motion,
-    this.color, {
-    required this.h,
-    required this.p,
-    required this.l,
-  });
+  _MotionPainter(this.motion, this.color, this.h);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -249,7 +226,8 @@ class _MotionPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    /// Draws [shape] moved by [m] (in grid units), about [at].
+    /// Draws [shape] moved [by] (grid units), scaled and turned about [at]
+    /// (its centre unless given).
     void draw(
       Path shape, {
       Offset by = Offset.zero,
@@ -273,31 +251,31 @@ class _MotionPainter extends CustomPainter {
       case IconMotion.share:
         final [tray, arrow] = _shapesOf('share');
         draw(tray);
-        // up, then a little bounce back down into place
-        draw(
-          arrow,
-          by: Offset(0, -3.2 * _bump(p, 0, .55) + .9 * _bump(p, .55, .8)),
-        );
+        draw(arrow, by: Offset(0, -1.6 * h));
       case IconMotion.sticky:
         final [note, fold] = _shapesOf('sticky');
-        // tipping on its bottom left corner, as if flicked
-        final tip = .14 * _wiggle(p, turns: 1.5);
-        draw(note, turn: tip, at: const Offset(3.3, 20.7));
-        draw(fold, turn: tip, at: const Offset(3.3, 20.7));
+        const corner = Offset(3.3, 20.7);
+        draw(note, turn: -.09 * h, at: corner);
+        draw(fold, turn: -.09 * h, at: corner);
       case IconMotion.insert:
         final [picture, plus] = _shapesOf('insert');
         draw(picture);
-        draw(
-          plus,
-          turn:
-              math.pi /
-              2 *
-              Curves.easeInOutBack.transform(math.min(1, p / .6)) *
-              (p > 0 && p < 1 ? 1 : 0),
-          scale: 1 + .3 * _bump(p, 0, .6),
-        );
+        draw(plus, turn: math.pi / 2 * h);
       case IconMotion.annotate:
-        _annotate(canvas, fill, stroke);
+        final [pen, ...rest] = _shapesOf('annotate');
+        // the pen lifts up and right, leaving a short stroke from its tip
+        const tip = Offset(3.8, 20.2);
+        final o = Offset(1.4, -1.0) * h;
+        if (h > .02) {
+          canvas.drawLine(
+            tip + const Offset(-.4, 1.2),
+            tip + const Offset(-.4, 1.2) + Offset(3.2 * h, 0),
+            stroke..color = color.withValues(alpha: color.a * h),
+          );
+        }
+        for (final s in [pen, ...rest]) {
+          draw(s, by: o);
+        }
       case IconMotion.structure:
         final shapes = _shapesOf('structure');
         // a row is a line and its dot: the same height
@@ -306,79 +284,70 @@ class _MotionPainter extends CustomPainter {
         }.toList()..sort();
         for (final s in shapes) {
           final r = rows.indexOf(s.getBounds().center.dy.roundToDouble());
-          draw(s, by: Offset(2.4 * _bump(p, r * .16, r * .16 + .5), 0));
+          draw(s, by: Offset(1.3 * _stagger(h, r, rows.length), 0));
         }
       case IconMotion.format:
         final [brush] = _shapesOf('format');
-        // swaying from the handle's end, as if painting a stroke
-        draw(brush, turn: .38 * _wiggle(p), at: const Offset(19, 5));
+        draw(brush, turn: -.22 * h, at: const Offset(19, 5));
       case IconMotion.present:
-        final shapes = _shapesOf('present').toList()
-          // clockwise from the top left
-          ..sort((a, b) {
-            int order(Path s) {
-              final c = s.getBounds().center;
-              final top = c.dy < 12, left = c.dx < 12;
-              return top ? (left ? 0 : 1) : (left ? 3 : 2);
-            }
-
-            return order(a).compareTo(order(b));
-          });
-        for (final (i, s) in shapes.indexed) {
-          draw(s, scale: 1 + .3 * _bump(p, i * .15, i * .15 + .42));
+        for (final s in _shapesOf('present')) {
+          final c = s.getBounds().center;
+          final out = Offset(c.dx < 12 ? -1 : 1, c.dy < 12 ? -1 : 1);
+          draw(s, by: out * .9 * h);
         }
       case IconMotion.preview:
         final [frame, small] = _shapesOf('preview');
         draw(frame);
-        draw(small, scale: 1 + .45 * _bump(p, 0, .7), at: const Offset(21, 19));
+        draw(small, scale: 1 + .3 * h, at: const Offset(21, 19));
       case IconMotion.projector:
         _projector(canvas, fill);
       case IconMotion.settings:
         _settings(canvas, stroke);
       case IconMotion.more:
         final shapes = _shapesOf('more');
-        final dots = shapes.skip(1).toList()
-          ..sort((a, b) => a.getBounds().left.compareTo(b.getBounds().left));
         draw(shapes.first);
-        for (final (i, d) in dots.indexed) {
-          draw(d, by: Offset(0, -2.2 * _bump(p, i * .14, i * .14 + .4)));
+        for (final d in shapes.skip(1)) {
+          final x = d.getBounds().center.dx;
+          draw(d, by: Offset((x - 12).sign * 1.1 * h, 0));
         }
       case IconMotion.play:
         final [play] = _shapesOf('play');
-        draw(play, by: Offset(2 * _bump(p, 0, .4) + .6 * _bump(p, .4, .6), 0));
+        draw(play, by: Offset(1.3 * h, 0));
       case IconMotion.autoscroll:
         final shapes = _shapesOf('autoscroll').toList()
           ..sort((a, b) => a.getBounds().top.compareTo(b.getBounds().top));
         for (final (i, s) in shapes.indexed) {
-          draw(s, by: Offset(0, 2.4 * _bump(p, i * .18, i * .18 + .45)));
+          draw(s, by: Offset(0, 1.4 * _stagger(h, i, shapes.length)));
         }
       case IconMotion.tuner:
-        for (final s in _shapesOf('tuner')) {
+        // the bars take the next frame's heights
+        const next = [1.25, .8, 1.2, .75, 1.15];
+        final bars = _shapesOf('tuner').toList()
+          ..sort((a, b) => a.getBounds().left.compareTo(b.getBounds().left));
+        for (final (i, s) in bars.indexed) {
           final x = s.getBounds().center.dx;
           draw(
             s,
-            scaleY: 1 + h * .38 * math.sin((l + x / 24) * 2 * math.pi),
+            scaleY: 1 + (next[i % next.length] - 1) * h,
             at: Offset(x, 12),
           );
         }
       case IconMotion.pads:
-        final shapes = _shapesOf('pads').toList()
+        final waves = _shapesOf('pads').toList()
           ..sort((a, b) => a.getBounds().top.compareTo(b.getBounds().top));
-        for (final (i, s) in shapes.indexed) {
-          draw(s, by: Offset(0, h * 1.1 * math.sin(l * 2 * math.pi - i * 1.1)));
+        for (final (i, s) in waves.indexed) {
+          draw(s, by: Offset((i.isEven ? 1 : -1) * 1.2 * h, 0));
         }
       case IconMotion.blackout:
-        // a blink (the lids meet, then open)
-        final blink = 1 - .85 * _bump(p, .05, .4);
         for (final s in _shapesOf('blackout')) {
-          draw(s, scaleY: blink, at: const Offset(12, 12));
+          draw(s, scaleY: 1 - .3 * h, at: const Offset(12, 12));
         }
       case IconMotion.note:
         final [note] = _shapesOf('note');
         draw(
           note,
-          by: Offset(0, -2.4 * _bump(p, 0, .45) + .7 * _bump(p, .45, .65)),
-          turn: -.18 * _bump(p, 0, .55),
+          by: Offset(0, -1.3 * h),
+          turn: -.1 * h,
           at: const Offset(8, 20),
         );
       case IconMotion.metronome:
@@ -388,53 +357,17 @@ class _MotionPainter extends CustomPainter {
     }
   }
 
-  /// The pen draws a squiggle: its nib traces it (left behind as a line
-  /// that fades), then the pen slides home.
-  void _annotate(Canvas canvas, Paint fill, Paint stroke) {
-    final [pen, ...rest] = _shapesOf('annotate');
-    const tip = Offset(3.6, 20.4);
-    Offset at(double s) =>
-        Offset(-1.5 + 5 * s, -1.6 * math.sin(s * 3 * math.pi));
-    final run = math.min(1.0, p / .7);
-    final home = p > .7 ? 1 - (p - .7) / .3 : 1.0;
-    if (p > 0 && p < 1) {
-      final trail = Path()..moveTo(tip.dx + at(0).dx, tip.dy + at(0).dy);
-      for (var i = 1; i <= 24; i++) {
-        final s = run * i / 24;
-        trail.lineTo(tip.dx + at(s).dx, tip.dy + at(s).dy);
-      }
-      canvas.drawPath(
-        trail,
-        stroke
-          ..color = stroke.color.withValues(
-            alpha: stroke.color.a * (p < .7 ? 1 : home),
-          ),
-      );
-    }
-    final o = p <= 0 || p >= 1 ? Offset.zero : at(run) * home;
-    canvas
-      ..save()
-      ..translate(o.dx, o.dy)
-      ..drawPath(pen, fill);
-    for (final r in rest) {
-      canvas.drawPath(r, fill);
-    }
-    canvas.restore();
-  }
-
   /// The projection screen pulls down: the case stays, the screen below it
   /// stretches, the pull tab drops with its foot.
   void _projector(Canvas canvas, Paint fill) {
     final [shape] = _shapesOf('projector');
-    final d = 2.2 * _bump(p, 0, .75);
+    final d = 1.8 * h;
     const top = 6.9, bottom = 18.3; // (the case's foot, the screen's foot)
-    // the case
     canvas
       ..save()
       ..clipRect(const Rect.fromLTRB(0, -2, 24, top))
       ..drawPath(shape, fill)
       ..restore();
-    // the screen, stretched
     canvas
       ..save()
       ..clipRect(Rect.fromLTRB(0, top, 24, bottom + d))
@@ -443,7 +376,6 @@ class _MotionPainter extends CustomPainter {
       ..translate(0, -top)
       ..drawPath(shape, fill)
       ..restore();
-    // the pull tab, lower by as much
     canvas
       ..save()
       ..clipRect(Rect.fromLTRB(0, bottom + d, 24, 28))
@@ -473,9 +405,5 @@ class _MotionPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MotionPainter o) =>
-      o.motion != motion ||
-      o.color != color ||
-      o.h != h ||
-      o.p != p ||
-      o.l != l;
+      o.motion != motion || o.color != color || o.h != h;
 }
