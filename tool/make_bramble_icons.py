@@ -78,6 +78,14 @@ def main(font_path, gen_path):
     by_cp = font.getBestCmap()
     for table in font['cmap'].tables:
         table.cmap = {new[s]: by_cp[old[s]] for s in wanted}
+    # each glyph's left side bearing as its outline really starts (the source font says 0
+    # for all: engines that trust it slide every icon left by its own margin, off centre)
+    glyf, hmtx = font['glyf'], font['hmtx']
+    for name in font.getGlyphOrder():
+        g = glyf[name]
+        g.recalcBounds(glyf)
+        adv, _ = hmtx[name]
+        hmtx[name] = (adv, getattr(g, 'xMin', 0) if g.numberOfContours else 0)
     font['name'].setName('Bramble Icons (ChordPro)', 1, 3, 1, 0x409)
     out = os.path.join(ROOT, 'assets/icons/BrambleIcons.ttf')
     os.makedirs(os.path.dirname(out), exist_ok=True)

@@ -2454,7 +2454,7 @@ class _MetronomeButton extends StatelessWidget {
                   builder: (context, controller, _) => IconButton(
                     tooltip: 'Metronome settings',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(BrambleIcons.caretDownFill),
+                    icon: const Icon(BrambleIcons.caretDown, size: 16),
                     onPressed: () => controller.isOpen
                         ? controller.close()
                         : controller.open(),
@@ -2868,7 +2868,9 @@ class _KeyButton extends StatelessWidget {
                 color: scheme.onSurface,
               ),
             ),
-            const Icon(BrambleIcons.caretDownFill, size: 18),
+            // (a light caret, as the icons: ♪ D ⌄)
+            const SizedBox(width: 3),
+            const Icon(BrambleIcons.caretDown, size: 14),
           ],
         ),
       ),

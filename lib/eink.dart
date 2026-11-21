@@ -759,6 +759,11 @@ class AppDropdown<T> extends StatelessWidget {
         isDense: isDense,
         isExpanded: isExpanded,
         underline: underline,
+        // (the app's light caret, as its own dropdowns)
+        icon: const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: Icon(BrambleIcons.caretDown, size: 16),
+        ),
       );
     }
     return _InkMenu<T>(
@@ -871,8 +876,10 @@ class _InkMenu<T> extends StatelessWidget {
           mainAxisSize: isExpanded ? MainAxisSize.max : MainAxisSize.min,
           children: [
             if (isExpanded) Expanded(child: label) else Flexible(child: label),
+            const SizedBox(width: 4),
             Icon(
-              BrambleIcons.caretDownFill,
+              BrambleIcons.caretDown,
+              size: 16,
               color: enabled ? ink : ink.withValues(alpha: 0.4),
             ),
           ],

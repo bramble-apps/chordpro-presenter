@@ -10,7 +10,7 @@ airplay ph:screencast
 arrow_back ph:arrow-left rtl
 arrow_back_rounded ph:arrow-left rtl
 arrow_downward ph:arrow-down
-arrow_drop_down fill:caret-down
+arrow_drop_down ph:caret-down
 arrow_forward ph:arrow-right rtl
 arrow_forward_rounded ph:arrow-right rtl
 arrow_upward ph:arrow-up

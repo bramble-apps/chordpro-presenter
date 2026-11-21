@@ -1488,7 +1488,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                         ? names[playing.first]
                         : '${playing.length} parts'),
             ),
-            const Icon(BrambleIcons.caretDownFill),
+            const SizedBox(width: 4),
+            const Icon(BrambleIcons.caretDown, size: 16),
           ],
         ),
       ),

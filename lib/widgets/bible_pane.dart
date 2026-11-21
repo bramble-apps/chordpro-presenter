@@ -514,7 +514,8 @@ class _BiblePaneState extends State<BiblePane> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _pillLabel(id),
-                  const Icon(BrambleIcons.caretDownFill, size: 20),
+                  const SizedBox(width: 4),
+                  const Icon(BrambleIcons.caretDown, size: 16),
                 ],
               ),
             ),

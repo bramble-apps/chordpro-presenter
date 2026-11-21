@@ -172,848 +172,842 @@ abstract final class BrambleIcons {
     fontFamily: 'BrambleIcons',
   );
 
-  /// fill:caret-down
-  static const IconData caretDownFill = IconData(
-    0xE01E,
-    fontFamily: 'BrambleIcons',
-  );
-
   /// ph:caret-left
   static const IconData caretLeft = IconData(
-    0xE01F,
+    0xE01E,
     fontFamily: 'BrambleIcons',
     matchTextDirection: true,
   );
 
   /// ph:caret-right
   static const IconData caretRight = IconData(
-    0xE020,
+    0xE01F,
     fontFamily: 'BrambleIcons',
     matchTextDirection: true,
   );
 
   /// ph:caret-up
-  static const IconData caretUp = IconData(0xE021, fontFamily: 'BrambleIcons');
+  static const IconData caretUp = IconData(0xE020, fontFamily: 'BrambleIcons');
 
   /// ph:chart-bar
-  static const IconData chartBar = IconData(0xE022, fontFamily: 'BrambleIcons');
+  static const IconData chartBar = IconData(0xE021, fontFamily: 'BrambleIcons');
 
   /// ph:check
-  static const IconData check = IconData(0xE023, fontFamily: 'BrambleIcons');
+  static const IconData check = IconData(0xE022, fontFamily: 'BrambleIcons');
 
   /// fill:check-circle
   static const IconData checkCircleFill = IconData(
-    0xE024,
+    0xE023,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:check-square
   static const IconData checkSquareFill = IconData(
-    0xE025,
+    0xE024,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:church
-  static const IconData church = IconData(0xE026, fontFamily: 'BrambleIcons');
+  static const IconData church = IconData(0xE025, fontFamily: 'BrambleIcons');
 
   /// ph:circle
-  static const IconData circle = IconData(0xE027, fontFamily: 'BrambleIcons');
+  static const IconData circle = IconData(0xE026, fontFamily: 'BrambleIcons');
 
   /// ph:circle-half
   static const IconData circleHalf = IconData(
-    0xE028,
+    0xE027,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:clipboard-text
   static const IconData clipboardText = IconData(
-    0xE029,
+    0xE028,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:cloud
-  static const IconData cloud = IconData(0xE02A, fontFamily: 'BrambleIcons');
+  static const IconData cloud = IconData(0xE029, fontFamily: 'BrambleIcons');
 
   /// ph:cloud-arrow-down
   static const IconData cloudArrowDown = IconData(
-    0xE02B,
+    0xE02A,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:cloud-arrow-up
   static const IconData cloudArrowUp = IconData(
-    0xE02C,
+    0xE02B,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:cloud-check
   static const IconData cloudCheck = IconData(
-    0xE02D,
+    0xE02C,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:cloud-slash
   static const IconData cloudSlash = IconData(
-    0xE02E,
+    0xE02D,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:copy
-  static const IconData copy = IconData(0xE02F, fontFamily: 'BrambleIcons');
+  static const IconData copy = IconData(0xE02E, fontFamily: 'BrambleIcons');
 
   /// ph:corners-in
   static const IconData cornersIn = IconData(
-    0xE030,
+    0xE02F,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:corners-out
   static const IconData cornersOut = IconData(
-    0xE031,
+    0xE030,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:crop
-  static const IconData crop = IconData(0xE032, fontFamily: 'BrambleIcons');
+  static const IconData crop = IconData(0xE031, fontFamily: 'BrambleIcons');
 
   /// ph:desktop
-  static const IconData desktop = IconData(0xE033, fontFamily: 'BrambleIcons');
+  static const IconData desktop = IconData(0xE032, fontFamily: 'BrambleIcons');
 
   /// ph:device-tablet
   static const IconData deviceTablet = IconData(
-    0xE034,
+    0xE033,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:devices
-  static const IconData devices = IconData(0xE035, fontFamily: 'BrambleIcons');
+  static const IconData devices = IconData(0xE034, fontFamily: 'BrambleIcons');
 
   /// ph:dots-six-vertical
   static const IconData dotsSixVertical = IconData(
-    0xE036,
+    0xE035,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:dots-three
   static const IconData dotsThree = IconData(
-    0xE037,
+    0xE036,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:dots-three-circle
   static const IconData dotsThreeCircle = IconData(
-    0xE038,
+    0xE037,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:dots-three-vertical
   static const IconData dotsThreeVertical = IconData(
-    0xE039,
+    0xE038,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:download-simple
   static const IconData downloadSimple = IconData(
-    0xE03A,
+    0xE039,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:drop
-  static const IconData drop = IconData(0xE03B, fontFamily: 'BrambleIcons');
+  static const IconData drop = IconData(0xE03A, fontFamily: 'BrambleIcons');
 
   /// ph:drop-half
-  static const IconData dropHalf = IconData(0xE03C, fontFamily: 'BrambleIcons');
+  static const IconData dropHalf = IconData(0xE03B, fontFamily: 'BrambleIcons');
 
   /// ph:egg
-  static const IconData egg = IconData(0xE03D, fontFamily: 'BrambleIcons');
+  static const IconData egg = IconData(0xE03C, fontFamily: 'BrambleIcons');
 
   /// ph:equals
-  static const IconData equals = IconData(0xE03E, fontFamily: 'BrambleIcons');
+  static const IconData equals = IconData(0xE03D, fontFamily: 'BrambleIcons');
 
   /// ph:export
-  static const IconData export = IconData(0xE03F, fontFamily: 'BrambleIcons');
+  static const IconData export = IconData(0xE03E, fontFamily: 'BrambleIcons');
 
   /// ph:eye
-  static const IconData eye = IconData(0xE040, fontFamily: 'BrambleIcons');
+  static const IconData eye = IconData(0xE03F, fontFamily: 'BrambleIcons');
 
   /// ph:eye-slash
-  static const IconData eyeSlash = IconData(0xE041, fontFamily: 'BrambleIcons');
+  static const IconData eyeSlash = IconData(0xE040, fontFamily: 'BrambleIcons');
 
   /// ph:file-arrow-down
   static const IconData fileArrowDown = IconData(
-    0xE042,
+    0xE041,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:file-arrow-up
   static const IconData fileArrowUp = IconData(
-    0xE043,
+    0xE042,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:file-audio
   static const IconData fileAudio = IconData(
-    0xE044,
+    0xE043,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:file-pdf
-  static const IconData filePdf = IconData(0xE045, fontFamily: 'BrambleIcons');
+  static const IconData filePdf = IconData(0xE044, fontFamily: 'BrambleIcons');
 
   /// ph:file-text
-  static const IconData fileText = IconData(0xE046, fontFamily: 'BrambleIcons');
+  static const IconData fileText = IconData(0xE045, fontFamily: 'BrambleIcons');
 
   /// ph:film-strip
   static const IconData filmStrip = IconData(
-    0xE047,
+    0xE046,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:fire
-  static const IconData fire = IconData(0xE048, fontFamily: 'BrambleIcons');
+  static const IconData fire = IconData(0xE047, fontFamily: 'BrambleIcons');
 
   /// ph:flag
-  static const IconData flag = IconData(0xE049, fontFamily: 'BrambleIcons');
+  static const IconData flag = IconData(0xE048, fontFamily: 'BrambleIcons');
 
   /// ph:folder
-  static const IconData folder = IconData(0xE04A, fontFamily: 'BrambleIcons');
+  static const IconData folder = IconData(0xE049, fontFamily: 'BrambleIcons');
 
   /// fill:folder
   static const IconData folderFill = IconData(
-    0xE04B,
+    0xE04A,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:folder-open
   static const IconData folderOpen = IconData(
-    0xE04C,
+    0xE04B,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:folder-plus
   static const IconData folderPlus = IconData(
-    0xE04D,
+    0xE04C,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:folder-simple-dashed
   static const IconData folderSimpleDashed = IconData(
-    0xE04E,
+    0xE04D,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:folders
-  static const IconData folders = IconData(0xE04F, fontFamily: 'BrambleIcons');
+  static const IconData folders = IconData(0xE04E, fontFamily: 'BrambleIcons');
 
   /// ph:frame-corners
   static const IconData frameCorners = IconData(
-    0xE050,
+    0xE04F,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:funnel-simple
   static const IconData funnelSimple = IconData(
-    0xE051,
+    0xE050,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:globe
-  static const IconData globe = IconData(0xE052, fontFamily: 'BrambleIcons');
+  static const IconData globe = IconData(0xE051, fontFamily: 'BrambleIcons');
 
   /// ph:globe-hemisphere-west
   static const IconData globeHemisphereWest = IconData(
-    0xE053,
+    0xE052,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:globe-simple
   static const IconData globeSimple = IconData(
-    0xE054,
+    0xE053,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:heart
-  static const IconData heart = IconData(0xE055, fontFamily: 'BrambleIcons');
+  static const IconData heart = IconData(0xE054, fontFamily: 'BrambleIcons');
 
   /// fill:heart
   static const IconData heartFill = IconData(
-    0xE056,
+    0xE055,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:hourglass
   static const IconData hourglass = IconData(
-    0xE057,
+    0xE056,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:image
-  static const IconData image = IconData(0xE058, fontFamily: 'BrambleIcons');
+  static const IconData image = IconData(0xE057, fontFamily: 'BrambleIcons');
 
   /// ph:image-square
   static const IconData imageSquare = IconData(
-    0xE059,
+    0xE058,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:images
-  static const IconData images = IconData(0xE05A, fontFamily: 'BrambleIcons');
+  static const IconData images = IconData(0xE059, fontFamily: 'BrambleIcons');
 
   /// ph:info
-  static const IconData info = IconData(0xE05B, fontFamily: 'BrambleIcons');
+  static const IconData info = IconData(0xE05A, fontFamily: 'BrambleIcons');
 
   /// ph:laptop
-  static const IconData laptop = IconData(0xE05C, fontFamily: 'BrambleIcons');
+  static const IconData laptop = IconData(0xE05B, fontFamily: 'BrambleIcons');
 
   /// ph:lightning
   static const IconData lightning = IconData(
-    0xE05D,
+    0xE05C,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:link-simple
   static const IconData linkSimple = IconData(
-    0xE05E,
+    0xE05D,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:list
-  static const IconData list = IconData(0xE05F, fontFamily: 'BrambleIcons');
+  static const IconData list = IconData(0xE05E, fontFamily: 'BrambleIcons');
 
   /// ph:list-plus
   static const IconData listPlus = IconData(
-    0xE060,
+    0xE05F,
     fontFamily: 'BrambleIcons',
     matchTextDirection: true,
   );
 
   /// ph:lock
-  static const IconData lock = IconData(0xE061, fontFamily: 'BrambleIcons');
+  static const IconData lock = IconData(0xE060, fontFamily: 'BrambleIcons');
 
   /// ph:lock-open
-  static const IconData lockOpen = IconData(0xE062, fontFamily: 'BrambleIcons');
+  static const IconData lockOpen = IconData(0xE061, fontFamily: 'BrambleIcons');
 
   /// ph:magnifying-glass
   static const IconData magnifyingGlass = IconData(
-    0xE063,
+    0xE062,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:magnifying-glass-minus
   static const IconData magnifyingGlassMinus = IconData(
-    0xE064,
+    0xE063,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:magnifying-glass-plus
   static const IconData magnifyingGlassPlus = IconData(
-    0xE065,
+    0xE064,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:microphone
   static const IconData microphone = IconData(
-    0xE066,
+    0xE065,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:microphone
   static const IconData microphoneFill = IconData(
-    0xE067,
+    0xE066,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:microphone-slash
   static const IconData microphoneSlash = IconData(
-    0xE068,
+    0xE067,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:minus
-  static const IconData minus = IconData(0xE069, fontFamily: 'BrambleIcons');
+  static const IconData minus = IconData(0xE068, fontFamily: 'BrambleIcons');
 
   /// ph:minus-circle
   static const IconData minusCircle = IconData(
-    0xE06A,
+    0xE069,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:minus-circle
   static const IconData minusCircleFill = IconData(
-    0xE06B,
+    0xE06A,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:monitor-play
   static const IconData monitorPlay = IconData(
-    0xE06C,
+    0xE06B,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:monitor-play
   static const IconData monitorPlayFill = IconData(
-    0xE06D,
+    0xE06C,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:moon
-  static const IconData moon = IconData(0xE06E, fontFamily: 'BrambleIcons');
+  static const IconData moon = IconData(0xE06D, fontFamily: 'BrambleIcons');
 
   /// ph:music-note
   static const IconData musicNote = IconData(
-    0xE06F,
+    0xE06E,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:music-notes-simple
   static const IconData musicNotesSimpleFill = IconData(
-    0xE070,
+    0xE06F,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:paint-brush
   static const IconData paintBrush = IconData(
-    0xE071,
+    0xE070,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:paint-bucket
   static const IconData paintBucket = IconData(
-    0xE072,
+    0xE071,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:paperclip
   static const IconData paperclip = IconData(
-    0xE073,
+    0xE072,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:pause
   static const IconData pauseFill = IconData(
-    0xE074,
+    0xE073,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:pen-nib
-  static const IconData penNib = IconData(0xE075, fontFamily: 'BrambleIcons');
+  static const IconData penNib = IconData(0xE074, fontFamily: 'BrambleIcons');
 
   /// ph:pencil-simple
   static const IconData pencilSimple = IconData(
-    0xE076,
+    0xE075,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:pencil-simple-line
   static const IconData pencilSimpleLine = IconData(
-    0xE077,
+    0xE076,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:piano-keys
   static const IconData pianoKeys = IconData(
-    0xE078,
+    0xE077,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:play-circle
   static const IconData playCircleFill = IconData(
-    0xE079,
+    0xE078,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:play
-  static const IconData playFill = IconData(0xE07A, fontFamily: 'BrambleIcons');
+  static const IconData playFill = IconData(0xE079, fontFamily: 'BrambleIcons');
 
   /// ph:playlist
   static const IconData playlist = IconData(
-    0xE07B,
+    0xE07A,
     fontFamily: 'BrambleIcons',
     matchTextDirection: true,
   );
 
   /// ph:plus
-  static const IconData plus = IconData(0xE07C, fontFamily: 'BrambleIcons');
+  static const IconData plus = IconData(0xE07B, fontFamily: 'BrambleIcons');
 
   /// fill:plus-circle
   static const IconData plusCircleFill = IconData(
-    0xE07D,
+    0xE07C,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:power
-  static const IconData power = IconData(0xE07E, fontFamily: 'BrambleIcons');
+  static const IconData power = IconData(0xE07D, fontFamily: 'BrambleIcons');
 
   /// ph:presentation
   static const IconData presentation = IconData(
-    0xE07F,
+    0xE07E,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:presentation
   static const IconData presentationFill = IconData(
-    0xE080,
+    0xE07F,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:printer
-  static const IconData printer = IconData(0xE081, fontFamily: 'BrambleIcons');
+  static const IconData printer = IconData(0xE080, fontFamily: 'BrambleIcons');
 
   /// ph:prohibit
-  static const IconData prohibit = IconData(0xE082, fontFamily: 'BrambleIcons');
+  static const IconData prohibit = IconData(0xE081, fontFamily: 'BrambleIcons');
 
   /// ph:projector-screen
   static const IconData projectorScreen = IconData(
-    0xE083,
+    0xE082,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:push-pin
-  static const IconData pushPin = IconData(0xE084, fontFamily: 'BrambleIcons');
+  static const IconData pushPin = IconData(0xE083, fontFamily: 'BrambleIcons');
 
   /// fill:push-pin
   static const IconData pushPinFill = IconData(
-    0xE085,
+    0xE084,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:qr-code
-  static const IconData qrCode = IconData(0xE086, fontFamily: 'BrambleIcons');
+  static const IconData qrCode = IconData(0xE085, fontFamily: 'BrambleIcons');
 
   /// ph:radio-button
   static const IconData radioButton = IconData(
-    0xE087,
+    0xE086,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:rows
-  static const IconData rows = IconData(0xE088, fontFamily: 'BrambleIcons');
+  static const IconData rows = IconData(0xE087, fontFamily: 'BrambleIcons');
 
   /// ph:scan
-  static const IconData scan = IconData(0xE089, fontFamily: 'BrambleIcons');
+  static const IconData scan = IconData(0xE088, fontFamily: 'BrambleIcons');
 
   /// ph:screencast
   static const IconData screencast = IconData(
-    0xE08A,
+    0xE089,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:screencast
   static const IconData screencastFill = IconData(
-    0xE08B,
+    0xE08A,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:share-network
   static const IconData shareNetwork = IconData(
-    0xE08C,
+    0xE08B,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:sign-out
-  static const IconData signOut = IconData(0xE08D, fontFamily: 'BrambleIcons');
+  static const IconData signOut = IconData(0xE08C, fontFamily: 'BrambleIcons');
 
   /// fill:skip-back
   static const IconData skipBackFill = IconData(
-    0xE08E,
+    0xE08D,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:skip-forward
   static const IconData skipForwardFill = IconData(
-    0xE08F,
+    0xE08E,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:sliders-horizontal
   static const IconData slidersHorizontal = IconData(
-    0xE090,
+    0xE08F,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:sparkle
-  static const IconData sparkle = IconData(0xE091, fontFamily: 'BrambleIcons');
+  static const IconData sparkle = IconData(0xE090, fontFamily: 'BrambleIcons');
 
   /// fill:sparkle
   static const IconData sparkleFill = IconData(
-    0xE092,
+    0xE091,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:speaker-hifi
   static const IconData speakerHifi = IconData(
-    0xE093,
+    0xE092,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:speaker-high
   static const IconData speakerHigh = IconData(
-    0xE094,
+    0xE093,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:speaker-low
   static const IconData speakerLow = IconData(
-    0xE095,
+    0xE094,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:speaker-slash
   static const IconData speakerSlash = IconData(
-    0xE096,
+    0xE095,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:square
-  static const IconData square = IconData(0xE097, fontFamily: 'BrambleIcons');
+  static const IconData square = IconData(0xE096, fontFamily: 'BrambleIcons');
 
   /// ph:squares-four
   static const IconData squaresFour = IconData(
-    0xE098,
+    0xE097,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:stack
-  static const IconData stack = IconData(0xE099, fontFamily: 'BrambleIcons');
+  static const IconData stack = IconData(0xE098, fontFamily: 'BrambleIcons');
 
   /// fill:stack
   static const IconData stackFill = IconData(
-    0xE09A,
+    0xE099,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:star
-  static const IconData starFill = IconData(0xE09B, fontFamily: 'BrambleIcons');
+  static const IconData starFill = IconData(0xE09A, fontFamily: 'BrambleIcons');
 
   /// ph:stop-circle
   static const IconData stopCircle = IconData(
-    0xE09C,
+    0xE09B,
     fontFamily: 'BrambleIcons',
   );
 
   /// fill:stop
-  static const IconData stopFill = IconData(0xE09D, fontFamily: 'BrambleIcons');
+  static const IconData stopFill = IconData(0xE09C, fontFamily: 'BrambleIcons');
 
   /// ph:sun
-  static const IconData sun = IconData(0xE09E, fontFamily: 'BrambleIcons');
+  static const IconData sun = IconData(0xE09D, fontFamily: 'BrambleIcons');
 
   /// ph:table
-  static const IconData table = IconData(0xE09F, fontFamily: 'BrambleIcons');
+  static const IconData table = IconData(0xE09E, fontFamily: 'BrambleIcons');
 
   /// ph:tag
-  static const IconData tag = IconData(0xE0A0, fontFamily: 'BrambleIcons');
+  static const IconData tag = IconData(0xE09F, fontFamily: 'BrambleIcons');
 
   /// ph:tag-simple
   static const IconData tagSimple = IconData(
-    0xE0A1,
+    0xE0A0,
     fontFamily: 'BrambleIcons',
     matchTextDirection: true,
   );
 
   /// tb:antenna-bars-off
   static const IconData tbAntennaBarsOff = IconData(
-    0xE0A2,
+    0xE0A1,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:blur
-  static const IconData tbBlur = IconData(0xE0A3, fontFamily: 'BrambleIcons');
+  static const IconData tbBlur = IconData(0xE0A2, fontFamily: 'BrambleIcons');
 
   /// tb:brightness-auto
   static const IconData tbBrightnessAuto = IconData(
-    0xE0A4,
+    0xE0A3,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:cloud-up
   static const IconData tbCloudUp = IconData(
-    0xE0A5,
+    0xE0A4,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:device-desktop-off
   static const IconData tbDeviceDesktopOff = IconData(
-    0xE0A6,
+    0xE0A5,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:droplet-off
   static const IconData tbDropletOff = IconData(
-    0xE0A7,
+    0xE0A6,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:layout-rows
   static const IconData tbLayoutRows = IconData(
-    0xE0A8,
+    0xE0A7,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:library-plus
   static const IconData tbLibraryPlus = IconData(
-    0xE0A9,
+    0xE0A8,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:list-tree
   static const IconData tbListTree = IconData(
-    0xE0AA,
+    0xE0A9,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:new-section
   static const IconData tbNewSection = IconData(
-    0xE0AB,
+    0xE0AA,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:note
-  static const IconData tbNote = IconData(0xE0AC, fontFamily: 'BrambleIcons');
+  static const IconData tbNote = IconData(0xE0AB, fontFamily: 'BrambleIcons');
 
   /// tb:photo-plus
   static const IconData tbPhotoPlus = IconData(
-    0xE0AD,
+    0xE0AC,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:picture-in-picture
   static const IconData tbPictureInPicture = IconData(
-    0xE0AE,
+    0xE0AD,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:player-play
   static const IconData tbPlayerPlay = IconData(
-    0xE0AF,
+    0xE0AE,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:playlist
   static const IconData tbPlaylist = IconData(
-    0xE0B0,
+    0xE0AF,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:replace
   static const IconData tbReplace = IconData(
-    0xE0B1,
+    0xE0B0,
     fontFamily: 'BrambleIcons',
   );
 
   /// tb:stack-pop
   static const IconData tbStackPop = IconData(
-    0xE0B2,
+    0xE0B1,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:television
   static const IconData television = IconData(
-    0xE0B3,
+    0xE0B2,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:television-simple
   static const IconData televisionSimple = IconData(
-    0xE0B4,
+    0xE0B3,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-aa
-  static const IconData textAa = IconData(0xE0B5, fontFamily: 'BrambleIcons');
+  static const IconData textAa = IconData(0xE0B4, fontFamily: 'BrambleIcons');
 
   /// ph:text-align-center
   static const IconData textAlignCenter = IconData(
-    0xE0B6,
+    0xE0B5,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-align-left
   static const IconData textAlignLeft = IconData(
-    0xE0B7,
+    0xE0B6,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-align-right
   static const IconData textAlignRight = IconData(
-    0xE0B8,
+    0xE0B7,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-b
-  static const IconData textB = IconData(0xE0B9, fontFamily: 'BrambleIcons');
+  static const IconData textB = IconData(0xE0B8, fontFamily: 'BrambleIcons');
 
   /// ph:text-italic
   static const IconData textItalic = IconData(
-    0xE0BA,
+    0xE0B9,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:text-t
-  static const IconData textT = IconData(0xE0BB, fontFamily: 'BrambleIcons');
+  static const IconData textT = IconData(0xE0BA, fontFamily: 'BrambleIcons');
 
   /// ph:text-underline
   static const IconData textUnderline = IconData(
-    0xE0BC,
+    0xE0BB,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:timer
-  static const IconData timer = IconData(0xE0BD, fontFamily: 'BrambleIcons');
+  static const IconData timer = IconData(0xE0BC, fontFamily: 'BrambleIcons');
 
   /// ph:translate
   static const IconData translate = IconData(
-    0xE0BE,
+    0xE0BD,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:trash
-  static const IconData trash = IconData(0xE0BF, fontFamily: 'BrambleIcons');
+  static const IconData trash = IconData(0xE0BE, fontFamily: 'BrambleIcons');
 
   /// ph:tree
-  static const IconData tree = IconData(0xE0C0, fontFamily: 'BrambleIcons');
+  static const IconData tree = IconData(0xE0BF, fontFamily: 'BrambleIcons');
 
   /// ph:users-three
   static const IconData usersThree = IconData(
-    0xE0C1,
+    0xE0C0,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:vinyl-record
   static const IconData vinylRecord = IconData(
-    0xE0C2,
+    0xE0C1,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:warning
-  static const IconData warning = IconData(0xE0C3, fontFamily: 'BrambleIcons');
+  static const IconData warning = IconData(0xE0C2, fontFamily: 'BrambleIcons');
 
   /// ph:warning-circle
   static const IconData warningCircle = IconData(
-    0xE0C4,
+    0xE0C3,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:waveform
-  static const IconData waveform = IconData(0xE0C5, fontFamily: 'BrambleIcons');
+  static const IconData waveform = IconData(0xE0C4, fontFamily: 'BrambleIcons');
 
   /// ph:waves
-  static const IconData waves = IconData(0xE0C6, fontFamily: 'BrambleIcons');
+  static const IconData waves = IconData(0xE0C5, fontFamily: 'BrambleIcons');
 
   /// ph:wifi-slash
   static const IconData wifiSlash = IconData(
-    0xE0C7,
+    0xE0C6,
     fontFamily: 'BrambleIcons',
   );
 
   /// ph:wrench
-  static const IconData wrench = IconData(0xE0C8, fontFamily: 'BrambleIcons');
+  static const IconData wrench = IconData(0xE0C7, fontFamily: 'BrambleIcons');
 
   /// ph:x
-  static const IconData x = IconData(0xE0C9, fontFamily: 'BrambleIcons');
+  static const IconData x = IconData(0xE0C8, fontFamily: 'BrambleIcons');
 
   /// fill:x-circle
   static const IconData xCircleFill = IconData(
-    0xE0CA,
+    0xE0C9,
     fontFamily: 'BrambleIcons',
   );
 }
