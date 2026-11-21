@@ -2686,7 +2686,7 @@ void main() {
     await tester.pumpAndSettle();
     final bar = find.text('[chord]');
     expect(bar, findsOneWidget);
-    expect(tester.getSize(find.byType(ListView).last).height, 40);
+    expect(tester.getSize(find.byType(ListView).last).height, 48); // (room for the chips' shadows)
     final chip = tester.getSize(
       find.ancestor(
         of: find.text('[chord]'),

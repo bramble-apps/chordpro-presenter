@@ -249,6 +249,8 @@ class _SongEditorState extends State<SongEditor> {
       ? Material(type: MaterialType.transparency, child: page)
       : Dialog(
           insetPadding: const EdgeInsets.all(24),
+          // (the edge-to-edge text area takes the rounded corners)
+          clipBehavior: Clip.antiAlias,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 860, maxHeight: 800),
             child: page,
@@ -304,11 +306,10 @@ class _SongEditorState extends State<SongEditor> {
     },
   );
 
-  Widget _chordProTab() => Padding(
-    // (A phone's sheet: the text box nearly to the screen's edges.)
-    padding: widget.sheet ? const EdgeInsets.all(8) : const EdgeInsets.all(20),
-    child: ChordProField(controller: _raw, songKey: _song.writtenKey),
-  );
+  // The text area fills the tab edge to edge, from under the tabs' line to
+  // the bottom (its own side gaps inside it; its buttons float over it).
+  Widget _chordProTab() =>
+      ChordProField(controller: _raw, songKey: _song.writtenKey);
 
   Widget _beatsTab() => ListenableBuilder(
     listenable: Listenable.merge([_raw, _fields['Time signature']!]),

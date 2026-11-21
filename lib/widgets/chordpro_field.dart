@@ -595,6 +595,9 @@ class _ChordProFieldState extends State<ChordProField> {
         child: ExcludeFocus(
           // Touch-sized: at least 44 wide and 38 tall.
           child: ActionChip(
+            // (floating over the text area: lifted off it)
+            elevation: 2,
+            shadowColor: Colors.black,
             visualDensity: VisualDensity.standard,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             labelPadding: const EdgeInsets.symmetric(horizontal: 6),
@@ -636,143 +639,182 @@ class _ChordProFieldState extends State<ChordProField> {
               builder: (context, _) => _findBar(context),
             ),
           Expanded(
-            child: TextField(
-              key: _fieldKey,
-              controller: c,
-              focusNode: _focus,
-              expands: true,
-              maxLines: null,
-              textAlignVertical: TextAlignVertical.top,
-              // Bundled monospaced font so chords and lyrics line up.
-              style: TextStyle(
-                fontFamily: FontOption('cousine', '').family,
-                fontFamilyFallback: const ['monospace'],
-                fontSize: 14,
-                height: 1.5,
-              ),
-              decoration: const InputDecoration(
-                alignLabelWithHint: true,
-                hintText:
-                    'Verse 1:\n[G]Lyrics with [D]chords\n\nChorus:\n…\n\n'
-                    '{section_break} or a blank line starts a new slide.',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          SizedBox(
-            height: 40,
-            // Scrolling the bar never flips the ChordPro / Details tabs: it
-            // claims wheel / trackpad scrolls over it even at its ends, and
-            // touch drags stop at its edges.
-            child: Row(
+            child: Stack(
               children: [
-                // Find & replace: hidden until wanted (also ⌘F /
-                // Ctrl+F).
-                ExcludeFocus(
-                  child: IconButton(
-                    tooltip: 'Find & replace',
-                    visualDensity: VisualDensity.compact,
-                    isSelected: _findOpen,
-                    icon: const Icon(Icons.search),
-                    onPressed: _findOpen ? _closeFind : _openFind,
-                  ),
-                ),
-                Expanded(
-                  child: Listener(
-                    onPointerSignal: (event) => GestureBinding
-                        .instance
-                        .pointerSignalResolver
-                        .register(event, (_) {}),
-                    child: ListenableBuilder(
-                      listenable: c,
-                      builder: (context, _) {
-                        final chords = chordSuggestions(
-                          c.text,
-                          key: widget.songKey,
-                        );
-                        return ListView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const ClampingScrollPhysics(),
-                          children: [
-                            for (final ch in chords)
-                              chip(ch, () => _insert('[$ch]')),
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                ),
-                                child: Text(
-                                  '|',
-                                  style: TextStyle(
-                                    color: scheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            chip(
-                              '[chord]',
-                              _bracket,
-                              tooltip: 'Insert [ ] (wraps the selection)',
-                            ),
-                            chip('#', () => _insert('#'), tooltip: 'Sharp'),
-                            chip(
-                              '♭',
-                              () => _insert('b'),
-                              tooltip: 'Flat (types b)',
-                            ),
-                            chip(
-                              '/',
-                              () => _insert('/'),
-                              tooltip: 'Slash chord',
-                            ),
-                            chip(
-                              'Tab',
-                              () => _insert(
-                                '{start_of_tab}\n'
-                                'e|----------------|\n'
-                                'B|----------------|\n'
-                                'G|----------------|\n'
-                                'D|----------------|\n'
-                                'A|----------------|\n'
-                                'E|----------------|\n'
-                                '{end_of_tab}',
-                              ),
-                              tooltip:
-                                  'A guitar tab: type fret numbers on the strings '
-                                  '(drawn as strings, playable)',
-                            ),
-                            chip(
-                              'Melody (ABC)',
-                              _melody,
-                              tooltip:
-                                  'A melody in ABC notation, drawn as sheet music '
-                                  'and playable (edits the tune the cursor is in)',
-                            ),
-                            chip(
-                              'Strum pattern',
-                              () => _insert('{rhythm: D-DU-UDU}'),
-                              tooltip:
-                                  'A strum pattern drawn on the beat grid: D down, U '
-                                  'up, X muted, - rest, > accent (JustChords syntax)',
-                            ),
-                            chip(
-                              'Projected text',
-                              () => _insert(lyricsOverrideBlock),
-                              tooltip:
-                                  'Text the projector shows for this section instead '
-                                  'of its lyrics (JustChords’ lyrics override)',
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                Positioned.fill(child: _field()),
+                // The bar floats over the text area's foot.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _bar(context, chip),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// The bar's height, and how far it sits up from the bottom.
+  static const _barHeight = 48.0, _barInset = 6.0;
+
+  /// The text, edge to edge: no box around it, the side gaps inside it,
+  /// room left at its foot for the bar over it.
+  Widget _field() => TextField(
+    key: _fieldKey,
+    controller: c,
+    focusNode: _focus,
+    expands: true,
+    maxLines: null,
+    textAlignVertical: TextAlignVertical.top,
+    // Bundled monospaced font so chords and lyrics line up.
+    style: TextStyle(
+      fontFamily: FontOption('cousine', '').family,
+      fontFamilyFallback: const ['monospace'],
+      fontSize: 14,
+      height: 1.5,
+    ),
+    decoration: const InputDecoration(
+      alignLabelWithHint: true,
+      hintText:
+          'Verse 1:\n[G]Lyrics with [D]chords\n\nChorus:\n…\n\n'
+          '{section_break} or a blank line starts a new slide.',
+      filled: true,
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      disabledBorder: InputBorder.none,
+      // (20 from the edge to the text, as the title field above:
+      // the field adds 4 of its own)
+      contentPadding: EdgeInsets.fromLTRB(
+        16,
+        14,
+        16,
+        _barHeight + _barInset + 8,
+      ),
+    ),
+  );
+
+  Widget _bar(
+    BuildContext context,
+    Widget Function(String, VoidCallback, {String? tooltip}) chip,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: _barInset),
+      child: SizedBox(
+        height: _barHeight,
+        // Scrolling the bar never flips the ChordPro / Details tabs: it
+        // claims wheel / trackpad scrolls over it even at its ends, and
+        // touch drags stop at its edges.
+        child: Row(
+          children: [
+            // Find & replace: hidden until wanted (also ⌘F /
+            // Ctrl+F).
+            const SizedBox(width: 12),
+            ExcludeFocus(
+              child: IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  elevation: 2,
+                  shadowColor: Colors.black,
+                  backgroundColor: scheme.surfaceContainerLowest,
+                  foregroundColor: scheme.onSurfaceVariant,
+                ),
+                tooltip: 'Find & replace',
+                visualDensity: VisualDensity.compact,
+                isSelected: _findOpen,
+                icon: const Icon(Icons.search),
+                onPressed: _findOpen ? _closeFind : _openFind,
+              ),
+            ),
+            Expanded(
+              child: Listener(
+                onPointerSignal: (event) => GestureBinding
+                    .instance
+                    .pointerSignalResolver
+                    .register(event, (_) {}),
+                child: ListenableBuilder(
+                  listenable: c,
+                  builder: (context, _) {
+                    final chords = chordSuggestions(
+                      c.text,
+                      key: widget.songKey,
+                    );
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(6, 0, 12, 0),
+                      children: [
+                        for (final ch in chords)
+                          chip(ch, () => _insert('[$ch]')),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              '|',
+                              style: TextStyle(color: scheme.onSurfaceVariant),
+                            ),
+                          ),
+                        ),
+                        chip(
+                          '[chord]',
+                          _bracket,
+                          tooltip: 'Insert [ ] (wraps the selection)',
+                        ),
+                        chip('#', () => _insert('#'), tooltip: 'Sharp'),
+                        chip(
+                          '♭',
+                          () => _insert('b'),
+                          tooltip: 'Flat (types b)',
+                        ),
+                        chip('/', () => _insert('/'), tooltip: 'Slash chord'),
+                        chip(
+                          'Tab',
+                          () => _insert(
+                            '{start_of_tab}\n'
+                            'e|----------------|\n'
+                            'B|----------------|\n'
+                            'G|----------------|\n'
+                            'D|----------------|\n'
+                            'A|----------------|\n'
+                            'E|----------------|\n'
+                            '{end_of_tab}',
+                          ),
+                          tooltip:
+                              'A guitar tab: type fret numbers on the strings '
+                              '(drawn as strings, playable)',
+                        ),
+                        chip(
+                          'Melody (ABC)',
+                          _melody,
+                          tooltip:
+                              'A melody in ABC notation, drawn as sheet music '
+                              'and playable (edits the tune the cursor is in)',
+                        ),
+                        chip(
+                          'Strum pattern',
+                          () => _insert('{rhythm: D-DU-UDU}'),
+                          tooltip:
+                              'A strum pattern drawn on the beat grid: D down, U '
+                              'up, X muted, - rest, > accent (JustChords syntax)',
+                        ),
+                        chip(
+                          'Projected text',
+                          () => _insert(lyricsOverrideBlock),
+                          tooltip:
+                              'Text the projector shows for this section instead '
+                              'of its lyrics (JustChords’ lyrics override)',
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
