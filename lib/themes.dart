@@ -104,6 +104,8 @@ const _specs = {
     label: 'Material',
     description: 'Google Material 3 (Android, ChromeOS)',
     stockAccent: Color(0xFF6750A4),
+    // (Sfera, the San Francisco stand-in, in place of Roboto)
+    fontId: 'sfera',
     buttonRadius: 20,
     cardRadius: 12,
     dialogRadius: 28,

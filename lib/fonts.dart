@@ -28,7 +28,15 @@ List<String> _set(String prefix, {bool boldItalic = true}) => [
 ];
 
 final builtInFonts = <FontOption>[
-  const FontOption('default', 'Default (Roboto)'),
+  const FontOption('default', 'Default (the style\'s)'),
+  // Sfera: a San Francisco stand-in (from Inter, SIL OFL), regular, bold,
+  // italic and bold italic first (as the PDF export reads them), then the
+  // in-between weights the interface uses.
+  FontOption('sfera', 'Sfera (like San Francisco)', [
+    ..._set('Sfera'),
+    'Sfera-Medium.ttf',
+    'Sfera-Semibold.ttf',
+  ]),
   FontOption('lato', 'Lato', _set('Lato')),
   FontOption('ptsans', 'PT Sans', _set('PT_Sans-Web')),
   FontOption('ubuntu', 'Ubuntu', _set('Ubuntu')),

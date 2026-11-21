@@ -36,6 +36,12 @@ Future<void> main() async {
       'Tabler Icons',
     ], await rootBundle.loadString('assets/fonts/LICENSE-tabler.txt'));
   });
+  // The interface (Material style): Sfera, from Inter (SIL Open Font Licence).
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Sfera (Inter)',
+    ], await rootBundle.loadString('assets/fonts/LICENSE-sfera.txt'));
+  });
   // The tempo, time signature and key: Abril Fatface (SIL Open Font Licence).
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks([
