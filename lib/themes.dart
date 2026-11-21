@@ -323,6 +323,43 @@ ThemeData buildTheme(
   bool oled = false,
   UiStyle style = UiStyle.material,
   String? fontFamily,
+}) => _evenLists(
+  _buildTheme(t, brightness, oled: oled, style: style, fontFamily: fontFamily),
+);
+
+/// Every list of choices at one size: popup menus (⋯, Project…), menus
+/// and dropdown lists all in the body text dropdowns already use (Material
+/// gives menus a smaller label size), in every style.
+ThemeData _evenLists(ThemeData theme) {
+  // (the size dropdowns get: Material's body large, 16)
+  final size = Typography.material2021(platform: theme.platform)
+      .englishLike
+      .bodyLarge!;
+  final on = theme.colorScheme.onSurface;
+  final item = size.copyWith(color: on);
+  return theme.copyWith(
+    popupMenuTheme: theme.popupMenuTheme.copyWith(
+      textStyle: item,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.disabled)
+            ? item.copyWith(color: on.withValues(alpha: .38))
+            : item,
+      ),
+    ),
+    menuButtonTheme: MenuButtonThemeData(
+      style: (theme.menuButtonTheme.style ?? const ButtonStyle()).copyWith(
+        textStyle: WidgetStatePropertyAll(item),
+      ),
+    ),
+  );
+}
+
+ThemeData _buildTheme(
+  AppTheme t,
+  Brightness brightness, {
+  bool oled = false,
+  UiStyle style = UiStyle.material,
+  String? fontFamily,
 }) {
   final spec = _specs[style]!;
   final dark = brightness == Brightness.dark;
