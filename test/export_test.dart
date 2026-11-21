@@ -181,4 +181,25 @@ void main() {
       }
     });
   });
+
+  // The tempo, time signature and key beside the title, as on screen: in
+  // the display face (embedded), and not written out again in the details.
+  testWidgets('PDF: tempo, time and key beside the title', (tester) async {
+    await tester.runAsync(() async {
+      final m = await model();
+      m.addOrUpdate(
+        Song(
+          title: '10 000 Reasons',
+          raw: '{key: G}\nChorus:\n[G]Bless the [D]Lord',
+          tempo: '73',
+          timeSignature: '4/4',
+        ),
+      );
+      final src = ExportSource.from(m);
+      expect(src.detailsWith(marks: true), isNot(contains('BPM')));
+      expect(src.detailsLine, contains('73 BPM'));
+      final bytes = await exportPdf(src, includeChords: true);
+      expect(String.fromCharCodes(bytes).contains('AbrilFatface'), isTrue);
+    });
+  });
 }

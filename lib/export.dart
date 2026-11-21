@@ -69,20 +69,30 @@ class ExportSource {
     accidentals: standard ? Accidentals.auto : format.accidentals,
   );
 
-  String get detailsLine {
+  /// The song's tempo as written ("73", "73 BPM"), or ''.
+  String get tempo {
     final h = ChordProHeader.parse(song.raw);
-    final tempo = song.tempo.isNotEmpty ? song.tempo : (h.tempo ?? '');
-    final time = song.timeSignature.isNotEmpty
-        ? song.timeSignature
-        : (h.time ?? '');
-    return [
-      if (soundingKey != null) 'Key ${soundingKey!.name}',
-      if (capo > 0) 'Capo $capo',
-      if (tempo.isNotEmpty) '${tempo.trim()} BPM',
-      if (time.isNotEmpty) time.trim(),
-      if (song.duration.isNotEmpty) song.duration,
-    ].join('  ·  ');
+    return (song.tempo.isNotEmpty ? song.tempo : (h.tempo ?? '')).trim();
   }
+
+  /// The song's time signature ("4/4"), or ''.
+  String get time {
+    final h = ChordProHeader.parse(song.raw);
+    return (song.timeSignature.isNotEmpty ? song.timeSignature : (h.time ?? ''))
+        .trim();
+  }
+
+  /// The details under the title; without the key, tempo and time when
+  /// [marks] shows them (beside the title, as on printed music).
+  String detailsWith({bool marks = false}) => [
+    if (!marks && soundingKey != null) 'Key ${soundingKey!.name}',
+    if (capo > 0) 'Capo $capo',
+    if (!marks && tempo.isNotEmpty) '$tempo BPM',
+    if (!marks && time.isNotEmpty) time,
+    if (song.duration.isNotEmpty) song.duration,
+  ].join('  ·  ');
+
+  String get detailsLine => detailsWith();
 
   String get artistLine {
     final h = ChordProHeader.parse(song.raw);
@@ -425,6 +435,87 @@ Future<pw.Widget?> _abcPdf(String abc) async {
   }
 }
 
+/// The display face of the tempo, time signature and key (as on screen).
+Future<pw.Font?> _marksFont() async {
+  try {
+    return pw.Font.ttf(
+      await rootBundle.load('assets/display/AbrilFatface-Regular.ttf'),
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// ♩ = 73 | 4 over 4 | G, as [SongMarks] draws it on screen; null when the
+/// song has none of them.
+pw.Widget? _songMarks(
+  ExportSource src, {
+  required pw.Font? font,
+  required double size,
+  required PdfColor rule,
+}) {
+  final key = src.soundingKey?.name;
+  final tempo = src.tempo, time = src.time;
+  if (tempo.isEmpty && time.isEmpty && key == null) return null;
+  pw.TextStyle face(double s) =>
+      pw.TextStyle(font: font, fontSize: s, lineSpacing: 0, height: 1);
+  final bpm = RegExp(r'\d+(?:[.,]\d+)?').firstMatch(tempo)?.group(0) ?? tempo;
+  final parts = RegExp(r'^\s*(\d+)\s*/\s*(\d+)\s*$').firstMatch(time);
+  // (a quarter note: filled head, stem up)
+  final note = pw.SvgImage(
+    svg:
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 30">'
+        '<ellipse cx="5" cy="25" rx="5" ry="3.6" transform="rotate(-22 5 25)" fill="#000"/>'
+        '<rect x="8.6" y="1" width="1.6" height="23.5" rx=".8" fill="#000"/></svg>',
+    height: size * 1.15,
+  );
+  final items = <pw.Widget>[
+    if (tempo.isNotEmpty)
+      pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          note,
+          pw.SizedBox(width: size * .2),
+          pw.Text('= $bpm', style: face(size)),
+        ],
+      ),
+    if (time.isNotEmpty)
+      parts == null
+          ? pw.Text(time, style: face(size))
+          : pw.Column(
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                pw.Text(parts[1]!, style: face(size)),
+                pw.Container(
+                  width: size * .75,
+                  height: .9,
+                  margin: const pw.EdgeInsets.symmetric(vertical: 1.5),
+                  color: PdfColors.black,
+                ),
+                pw.Text(parts[2]!, style: face(size)),
+              ],
+            ),
+    if (key != null) pw.Text(key, style: face(size * 17 / 15)),
+  ];
+  return pw.Row(
+    mainAxisSize: pw.MainAxisSize.min,
+    crossAxisAlignment: pw.CrossAxisAlignment.center,
+    children: [
+      for (var i = 0; i < items.length; i++) ...[
+        if (i > 0)
+          pw.Container(
+            width: .6,
+            height: size * 1.5,
+            margin: pw.EdgeInsets.symmetric(horizontal: size * .8),
+            color: rule,
+          ),
+        items[i],
+      ],
+    ],
+  );
+}
+
 Future<Uint8List> exportPdf(
   ExportSource src, {
   required bool includeChords,
@@ -565,10 +656,46 @@ Future<void> addPdfPages(
     );
   }
 
-  add(SheetElement.title, src.song.displayTitle);
-  add(SheetElement.artist, src.artistLine, color: grey);
-  add(SheetElement.artist, src.subtitleLine, color: grey);
-  if (includeChords) add(SheetElement.details, src.detailsLine, color: grey);
+  // The tempo, time signature and key as on printed music, beside the
+  // title (as on screen): ♩ = 73 | 4 over 4 | G.
+  final marks = includeChords && !f[SheetElement.details].hidden
+      ? _songMarks(
+          src,
+          font: await _marksFont(),
+          size: (style(SheetElement.details).fontSize ?? 10) * 1.05,
+          rule: grey,
+        )
+      : null;
+  if (marks != null && !f[SheetElement.title].hidden) {
+    final heading = children.length;
+    add(SheetElement.title, src.song.displayTitle);
+    add(SheetElement.artist, src.artistLine, color: grey);
+    add(SheetElement.artist, src.subtitleLine, color: grey);
+    final texts = children.sublist(heading);
+    children
+      ..removeRange(heading, children.length)
+      ..add(
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: texts,
+              ),
+            ),
+            pw.SizedBox(width: 12 * scale),
+            pw.Padding(padding: const pw.EdgeInsets.only(top: 2), child: marks),
+          ],
+        ),
+      );
+    add(SheetElement.details, src.detailsWith(marks: true), color: grey);
+  } else {
+    add(SheetElement.title, src.song.displayTitle);
+    add(SheetElement.artist, src.artistLine, color: grey);
+    add(SheetElement.artist, src.subtitleLine, color: grey);
+    if (includeChords) add(SheetElement.details, src.detailsLine, color: grey);
+  }
   children.add(pw.SizedBox(height: 10 * scale));
   if (src.song.notes.isNotEmpty && !f[SheetElement.notes].hidden) {
     children.add(
