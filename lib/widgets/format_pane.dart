@@ -1126,46 +1126,64 @@ class _SectionState extends State<_Section> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // As Letters' inspector: no boxes; a divider above each group, its
+    // name in bold (a caret before it when it opens and closes).
     final title = Text(
       widget.title,
-      style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
-    );
-    return Card.outlined(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.collapsible)
-              InkWell(
-                onTap: () => setState(() => _open = !_open),
-                child: Row(
-                  children: [
-                    Expanded(child: title),
-                    Icon(
-                      _open ? BrambleIcons.caretUp : BrambleIcons.caretDown,
-                      size: 20,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-              )
-            else
-              title,
-            AnimatedSize(
-              duration: const Duration(milliseconds: 180),
-              alignment: Alignment.topCenter,
-              child: _open
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: widget.child,
-                    )
-                  : const SizedBox(width: double.infinity),
-            ),
-          ],
-        ),
+      style: TextStyle(
+        color: scheme.onSurface,
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
       ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Divider(height: 1, thickness: inkW(1), color: scheme.outlineVariant),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 14, 4, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.collapsible)
+                InkWell(
+                  onTap: () => setState(() => _open = !_open),
+                  borderRadius: BorderRadius.circular(inkR(6)),
+                  child: Row(
+                    children: [
+                      AnimatedRotation(
+                        turns: _open ? 0 : -.25,
+                        duration: motion(
+                          context,
+                          const Duration(milliseconds: 180),
+                        ),
+                        child: Icon(
+                          BrambleIcons.caretDown,
+                          size: 18,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: title),
+                    ],
+                  ),
+                )
+              else
+                title,
+              AnimatedSize(
+                duration: const Duration(milliseconds: 180),
+                alignment: Alignment.topCenter,
+                child: _open
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: widget.child,
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

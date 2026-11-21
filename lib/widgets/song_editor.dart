@@ -193,8 +193,6 @@ class _SongEditorState extends State<SongEditor> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _rewriteButton(),
-                    const SizedBox(width: 4),
                     // Round ✕ and ✓ (cancel, save)
                     DialogCancelButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -367,6 +365,9 @@ class _SongEditorState extends State<SongEditor> {
                   onChanged: (k) => _song.key = k,
                 ),
               ),
+              // (rewrite the chords themselves into another key, beside
+              // the key they're written in)
+              _rewriteButton(),
               Expanded(
                 child: AppDropdownField<int>(
                   initialValue: _song.capo.clamp(0, 9),

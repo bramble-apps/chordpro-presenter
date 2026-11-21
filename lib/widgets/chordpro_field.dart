@@ -753,6 +753,10 @@ class _ChordProFieldState extends State<ChordProField> {
           'Verse 1:\n[G]Lyrics with [D]chords\n\nChorus:\n…\n\n'
           '{section_break} or a blank line starts a new slide.',
       filled: true,
+      // (one even colour: no tint while the pointer is over it or it has
+      // the focus)
+      hoverColor: Colors.transparent,
+      focusColor: Colors.transparent,
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
       focusedBorder: InputBorder.none,

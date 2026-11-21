@@ -523,7 +523,9 @@ void main() {
     // Same style buttons as the Text section.
     await tester.tap(
       find.descendant(
-        of: find.ancestor(of: find.text(title), matching: find.byType(Card)),
+        of: find.ancestor(of: find.text(title), matching: find.byWidgetPredicate(
+          (w) => w.runtimeType.toString() == '_Section',
+        )),
         matching: find.byTooltip('Bold'),
       ),
     );
