@@ -164,12 +164,12 @@ void main() {
         )
         .first;
     await tester.scrollUntilVisible(
-      find.text('Image & Video'),
+      find.byTooltip('Image & Video'),
       200,
       scrollable: pane,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Image & Video'));
+    await tester.tap(find.byTooltip('Image & Video'));
     await tester.pumpAndSettle();
     expect(m.projection.bgType, BackgroundType.media);
     nextPickedMedia = [('sky.png', 'image/png', _png)];

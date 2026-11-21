@@ -9,6 +9,7 @@ import 'floating_panel.dart';
 import 'rich_note_controller.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
+import 'bold_icon.dart';
 
 /// Classic sticky-note colours.
 const stickyColours = <(String, int)>[
@@ -441,7 +442,8 @@ class _StickyCardState extends State<StickyCard>
     final scheme = Theme.of(context).colorScheme;
     // Every control sits in the same 36 px circle, whatever its state.
     Widget slot(Widget child) => SizedBox.square(dimension: 36, child: child);
-    Widget button(String tip, IconData icon, VoidCallback onTap, {bool? on}) =>
+    // (icon: an IconData, or a widget drawn as one: the bold B)
+    Widget button(String tip, Object icon, VoidCallback onTap, {bool? on}) =>
         slot(
           IconButton(
             tooltip: tip,
@@ -455,7 +457,12 @@ class _StickyCardState extends State<StickyCard>
                   ? WidgetStatePropertyAll(scheme.primary)
                   : null,
             ),
-            icon: Icon(icon, size: 20),
+            icon: icon is IconData
+                ? Icon(icon, size: 20)
+                : IconTheme.merge(
+                    data: const IconThemeData(size: 20),
+                    child: icon as Widget,
+                  ),
             onPressed: onTap,
           ),
         );
@@ -471,7 +478,7 @@ class _StickyCardState extends State<StickyCard>
             // The selection, or the whole note when nothing is selected.
             button(
               'Bold',
-              BrambleIcons.textB,
+              const BoldIcon(),
               _text.toggleBold,
               on: _text.all((c) => c.bold),
             ),

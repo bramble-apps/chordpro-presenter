@@ -642,9 +642,10 @@ Future<void> addPdfPages(
     List<pw.InlineSpan> run(String t, pw.TextStyle s) =>
         spans(SheetElement.chords, t, s, chord: true);
     // (its extension raised or lowered when chosen, as on screen)
-    final place = f.chordExtensions;
+    final numbers = f.chordExtensions, words = f.chordWords;
     final word = value.trimRight();
-    final split = place == ChordExtensions.inline
+    final split =
+        numbers == ChordExtensions.inline && words == ChordExtensions.inline
         ? null
         : splitChordExtension(word);
     if (split == null) {
@@ -656,13 +657,21 @@ Future<void> addPdfPages(
       text: pw.TextSpan(
         children: [
           ...run(root, st),
-          // (shifted span by span: the PDF moves only spans with text)
-          for (final span in run(extension, st.copyWith(fontSize: size * .72)))
-            span.copyWith(
-              baseline: place == ChordExtensions.raised
-                  ? size * .34
-                  : -size * .2,
-            ),
+          for (final (text, place) in extensionRuns(
+            extension,
+            numbers: numbers,
+            words: words,
+          ))
+            if (place == ChordExtensions.inline)
+              ...run(text, st)
+            else
+              // (shifted span by span: the PDF moves only spans with text)
+              for (final span in run(text, st.copyWith(fontSize: size * .72)))
+                span.copyWith(
+                  baseline: place == ChordExtensions.raised
+                      ? size * .34
+                      : -size * .2,
+                ),
           ...run('$bass${value.substring(word.length)}', st),
         ],
       ),

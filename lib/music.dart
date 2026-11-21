@@ -53,6 +53,31 @@ final _shownChord = RegExp(
   '^($_noteHead(?:min|mi|m(?!aj|a\\d)|-)?)([^/].*?)?(/$_noteHead)?\$',
 );
 
+final _extensionPart = RegExp(
+  r'([#b\u266F\u266D+\-]?\d+|[/()])|([^\d#\u266F\u266D+\-/()]+|[#\u266F\u266D+\-])',
+);
+
+/// [extension] ("maj7", "sus4", "7b5", "add9") in runs, each placed where
+/// its kind goes: numbers (with a sharp or flat before them, "/" and
+/// brackets) at [numbers], words and signs (sus, maj, add, ∆, ø, °) at
+/// [words]. Neighbouring runs placed alike are joined.
+List<(String, ChordExtensions)> extensionRuns(
+  String extension, {
+  required ChordExtensions numbers,
+  required ChordExtensions words,
+}) {
+  final runs = <(String, ChordExtensions)>[];
+  for (final m in _extensionPart.allMatches(extension)) {
+    final place = m.group(1) != null ? numbers : words;
+    if (runs.isNotEmpty && runs.last.$2 == place) {
+      runs.last = (runs.last.$1 + m.group(0)!, place);
+    } else {
+      runs.add((m.group(0)!, place));
+    }
+  }
+  return runs;
+}
+
 /// A chord as shown ("Cmaj7/E", "Am7", "G (1)") cut where its extension
 /// starts and ends: (root and minor marker, extension, bass and the rest).
 /// Null when it has no extension or isn't a chord.

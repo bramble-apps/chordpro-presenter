@@ -193,7 +193,11 @@ class SheetFormat {
   MajorSymbol majorSymbol = MajorSymbol.asWritten;
   HalfDimSymbol halfDimSymbol = HalfDimSymbol.asWritten;
   DimSymbol dimSymbol = DimSymbol.asWritten;
+
+  /// Where a chord's numbers sit (7, 9, ♭5…): [chordExtensions]; its
+  /// words and signs (sus, maj, add, ∆, ø, °…): [chordWords].
   ChordExtensions chordExtensions = ChordExtensions.inline;
+  ChordExtensions chordWords = ChordExtensions.inline;
 
   ChordSymbols get symbols =>
       ChordSymbols(major: majorSymbol, halfDim: halfDimSymbol, dim: dimSymbol);
@@ -227,6 +231,7 @@ class SheetFormat {
     'halfDimSymbol': halfDimSymbol.name,
     'dimSymbol': dimSymbol.name,
     'chordExtensions': chordExtensions.name,
+    'chordWords': chordWords.name,
   };
 
   void updateFrom(Map<String, dynamic> j) {
@@ -271,6 +276,8 @@ class SheetFormat {
     chordExtensions =
         ChordExtensions.values.asNameMap()[j['chordExtensions']] ??
         chordExtensions;
+    chordWords =
+        ChordExtensions.values.asNameMap()[j['chordWords']] ?? chordWords;
   }
 }
 

@@ -370,9 +370,10 @@ class _ChordSheetState extends State<ChordSheet>
   /// A chord in running text, its extension raised or lowered when chosen
   /// (as the chord lines draw it).
   InlineSpan _chordSpan(String chord, TextStyle style) {
-    final place = format.chordExtensions;
+    final numbers = format.chordExtensions, words = format.chordWords;
     final word = chord.trimRight();
-    final split = place == ChordExtensions.inline
+    final split =
+        numbers == ChordExtensions.inline && words == ChordExtensions.inline
         ? null
         : splitChordExtension(word);
     if (split == null) return TextSpan(text: chord, style: style);
@@ -382,20 +383,25 @@ class _ChordSheetState extends State<ChordSheet>
       style: style,
       children: [
         TextSpan(text: root),
-        WidgetSpan(
-          alignment: PlaceholderAlignment.baseline,
-          baseline: TextBaseline.alphabetic,
-          child: Transform.translate(
-            offset: Offset(
-              0,
-              place == ChordExtensions.raised ? -size * .34 : size * .2,
+        for (final (text, place) in extensionRuns(
+          extension,
+          numbers: numbers,
+          words: words,
+        ))
+          if (place == ChordExtensions.inline)
+            TextSpan(text: text)
+          else
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: Transform.translate(
+                offset: Offset(
+                  0,
+                  place == ChordExtensions.raised ? -size * .34 : size * .2,
+                ),
+                child: Text(text, style: style.copyWith(fontSize: size * .72)),
+              ),
             ),
-            child: Text(
-              extension,
-              style: style.copyWith(fontSize: size * .72),
-            ),
-          ),
-        ),
         TextSpan(text: '$bass${chord.substring(word.length)}'),
       ],
     );
@@ -1132,6 +1138,7 @@ class _ChordSheetState extends State<ChordSheet>
     return ChordLine(
       onChordTap: tapChord,
       extensions: format.chordExtensions,
+      words: format.chordWords,
       glowing: glow
           ? {
               for (var i = 0; i < segments.length; i++)

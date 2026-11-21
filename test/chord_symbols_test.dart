@@ -80,4 +80,18 @@ void main() {
     expect(old.majorSymbol, MajorSymbol.asWritten);
     expect(old.chordExtensions, ChordExtensions.inline);
   });
+
+  test('numbers and words placed apart', () {
+    const up = ChordExtensions.raised, on = ChordExtensions.inline;
+    List<(String, ChordExtensions)> runs(String e) =>
+        extensionRuns(e, numbers: up, words: on);
+    expect(runs('maj7'), [('maj', on), ('7', up)]);
+    expect(runs('sus4'), [('sus', on), ('4', up)]);
+    expect(runs('7b5'), [('7b5', up)]);
+    expect(runs('6/9'), [('6/9', up)]);
+    expect(runs('add9'), [('add', on), ('9', up)]);
+    expect(runs('\u00F87'), [('\u00F8', on), ('7', up)]);
+    expect(runs('sus'), [('sus', on)]);
+    expect(extensionRuns('maj7', numbers: up, words: up), [('maj7', up)]);
+  });
 }

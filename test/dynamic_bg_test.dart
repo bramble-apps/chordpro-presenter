@@ -316,8 +316,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await show(find.text('Dynamic'));
-    await tester.tap(find.text('Dynamic'));
+    await show(find.byTooltip('Dynamic'));
+    await tester.tap(find.byTooltip('Dynamic'));
     await tester.pumpAndSettle();
     expect(m.projection.bgType, BackgroundType.dynamic);
     expect(m.projection.bgDynamic.name, 'Rainbow');

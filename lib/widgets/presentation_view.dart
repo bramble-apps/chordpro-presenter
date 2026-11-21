@@ -21,6 +21,7 @@ import 'media_pane.dart';
 import 'projection_view.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
+import 'bold_icon.dart';
 
 /// Presentation mode: every slide of the song as a tile (as it looks on
 /// the projector), grouped under section headers. Tap a tile to show it.
@@ -1056,7 +1057,7 @@ class _TimerFormat extends StatelessWidget {
                 children: [
                   toggle(
                     'Bold',
-                    const Icon(BrambleIcons.textB),
+                    const BoldIcon(),
                     p.timerBold,
                     () => set((p) => p.timerBold = !p.timerBold),
                   ),

@@ -256,3 +256,7 @@ wifi_tethering_off tb:antenna-bars-off
 zoom_in_rounded ph:magnifying-glass-plus
 zoom_out_rounded ph:magnifying-glass-minus
 + ph:dots-three-circle
++ tb:letter-case-upper
++ ph:palette
++ tb:photo-video
++ tb:sparkles

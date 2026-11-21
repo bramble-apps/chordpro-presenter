@@ -17,6 +17,7 @@ import '../chords/chord_library.dart';
 import '../chords/chord_sound.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
+import 'bold_icon.dart';
 
 /// Right-hand "Format" panel with Projection and Page tabs.
 class FormatPane extends StatefulWidget {
@@ -220,7 +221,7 @@ class _FormatPaneState extends State<FormatPane> {
                 children: [
                   _Toggle(
                     'Bold',
-                    BrambleIcons.textB,
+                    const BoldIcon(),
                     p.textBold,
                     (v) => set((p) => p.textBold = v),
                   ),
@@ -232,7 +233,7 @@ class _FormatPaneState extends State<FormatPane> {
                   ),
                   _Toggle(
                     'All caps',
-                    BrambleIcons.textT,
+                    BrambleIcons.tbLetterCaseUpper,
                     p.textCaps,
                     (v) => set((p) => p.textCaps = v),
                   ),
@@ -380,17 +381,21 @@ class _FormatPaneState extends State<FormatPane> {
           children: [
             SegmentedButton<BackgroundType>(
               segments: const [
+                // (icons, their names as tooltips)
                 ButtonSegment(
                   value: BackgroundType.color,
-                  label: Text('Colour'),
+                  icon: Icon(BrambleIcons.palette),
+                  tooltip: 'Colour',
                 ),
                 ButtonSegment(
                   value: BackgroundType.media,
-                  label: Text('Image & Video'),
+                  icon: Icon(BrambleIcons.tbPhotoVideo),
+                  tooltip: 'Image & Video',
                 ),
                 ButtonSegment(
                   value: BackgroundType.dynamic,
-                  label: Text('Dynamic'),
+                  icon: Icon(BrambleIcons.tbSparkles),
+                  tooltip: 'Dynamic',
                 ),
               ],
               selected: {p.bgType},
@@ -1017,26 +1022,46 @@ class _FormatPaneState extends State<FormatPane> {
             const SizedBox(height: 12),
             // How the chord symbols are written (as in the song unless
             // chosen) and where their extensions sit.
-            const Text('Extensions'),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final e in ChordExtensions.values)
-                  ChoiceChip(
-                    tooltip: switch (e) {
-                      ChordExtensions.inline => 'On the line',
-                      ChordExtensions.raised => 'Raised (superscript)',
-                      ChordExtensions.lowered => 'Lowered (subscript)',
-                    },
-                    label: _ExtensionSample(e),
-                    selected: f.chordExtensions == e,
-                    onSelected: (_) =>
-                        model.updateFormat((f) => f.chordExtensions = e),
-                  ),
-              ],
-            ),
+            // Numbers (7, 9, ♭5) and words (sus, maj, add) placed apart:
+            // on the line, raised or lowered.
+            for (final (title, sample, current, set) in [
+              (
+                'Numbers (7, 9, 13)',
+                ('C', '7'),
+                f.chordExtensions,
+                (ChordExtensions e) =>
+                    model.updateFormat((f) => f.chordExtensions = e),
+              ),
+              (
+                'Words (sus, maj, add)',
+                ('C', 'sus'),
+                f.chordWords,
+                (ChordExtensions e) =>
+                    model.updateFormat((f) => f.chordWords = e),
+              ),
+            ]) ...[
+              Text(title),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final e in ChordExtensions.values)
+                    ChoiceChip(
+                      tooltip: switch (e) {
+                        ChordExtensions.inline => 'On the line',
+                        ChordExtensions.raised => 'Raised (superscript)',
+                        ChordExtensions.lowered => 'Lowered (subscript)',
+                      },
+                      label: _ExtensionSample(e, sample.$1, sample.$2),
+                      selected: current == e,
+                      onSelected: (_) => set(e),
+                    ),
+                ],
+              ),
+              // (the next group adds its own gap)
+              if (title.startsWith('Numbers')) const SizedBox(height: 12),
+            ],
             for (final (title, options) in [
               (
                 'Major sevenths',
@@ -1336,12 +1361,7 @@ class _ElementEditor extends StatelessWidget {
               Wrap(
                 spacing: 2,
                 children: [
-                  toggle(
-                    'Bold',
-                    const Icon(BrambleIcons.textB),
-                    s.bold,
-                    (v) => s.bold = v,
-                  ),
+                  toggle('Bold', const BoldIcon(), s.bold, (v) => s.bold = v),
                   toggle(
                     'Italic',
                     const Icon(BrambleIcons.textItalic),
@@ -1357,10 +1377,8 @@ class _ElementEditor extends StatelessWidget {
                   if (element.allowsCaps)
                     toggle(
                       'All caps',
-                      const Text(
-                        'AA',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
+                      // (an icon, as B, I and U beside it)
+                      const Icon(BrambleIcons.tbLetterCaseUpper),
                       s.caps,
                       (v) => s.caps = v,
                     ),
@@ -1753,7 +1771,9 @@ class _Stepper extends StatelessWidget {
 
 class _Toggle extends StatelessWidget {
   final String tooltip;
-  final IconData icon;
+
+  /// An [IconData], or a widget drawn as one (the bold B).
+  final Object icon;
   final bool value;
   final void Function(bool) onChanged;
   const _Toggle(this.tooltip, this.icon, this.value, this.onChanged);
@@ -1768,7 +1788,7 @@ class _Toggle extends StatelessWidget {
           ? Theme.of(context).colorScheme.secondaryContainer
           : null,
     ),
-    icon: Icon(icon),
+    icon: icon is IconData ? Icon(icon as IconData) : icon as Widget,
     onPressed: () => onChanged(!value),
   );
 }
@@ -2427,7 +2447,7 @@ class _LinkedControls extends StatelessWidget {
               children: [
                 _Toggle(
                   'Bold',
-                  BrambleIcons.textB,
+                  const BoldIcon(),
                   look.bold,
                   (v) => onChange((l) => l.bold = v),
                 ),
@@ -2564,20 +2584,22 @@ class _ChordDiagramControls extends StatelessWidget {
   }
 }
 
-/// "C7" with its 7 on the line, raised or lowered: the choice it shows.
+/// A chord ("C7", "Csus") with its extension on the line, raised or
+/// lowered: the choice it shows.
 class _ExtensionSample extends StatelessWidget {
   final ChordExtensions place;
-  const _ExtensionSample(this.place);
+  final String root, extension;
+  const _ExtensionSample(this.place, this.root, this.extension);
 
   @override
   Widget build(BuildContext context) {
     final style = DefaultTextStyle.of(context).style;
     final size = style.fontSize ?? 14;
-    if (place == ChordExtensions.inline) return const Text('C7');
+    if (place == ChordExtensions.inline) return Text('$root$extension');
     return Text.rich(
       TextSpan(
         children: [
-          const TextSpan(text: 'C'),
+          TextSpan(text: root),
           WidgetSpan(
             alignment: PlaceholderAlignment.baseline,
             baseline: TextBaseline.alphabetic,
@@ -2586,7 +2608,7 @@ class _ExtensionSample extends StatelessWidget {
                 0,
                 place == ChordExtensions.raised ? -size * .34 : size * .2,
               ),
-              child: Text('7', style: TextStyle(fontSize: size * .72)),
+              child: Text(extension, style: TextStyle(fontSize: size * .72)),
             ),
           ),
         ],
