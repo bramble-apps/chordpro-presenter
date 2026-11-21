@@ -171,9 +171,11 @@ class _SongEditorState extends State<SongEditor> {
           child: Column(
             children: [
               Padding(
+                // As far from the top as from the sides (the sheet's
+                // grabber takes its top 16)
                 padding: widget.sheet
-                    ? const EdgeInsets.fromLTRB(8, 8, 8, 0)
-                    : const EdgeInsets.fromLTRB(20, 16, 16, 0),
+                    ? const EdgeInsets.fromLTRB(20, 4, 20, 0)
+                    : const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 // The title, then the buttons on the same line
                 child: Row(
                   children: [
@@ -194,6 +196,7 @@ class _SongEditorState extends State<SongEditor> {
                     // Round ✕ and ✓ (cancel, save)
                     IconButton.filledTonal(
                       tooltip: 'Cancel',
+                      style: _roundButton(context, tonal: true),
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                     ),
@@ -202,6 +205,7 @@ class _SongEditorState extends State<SongEditor> {
                       listenable: _title,
                       builder: (context, _) => IconButton.filled(
                         tooltip: 'Save',
+                        style: _roundButton(context),
                         onPressed: _canSave ? _save : null,
                         icon: const Icon(Icons.check),
                       ),
@@ -229,6 +233,18 @@ class _SongEditorState extends State<SongEditor> {
   }
 
   /// A dialog on a desktop or tablet; in a phone's sheet, just the page.
+  /// ✕ and ✓: no room around them for touch (the circle is the edge, so
+  /// the padding to it is what's seen); ✕ in the surface's own tint, not
+  /// the theme's second colour.
+  static ButtonStyle _roundButton(BuildContext context, {bool tonal = false}) {
+    final scheme = Theme.of(context).colorScheme;
+    return IconButton.styleFrom(
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      backgroundColor: tonal ? scheme.surfaceContainerHighest : null,
+      foregroundColor: tonal ? scheme.onSurface : null,
+    );
+  }
+
   Widget _frame(Widget page) => widget.sheet
       ? Material(type: MaterialType.transparency, child: page)
       : Dialog(

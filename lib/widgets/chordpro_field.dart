@@ -586,6 +586,7 @@ class _ChordProFieldState extends State<ChordProField> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final themed = Theme.of(context).chipTheme.backgroundColor != null;
     Widget chip(String label, VoidCallback onTap, {String? tooltip}) => Padding(
       padding: const EdgeInsets.only(right: 4),
       child: Tooltip(
@@ -609,9 +610,12 @@ class _ChordProFieldState extends State<ChordProField> {
                 ),
               ),
             ),
-            backgroundColor: scheme.primary.withValues(alpha: 0.12),
-            side: BorderSide.none,
-            shape: const StadiumBorder(),
+            // Seen on any colour theme: a solid fill set off from the
+            // editor's tinted surface with a hairline (Material); the
+            // desktop styles' own bordered buttons otherwise.
+            backgroundColor: themed ? null : scheme.surfaceContainerLowest,
+            side: themed ? null : BorderSide(color: scheme.outlineVariant),
+            shape: themed ? null : const StadiumBorder(),
             onPressed: onTap,
           ),
         ),
