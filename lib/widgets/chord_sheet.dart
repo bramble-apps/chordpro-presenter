@@ -610,13 +610,21 @@ class _ChordSheetState extends State<ChordSheet>
         ChordStrip(chords: stripChords, config: diagrams!),
     ];
 
+    // The gap under each line: 6, plus the line spacing's share of the
+    // lyrics' height above 1.0.
+    final lineGap =
+        6 +
+        (format.lineSpacing - 1).clamp(0.0, 3.0) *
+            (_style(SheetElement.lyrics).fontSize ?? 16) *
+            1.2;
+
     // (each line a SeamLine: in columns it fades at the column edges)
     Widget column(List<Widget> children) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final c in children)
           SeamLine(
-            child: Padding(padding: const EdgeInsets.only(bottom: 6), child: c),
+            child: Padding(padding: EdgeInsets.only(bottom: lineGap), child: c),
           ),
       ],
     );
@@ -810,7 +818,14 @@ class _ChordSheetState extends State<ChordSheet>
       left: side == 'left' ? _PartBlock.labelRoom : 0,
       right: side == 'right' ? _PartBlock.labelRoom : 0,
     );
-    final pad = const EdgeInsets.all(16) + inset + labelRoom;
+    // (the side margin as set in the Format pane)
+    final pad =
+        EdgeInsets.symmetric(
+          horizontal: format.margin.toDouble(),
+          vertical: 16,
+        ) +
+        inset +
+        labelRoom;
     if (layout != null && layout.pageMode) {
       // Printed-page view: title across the top of page 1, then the parts
       // flowing down the columns.
@@ -829,7 +844,7 @@ class _ChordSheetState extends State<ChordSheet>
               // (the content at the scroll view's size: on paper as much
               // larger, margins too)
               paper: layout.paper / content,
-              margin: 40 / content,
+              margin: (24 + format.margin) / content,
               columnGap: 20 / content,
               columns: layout.columns,
               spanning: 1,

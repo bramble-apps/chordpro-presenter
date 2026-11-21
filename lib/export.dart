@@ -678,6 +678,15 @@ Future<void> addPdfPages(
     );
   }
 
+  // The Format pane's side margin (on paper 24 more: 16 → 40 pt) and line
+  // spacing (each step above 1.0 adds a share of the lyrics' height).
+  final sideMargin = 24.0 + f.margin;
+  final lineGap =
+      2 +
+      (f.lineSpacing - 1).clamp(0.0, 3.0) *
+          (style(SheetElement.lyrics).fontSize ?? 12) *
+          1.2;
+
   final children = <pw.Widget>[];
   void add(SheetElement e, String value, {PdfColor color = PdfColors.black}) {
     if (f[e].hidden || value.isEmpty) return;
@@ -914,7 +923,8 @@ Future<void> addPdfPages(
           if (w != null) {
             children.add(
               pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 2),
+                // (2, plus the line spacing's share of the lyrics' height)
+                padding: pw.EdgeInsets.only(bottom: lineGap),
                 child: w,
               ),
             );
@@ -960,6 +970,7 @@ Future<void> addPdfPages(
       pageFormat: pageFormat,
       theme: textTheme,
       columns: columns,
+      side: sideMargin,
       header: children.sublist(0, headerCount),
       parts: [
         for (var i = 0; i < partStarts.length; i++)
@@ -978,7 +989,7 @@ Future<void> addPdfPages(
       pageFormat: paper == PaperSize.a4
           ? PdfPageFormat.a4
           : PdfPageFormat.letter,
-      margin: const pw.EdgeInsets.all(40),
+      margin: pw.EdgeInsets.symmetric(horizontal: sideMargin, vertical: 40),
       theme: textTheme,
       // (a gap above it: the last lines never run into the footer)
       footer: (context) => pw.Column(
@@ -1094,14 +1105,16 @@ void _railPart(
 void _addColumnPages(
   pw.Document doc, {
   required PdfPageFormat pageFormat,
+  double side = 40,
   required pw.ThemeData theme,
   required int columns,
   required List<pw.Widget> header,
   required List<List<pw.Widget>> parts,
   required pw.Widget Function(int page, int pages) footerFor,
 }) {
+  // (top and bottom 40; the sides as set)
   const margin = 40.0, gap = 20.0;
-  final width = pageFormat.width - margin * 2;
+  final width = pageFormat.width - side * 2;
   final columnWidth = (width - gap * (columns - 1)) / columns;
   final ctx = pw.Context(document: doc.document).inheritFrom(theme);
 
@@ -1164,7 +1177,7 @@ void _addColumnPages(
     doc.addPage(
       pw.Page(
         pageFormat: pageFormat,
-        margin: const pw.EdgeInsets.all(margin),
+        margin: pw.EdgeInsets.symmetric(horizontal: side, vertical: margin),
         theme: theme,
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,

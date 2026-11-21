@@ -188,6 +188,14 @@ class SheetFormat {
   MinorStyle minorStyle = MinorStyle.m;
   Accidentals accidentals = Accidentals.auto;
 
+  /// Space between lines, as a word processor's line spacing (1.0: as
+  /// before; each step above adds a share of the lyrics' height).
+  double lineSpacing = 1.0;
+
+  /// The sheet's side margin, in pixels (16 as before; on paper 24 more,
+  /// in points).
+  int margin = 16;
+
   /// How major sevenths, half-diminished and diminished chords are written
   /// (as in the song unless chosen), and where extensions sit.
   MajorSymbol majorSymbol = MajorSymbol.asWritten;
@@ -227,6 +235,8 @@ class SheetFormat {
     'dualNotation': dualNotation?.name,
     'minorStyle': minorStyle.name,
     'accidentals': accidentals.name,
+    'lineSpacing': lineSpacing,
+    'margin': margin,
     'majorSymbol': majorSymbol.name,
     'halfDimSymbol': halfDimSymbol.name,
     'dimSymbol': dimSymbol.name,
@@ -268,6 +278,8 @@ class SheetFormat {
     minorStyle = MinorStyle.values.asNameMap()[j['minorStyle']] ?? minorStyle;
     accidentals =
         Accidentals.values.asNameMap()[j['accidentals']] ?? accidentals;
+    lineSpacing = (j['lineSpacing'] as num?)?.toDouble() ?? lineSpacing;
+    margin = (j['margin'] as num?)?.toInt() ?? margin;
     majorSymbol =
         MajorSymbol.values.asNameMap()[j['majorSymbol']] ?? majorSymbol;
     halfDimSymbol =

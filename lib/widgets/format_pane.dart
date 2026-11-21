@@ -903,6 +903,28 @@ class _FormatPaneState extends State<FormatPane> {
               onSelectionChanged: (s) =>
                   model.updateFormat((f) => f.chordsInline = s.first),
             ),
+            const SizedBox(height: 8),
+            // Space between lines, and the sheet's side margins.
+            _ValueSlider(
+              label: 'Line spacing',
+              value: f.lineSpacing,
+              min: 1,
+              max: 2.5,
+              divisions: 15,
+              shown: '${f.lineSpacing.toStringAsFixed(1)}\u00D7',
+              onChanged: (v) => model.updateFormat(
+                (f) => f.lineSpacing = (v * 10).round() / 10,
+              ),
+            ),
+            _ValueSlider(
+              label: 'Margins',
+              value: f.margin.toDouble(),
+              min: 0,
+              max: 80,
+              divisions: 20,
+              shown: '${f.margin} px',
+              onChanged: (v) => model.updateFormat((f) => f.margin = v.round()),
+            ),
           ],
         ),
       ),
@@ -2672,4 +2694,42 @@ class _SplitPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SplitPainter old) => false;
+}
+
+/// A labelled slider with its value shown at the end (line spacing,
+/// margins).
+class _ValueSlider extends StatelessWidget {
+  final String label;
+  final double value, min, max;
+  final int divisions;
+  final String shown;
+  final ValueChanged<double> onChanged;
+
+  const _ValueSlider({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.shown,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      SizedBox(width: 96, child: Text(label)),
+      Expanded(
+        child: Slider(
+          value: value.clamp(min, max),
+          min: min,
+          max: max,
+          divisions: divisions,
+          label: shown,
+          onChanged: onChanged,
+        ),
+      ),
+      SizedBox(width: 48, child: Text(shown, textAlign: TextAlign.end)),
+    ],
+  );
 }
