@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'themes.dart';
+import 'bramble_icons.dart';
 
 /// A line of a sheet drawn as one piece (chords over words): e-ink pages
 /// keep it whole, like a line of text.
@@ -871,7 +872,7 @@ class _InkMenu<T> extends StatelessWidget {
           children: [
             if (isExpanded) Expanded(child: label) else Flexible(child: label),
             Icon(
-              Icons.arrow_drop_down,
+              BrambleIcons.caretDownFill,
               color: enabled ? ink : ink.withValues(alpha: 0.4),
             ),
           ],
@@ -895,7 +896,7 @@ class _InkMenu<T> extends StatelessWidget {
         for (final item in items)
           MenuItemButton(
             leadingIcon: Icon(
-              item.value == value ? Icons.check : null,
+              item.value == value ? BrambleIcons.check : null,
               size: 18,
             ),
             onPressed: item.enabled
@@ -927,7 +928,7 @@ class AppSpinner extends StatelessWidget {
           final size = c.hasBoundedHeight && c.maxHeight < 36
               ? c.maxHeight
               : 24.0;
-          return Icon(Icons.hourglass_empty, size: size, color: color);
+          return Icon(BrambleIcons.hourglass, size: size, color: color);
         },
       );
     }
@@ -984,7 +985,9 @@ class EinkPageBar extends StatelessWidget {
           IconButton(
             tooltip: 'Previous page',
             visualDensity: VisualDensity.compact,
-            icon: Icon(vertical ? Icons.keyboard_arrow_up : Icons.chevron_left),
+            icon: Icon(
+              vertical ? BrambleIcons.caretUp : BrambleIcons.caretLeft,
+            ),
             onPressed: onPrevious,
           ),
           Text(
@@ -999,7 +1002,7 @@ class EinkPageBar extends StatelessWidget {
             tooltip: 'Next page',
             visualDensity: VisualDensity.compact,
             icon: Icon(
-              vertical ? Icons.keyboard_arrow_down : Icons.chevron_right,
+              vertical ? BrambleIcons.caretDown : BrambleIcons.caretRight,
             ),
             onPressed: onNext,
           ),
@@ -1157,7 +1160,7 @@ class EinkBackHeader extends StatelessWidget {
           child: Row(
             spacing: 4,
             children: [
-              const Icon(Icons.chevron_left),
+              const Icon(BrambleIcons.caretLeft),
               Expanded(
                 child: Text(
                   title,

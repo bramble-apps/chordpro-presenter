@@ -7,6 +7,7 @@ import '../format.dart';
 import '../state.dart';
 import 'chord_sheet.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// The song editor's "Chord Beats" tab (as in JustChords): the song drawn
 /// exactly as the chord sheet will show it, with the chord beats settings
@@ -206,7 +207,7 @@ class _ChordBeatsEditorState extends State<ChordBeatsEditor> {
                 IconButton(
                   tooltip: 'Fewer bars per line',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.remove),
+                  icon: const Icon(BrambleIcons.minus),
                   onPressed: settings.show && settings.barsPerLine > 1
                       ? () =>
                             _setSettings(barsPerLine: settings.barsPerLine - 1)
@@ -215,7 +216,7 @@ class _ChordBeatsEditorState extends State<ChordBeatsEditor> {
                 IconButton(
                   tooltip: 'More bars per line',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(BrambleIcons.plus),
                   onPressed: settings.show && settings.barsPerLine < 8
                       ? () =>
                             _setSettings(barsPerLine: settings.barsPerLine + 1)
@@ -316,7 +317,7 @@ class _ChordBeatsEditorState extends State<ChordBeatsEditor> {
                 children: [
                   IconButton(
                     tooltip: 'Previous chord ($cmd←)',
-                    icon: const Icon(Icons.chevron_left),
+                    icon: const Icon(BrambleIcons.caretLeft),
                     onPressed: order.isEmpty ? null : () => _step(order, -1),
                   ),
                   Expanded(
@@ -334,19 +335,19 @@ class _ChordBeatsEditorState extends State<ChordBeatsEditor> {
                   ),
                   IconButton(
                     tooltip: 'Fewer beats ($cmd↓)',
-                    icon: const Icon(Icons.remove),
+                    icon: const Icon(BrambleIcons.minus),
                     onPressed: n == null || n <= 0
                         ? null
                         : () => _change(-1, barBeats),
                   ),
                   IconButton(
                     tooltip: 'More beats ($cmd↑)',
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(BrambleIcons.plus),
                     onPressed: n == null ? null : () => _change(1, barBeats),
                   ),
                   IconButton(
                     tooltip: 'Next chord ($cmd→)',
-                    icon: const Icon(Icons.chevron_right),
+                    icon: const Icon(BrambleIcons.caretRight),
                     onPressed: order.isEmpty ? null : () => _step(order, 1),
                   ),
                 ],

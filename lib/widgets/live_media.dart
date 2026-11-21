@@ -8,6 +8,7 @@ import '../browser.dart';
 import '../media.dart';
 import '../media_library.dart';
 import '../youtube_handle.dart';
+import '../bramble_icons.dart';
 
 /// Between the operator's player controls and the screen playing:
 /// [seeks] (seconds) come in, [report] sends the progress back.
@@ -128,7 +129,9 @@ class _LiveMediaViewState extends State<LiveMediaView> {
     final video = _video;
     if (video != null && video.value.isInitialized) {
       if (item.kind == MediaKind.audio || video.value.size.isEmpty) {
-        return widget.preview ? _badge(Icons.music_note) : const SizedBox();
+        return widget.preview
+            ? _badge(BrambleIcons.musicNote)
+            : const SizedBox();
       }
       return FittedBox(
         fit: BoxFit.contain,
@@ -155,7 +158,7 @@ class _LiveMediaViewState extends State<LiveMediaView> {
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
-          Center(child: _badge(Icons.smart_display)),
+          Center(child: _badge(BrambleIcons.monitorPlayFill)),
         ],
       );
     }

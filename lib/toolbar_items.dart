@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'state.dart';
 import 'widgets/edit_song_icon.dart';
+import 'bramble_icons.dart';
 
 class ToolbarItem {
   final String id;
@@ -14,25 +15,21 @@ class ToolbarItem {
 }
 
 const List<ToolbarItem> toolbarItems = [
-  ToolbarItem('share', 'Share / export', Icon(Icons.ios_share)),
-  ToolbarItem('sticky', 'Add sticky note', Icon(Icons.sticky_note_2_outlined)),
-  ToolbarItem(
-    'insert',
-    'Insert picture',
-    Icon(Icons.add_photo_alternate_outlined),
-  ),
-  ToolbarItem('annotate', 'Annotate', Icon(Icons.draw_outlined)),
+  ToolbarItem('share', 'Share / export', Icon(BrambleIcons.export)),
+  ToolbarItem('sticky', 'Add sticky note', Icon(BrambleIcons.tbNote)),
+  ToolbarItem('insert', 'Insert picture', Icon(BrambleIcons.tbPhotoPlus)),
+  ToolbarItem('annotate', 'Annotate', Icon(BrambleIcons.penNib)),
   ToolbarItem('edit', 'Edit song', EditSongIcon()),
-  ToolbarItem('structure', 'Song structure', Icon(Icons.account_tree_outlined)),
-  ToolbarItem('format', 'Format', Icon(Icons.brush_outlined)),
-  ToolbarItem('present', 'Presentation mode', Icon(Icons.grid_view_rounded)),
+  ToolbarItem('structure', 'Song structure', Icon(BrambleIcons.tbListTree)),
+  ToolbarItem('format', 'Format', Icon(BrambleIcons.paintBrush)),
+  ToolbarItem('present', 'Presentation mode', Icon(BrambleIcons.squaresFour)),
   ToolbarItem(
     'preview',
     'Projector preview',
-    Icon(Icons.picture_in_picture_alt_outlined),
+    Icon(BrambleIcons.tbPictureInPicture),
   ),
-  ToolbarItem('projector', 'Project', Icon(Icons.tv_rounded)),
-  ToolbarItem('settings', 'Settings', Icon(Icons.settings_outlined)),
+  ToolbarItem('projector', 'Project', Icon(BrambleIcons.projectorScreen)),
+  ToolbarItem('settings', 'Settings', Icon(BrambleIcons.slidersHorizontal)),
 ];
 
 ToolbarItem toolbarItem(String id) =>

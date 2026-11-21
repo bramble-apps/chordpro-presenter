@@ -1,3 +1,4 @@
+import 'package:bilingual_projector/bramble_icons.dart';
 import 'package:bilingual_projector/browser.dart';
 import 'package:bilingual_projector/eink.dart';
 import 'package:bilingual_projector/main.dart';
@@ -173,7 +174,7 @@ void main() {
     await tester.tap(find.text('Apple'));
     await tester.pump();
     expect(find.text('Banana'), findsOneWidget);
-    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(find.byIcon(BrambleIcons.check), findsOneWidget);
     await tester.tap(find.text('Banana'));
     await tester.pump();
     expect(picked, 'b');
@@ -186,7 +187,7 @@ void main() {
         home: const Scaffold(body: Center(child: AppSpinner())),
       ),
     );
-    expect(find.byIcon(Icons.hourglass_empty), findsOneWidget);
+    expect(find.byIcon(BrambleIcons.hourglass), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
@@ -212,7 +213,7 @@ void main() {
     expect(find.text('E-ink'), findsOneWidget);
     expect(find.text('Sidebar'), findsNothing);
     // Back to the list.
-    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.tap(find.byIcon(BrambleIcons.caretLeft));
     await tester.pump();
     expect(find.text('Sidebar'), findsOneWidget);
   });

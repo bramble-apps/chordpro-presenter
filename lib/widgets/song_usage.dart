@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../browser.dart';
 import '../state.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// The "Useful for reporting" badge.
 class ReportingBadge extends StatelessWidget {
@@ -220,7 +221,7 @@ class _UsageDialogState extends State<_UsageDialog> {
           child: const Text('Clear…'),
         ),
         OutlinedButton.icon(
-          icon: const Icon(Icons.table_view_outlined, size: 18),
+          icon: const Icon(BrambleIcons.table, size: 18),
           label: const Text('Export CSV'),
           onPressed: rows.isEmpty
               ? null

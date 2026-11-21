@@ -16,6 +16,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../browser.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 // How many bytes of text each code size (version 1–40) holds, by error
 // correction (ISO/IEC 18004, byte mode). (The QR library doesn't say when
@@ -217,7 +218,7 @@ class _QrDialogState extends State<_QrDialog> {
                 IconButton(
                   tooltip: 'Close',
                   color: Colors.black87,
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(BrambleIcons.x),
                   onPressed: () => Navigator.pop(context),
                 ),
                 Expanded(
@@ -232,7 +233,7 @@ class _QrDialogState extends State<_QrDialog> {
                 IconButton(
                   tooltip: 'Copy the text',
                   color: Colors.black87,
-                  icon: const Icon(Icons.copy),
+                  icon: const Icon(BrambleIcons.copy),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: widget.text));
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -243,13 +244,13 @@ class _QrDialogState extends State<_QrDialog> {
                 IconButton(
                   tooltip: 'Save as picture',
                   color: Colors.black87,
-                  icon: const Icon(Icons.download),
+                  icon: const Icon(BrambleIcons.downloadSimple),
                   onPressed: _save,
                 ),
                 IconButton(
                   tooltip: 'Print',
                   color: Colors.black87,
-                  icon: const Icon(Icons.print_outlined),
+                  icon: const Icon(BrambleIcons.printer),
                   onPressed: _print,
                 ),
               ],

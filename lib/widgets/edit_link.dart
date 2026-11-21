@@ -9,6 +9,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../browser.dart';
 import '../state.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Shows the address (and QR code) to edit this library from a phone,
 /// tablet or another computer's browser.
@@ -56,7 +57,7 @@ Future<void> showEditLink(BuildContext context) async {
           ),
           IconButton(
             tooltip: 'Copy',
-            icon: const Icon(Icons.copy, size: 20),
+            icon: const Icon(BrambleIcons.copy, size: 20),
             onPressed: () => Clipboard.setData(ClipboardData(text: url)),
           ),
         ],
@@ -137,7 +138,7 @@ class RemoteEditStrip extends StatelessWidget {
         spacing: 10,
         children: [
           Icon(
-            error == null ? Icons.wifi_tethering : Icons.wifi_off,
+            error == null ? BrambleIcons.broadcast : BrambleIcons.wifiSlash,
             size: 18,
             color: on,
           ),

@@ -25,6 +25,7 @@ import 'browser.dart';
 import 'native_cast.dart';
 import 'native_display.dart';
 import 'youtube_handle.dart';
+import 'bramble_icons.dart';
 
 const _mimes = {
   'png': 'image/png',
@@ -529,7 +530,7 @@ class _ImportBrowserState extends State<_ImportBrowser> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilledButton.icon(
-              icon: const Icon(Icons.download_rounded),
+              icon: const Icon(BrambleIcons.downloadSimple),
               label: const Text('Import'),
               onPressed: _progress < 100 || _reading ? null : _import,
             ),

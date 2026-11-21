@@ -8,6 +8,7 @@ import '../fonts.dart';
 import '../themes.dart';
 import 'sidebar_icon.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Appearance and layout settings.
 class SettingsDialog extends StatelessWidget {
@@ -103,17 +104,17 @@ class SettingsDialog extends StatelessWidget {
                     ButtonSegment(
                       value: ThemeModeSetting.system,
                       label: Text('System'),
-                      icon: Icon(Icons.brightness_auto),
+                      icon: Icon(BrambleIcons.tbBrightnessAuto),
                     ),
                     ButtonSegment(
                       value: ThemeModeSetting.light,
                       label: Text('Light'),
-                      icon: Icon(Icons.light_mode),
+                      icon: Icon(BrambleIcons.sun),
                     ),
                     ButtonSegment(
                       value: ThemeModeSetting.dark,
                       label: Text('Dark'),
-                      icon: Icon(Icons.dark_mode),
+                      icon: Icon(BrambleIcons.moon),
                     ),
                   ],
                   selected: {s.mode},
@@ -161,7 +162,7 @@ class SettingsDialog extends StatelessWidget {
                     ButtonSegment(
                       value: true,
                       label: Text('Floating'),
-                      icon: Icon(Icons.layers),
+                      icon: Icon(BrambleIcons.stackFill),
                     ),
                   ],
                   selected: {s.floatingSidebar},
@@ -217,16 +218,14 @@ class SettingsDialog extends StatelessWidget {
                     collapsedShape: const Border(),
                     children: [
                       SwitchListTile(
-                        secondary: const Icon(Icons.av_timer),
+                        secondary: const Icon(BrambleIcons.timer),
                         title: const Text('Metronome'),
                         value: s.showMetronome,
                         onChanged: (v) =>
                             model.updateSettings((s) => s.showMetronome = v),
                       ),
                       SwitchListTile(
-                        secondary: const Icon(
-                          Icons.keyboard_double_arrow_down_rounded,
-                        ),
+                        secondary: const Icon(BrambleIcons.caretDoubleDown),
                         title: const Text('Autoscroll'),
                         subtitle: const Text(
                           "Over the song's duration, or 1:30",
@@ -236,7 +235,7 @@ class SettingsDialog extends StatelessWidget {
                             model.updateSettings((s) => s.showAutoscroll = v),
                       ),
                       SwitchListTile(
-                        secondary: const Icon(Icons.graphic_eq),
+                        secondary: const Icon(BrambleIcons.waveform),
                         title: const Text('Tuner and levels'),
                         subtitle: const Text(
                           'Listens through the microphone while open',
@@ -246,7 +245,7 @@ class SettingsDialog extends StatelessWidget {
                             model.updateSettings((s) => s.showTuner = v),
                       ),
                       SwitchListTile(
-                        secondary: const Icon(Icons.waves),
+                        secondary: const Icon(BrambleIcons.waves),
                         title: const Text('Pads'),
                         subtitle: const Text(
                           'A held chord under the music, in the song’s key',
@@ -257,7 +256,7 @@ class SettingsDialog extends StatelessWidget {
                       ),
                       if (gospelizerEnabled)
                         SwitchListTile(
-                          secondary: const Icon(Icons.auto_awesome_outlined),
+                          secondary: const Icon(BrambleIcons.sparkle),
                           title: const Text('Gospelizer'),
                           subtitle: const Text(
                             'Gospel passing chords between the song’s own',
@@ -267,7 +266,7 @@ class SettingsDialog extends StatelessWidget {
                               model.updateSettings((s) => s.showGospel = v),
                         ),
                       SwitchListTile(
-                        secondary: const Icon(Icons.smart_display_outlined),
+                        secondary: const Icon(BrambleIcons.monitorPlay),
                         title: const Text('Play reference recording'),
                         subtitle: const Text(
                           'For songs with a YouTube or audio link',
@@ -294,7 +293,7 @@ class SettingsDialog extends StatelessWidget {
                       subtitle: const Text(
                         'Reorder the top buttons, or put some in its ⋯ menu',
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(BrambleIcons.caretRight),
                       onTap: () {
                         Navigator.pop(context);
                         onCustomizeToolbar!();
@@ -307,7 +306,7 @@ class SettingsDialog extends StatelessWidget {
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
                   child: ListTile(
-                    leading: const Icon(Icons.share_outlined),
+                    leading: const Icon(BrambleIcons.shareNetwork),
                     title: const Text('OpenChords'),
                     subtitle: Text(
                       model.openChordsLinks.isEmpty
@@ -316,7 +315,7 @@ class SettingsDialog extends StatelessWidget {
                           : '${model.openChordsLinks.length} shared · '
                                 'links, sync and your OpenChords ID',
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: const Icon(BrambleIcons.caretRight),
                     onTap: () => showOpenChordsSettings(context, model),
                   ),
                 ),
@@ -550,7 +549,7 @@ class _SectionsState extends State<_Sections> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(title),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(BrambleIcons.caretRight),
               onTap: () => setState(() => _open = title),
             ),
         ],
@@ -591,7 +590,7 @@ class GospelizerSettings extends StatelessWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
-        leading: const Icon(Icons.auto_awesome_outlined),
+        leading: const Icon(BrambleIcons.sparkle),
         title: const Text('Gospelizer'),
         subtitle: const Text('Gospel passing chords between the song’s own'),
         shape: const Border(),

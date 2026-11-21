@@ -7,6 +7,7 @@ import '../browser.dart';
 import '../fonts.dart';
 import '../tabs.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// A guitar / ukulele tab on the chord sheet. [modern]: solid strings with
 /// the frets sitting on them, bar lines across (as Ultimate Guitar draws
@@ -139,7 +140,7 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
               visualDensity: VisualDensity.compact,
               color: widget.accent,
               icon: Icon(
-                playing ? Icons.graphic_eq_rounded : Icons.play_circle_outline,
+                playing ? BrambleIcons.waveform : BrambleIcons.tbPlayerPlay,
               ),
               onPressed: system.notes.any((n) => n.fret >= 0)
                   ? () => _play(i, system)

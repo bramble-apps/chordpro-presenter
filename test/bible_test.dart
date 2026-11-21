@@ -1,3 +1,5 @@
+import 'package:bilingual_projector/bramble_icons.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -437,7 +439,7 @@ void main() {
         expect(m.currentPassage?.second, 'LSG');
         expect(m.slides[m.scriptureStart], contains('Dieu'));
         // Its × goes back to one version.
-        await tester.tap(find.byIcon(Icons.close));
+        await tester.tap(find.byIcon(BrambleIcons.x));
         await tester.pumpAndSettle();
         expect(BibleLibrary.instance.second, isNull);
         expect(m.currentPassage?.second, isNull);

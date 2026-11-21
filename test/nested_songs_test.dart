@@ -1,3 +1,4 @@
+import 'package:bilingual_projector/bramble_icons.dart';
 import 'package:bilingual_projector/band_sync/protocol.dart';
 import 'package:bilingual_projector/browser.dart';
 import 'package:bilingual_projector/chordpro.dart';
@@ -198,7 +199,7 @@ void main() {
     );
     Finder handleOf(String text) => find.descendant(
       of: rowOf(text).first,
-      matching: find.byIcon(Icons.drag_indicator),
+      matching: find.byIcon(BrambleIcons.dotsSixVertical),
     );
     // C: up over B's lower half and right one step.
     var g = await tester.startGesture(tester.getCenter(handleOf('3. Song C')));

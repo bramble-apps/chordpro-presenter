@@ -13,6 +13,7 @@ import '../state.dart';
 import '../tuner/microphone.dart';
 import '../tuner/pitch.dart';
 import 'floating_panel.dart';
+import '../bramble_icons.dart';
 
 /// Chromatic tuner: the note heard, a needle for how sharp or flat it is,
 /// and the frequency. In tune = within ±5 cents. Its Levels tab shows how
@@ -184,7 +185,7 @@ class _TunerPanelState extends State<TunerPanel> {
             IconButton.filledTonal(
               tooltip: 'Turn the tuner on',
               iconSize: 40,
-              icon: const Icon(Icons.power_settings_new),
+              icon: const Icon(BrambleIcons.power),
               onPressed: _power,
             ),
             Text(
@@ -226,7 +227,10 @@ class _TunerPanelState extends State<TunerPanel> {
                       child: Row(
                         spacing: 6,
                         children: [
-                          Icon(Icons.drag_indicator, color: scheme.outline),
+                          Icon(
+                            BrambleIcons.dotsSixVertical,
+                            color: scheme.outline,
+                          ),
                           // (Shrink in a narrow panel.)
                           Flexible(
                             child: FittedBox(
@@ -259,7 +263,7 @@ class _TunerPanelState extends State<TunerPanel> {
                   isSelected: on,
                   // (E-ink: the theme's own on look, white on black.)
                   color: on && !isEink(context) ? scheme.primary : null,
-                  icon: const Icon(Icons.power_settings_new),
+                  icon: const Icon(BrambleIcons.power),
                   onPressed: _power,
                 ),
                 if (widget.onFullscreen != null)
@@ -269,15 +273,15 @@ class _TunerPanelState extends State<TunerPanel> {
                         : 'Full screen',
                     icon: Icon(
                       widget.fullscreen
-                          ? Icons.fullscreen_exit
-                          : Icons.fullscreen,
+                          ? BrambleIcons.cornersIn
+                          : BrambleIcons.cornersOut,
                     ),
                     onPressed: widget.onFullscreen,
                   ),
                 if (widget.onClose != null)
                   IconButton(
                     tooltip: 'Close tuner',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: widget.onClose,
                   ),
               ],
@@ -322,7 +326,7 @@ class _TunerPanelState extends State<TunerPanel> {
                   IconButton(
                     tooltip: 'Lower reference',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.remove, size: 18),
+                    icon: const Icon(BrambleIcons.minus, size: 18),
                     onPressed: a4 > 415 ? () => _setA4(a4 - 1) : null,
                   ),
                   Text(
@@ -334,7 +338,7 @@ class _TunerPanelState extends State<TunerPanel> {
                   IconButton(
                     tooltip: 'Raise reference',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.add, size: 18),
+                    icon: const Icon(BrambleIcons.plus, size: 18),
                     onPressed: a4 < 466 ? () => _setA4(a4 + 1) : null,
                   ),
                 ],
@@ -1141,7 +1145,7 @@ class _LevelsControlsState extends State<_LevelsControls> {
             IconButton(
               tooltip: 'Read lower',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.remove, size: 18),
+              icon: const Icon(BrambleIcons.minus, size: 18),
               onPressed: m.calibration > -30 ? () => _calibrate(-1) : null,
             ),
             Text(
@@ -1153,7 +1157,7 @@ class _LevelsControlsState extends State<_LevelsControls> {
             IconButton(
               tooltip: 'Read higher',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.add, size: 18),
+              icon: const Icon(BrambleIcons.plus, size: 18),
               onPressed: m.calibration < 30 ? () => _calibrate(1) : null,
             ),
           ] else ...[
@@ -1161,7 +1165,7 @@ class _LevelsControlsState extends State<_LevelsControls> {
             IconButton(
               tooltip: 'Less',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.remove, size: 18),
+              icon: const Icon(BrambleIcons.minus, size: 18),
               onPressed: m.scale > 0.26 ? () => _scaleBy(-1) : null,
             ),
             Text(
@@ -1173,7 +1177,7 @@ class _LevelsControlsState extends State<_LevelsControls> {
             IconButton(
               tooltip: 'More',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.add, size: 18),
+              icon: const Icon(BrambleIcons.plus, size: 18),
               onPressed: m.scale < 3.9 ? () => _scaleBy(1) : null,
             ),
           ],
@@ -1194,26 +1198,26 @@ class MicProblem extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, text) = switch (state) {
       MicState.denied => (
-        Icons.mic_off_outlined,
+        BrambleIcons.microphoneSlash,
         'Microphone access was turned down. Allow it for this app (in the '
             "browser's address bar or the system settings), then open the "
             'tuner again.',
       ),
       MicState.blocked => (
-        Icons.mic_off_outlined,
+        BrambleIcons.microphoneSlash,
         'Your computer is keeping the microphone from this browser. On a '
             'Mac: System Settings → Privacy & Security → Microphone, turn '
             'on your browser (e.g. Zen), then quit and reopen it. On '
             'Windows: Settings → Privacy → Microphone.',
       ),
       MicState.insecure => (
-        Icons.lock_outline,
+        BrambleIcons.lock,
         'Browsers only allow the microphone on a secure page. Open the app '
             'on this computer (localhost) or over https to use the tuner '
             'here. The installed app version doesn\'t have this limit.',
       ),
       _ => (
-        Icons.error_outline,
+        BrambleIcons.warningCircle,
         'Couldn\'t start the microphone. Check that one is connected and '
             'not in use by another app.',
       ),

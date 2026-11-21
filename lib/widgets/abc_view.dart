@@ -11,6 +11,7 @@ import '../scanner/engrave.dart';
 import '../scanner/playback.dart';
 import '../scanner/score.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// An ABC tune on the chord sheet: drawn as music by the sheet music
 /// scanner's engraver, with a play button (the scanner's grand piano) that
@@ -223,8 +224,8 @@ class _AbcViewState extends State<AbcView> with SingleTickerProviderStateMixin {
                   color: widget.accent,
                   icon: Icon(
                     _playing
-                        ? Icons.stop_circle_outlined
-                        : Icons.play_circle_outline,
+                        ? BrambleIcons.stopCircle
+                        : BrambleIcons.tbPlayerPlay,
                   ),
                   onPressed: _play,
                 ),

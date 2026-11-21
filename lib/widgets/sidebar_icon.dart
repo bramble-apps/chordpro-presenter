@@ -45,29 +45,30 @@ class _SidebarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Drawn on a 24 × 24 grid.
+    // Drawn on a 24 × 24 grid, in the app icons' style (Bramble Icons:
+    // Phosphor's 1.5 line, round ends, softly rounded corners).
     canvas.scale(size.width / 24, size.height / 24);
     final stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawRRect(
-      RRect.fromLTRBR(2.8, 4.8, 21.2, 19.2, const Radius.circular(3.4)),
+      RRect.fromLTRBR(3, 4.5, 21, 19.5, const Radius.circular(1.5)),
       stroke,
     );
     // The divider, its ends drawn in and its middle pushed out as it bends
     // into the chevron (‹ to close, › to open).
     final t = Curves.easeInOut.transform(chevron.clamp(0.0, 1.0));
-    const x = 9.0;
+    const x = 8.6;
     final tip = pointLeft ? x - 1.6 : x + 1.6;
     final back = pointLeft ? x + 1.0 : x - 1.0;
     double lerp(double a, double b) => a + (b - a) * t;
     final path = Path()
-      ..moveTo(lerp(x, back), lerp(4.8, 8.7))
+      ..moveTo(lerp(x, back), lerp(4.5, 8.7))
       ..lineTo(lerp(x, tip), 12)
-      ..lineTo(lerp(x, back), lerp(19.2, 15.3));
+      ..lineTo(lerp(x, back), lerp(19.5, 15.3));
     canvas.drawPath(path, stroke);
   }
 

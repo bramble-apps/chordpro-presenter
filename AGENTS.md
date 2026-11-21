@@ -14,6 +14,7 @@ with chords in two languages. Port of a macOS SwiftUI app.
 - `export.dart`, `slide_export.dart`, `freeshow.dart` — exports
 - `cast_*.dart`, `native_cast.dart`, `tools/serve.py` — casting to TVs
 - `browser*.dart`, `native*.dart` — platform-specific code (web vs desktop vs none stubs)
+- `bramble_icons.dart` — the app's icons (Bramble Icons, as in Echoes). Use `BrambleIcons.…`, not Material `Icons.…`. To add one: a line in `tool/bramble_icons.txt`, then run `tool/make_bramble_icons.py` (needs fonttools and the font from bramble-office)
 - Tests are in `test/`, one file per feature (e.g. `chordpro.dart` → `test/chordpro_test.dart`)
 
 ## Commands

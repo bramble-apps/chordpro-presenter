@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import 'resize_hold.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// One song in the swipe strip.
 class SwipePage {
@@ -672,9 +673,7 @@ class _SwipeArrow extends StatelessWidget {
               child: Transform.scale(
                 scale: 1 + 0.15 * t,
                 child: Icon(
-                  right
-                      ? Icons.arrow_forward_rounded
-                      : Icons.arrow_back_rounded,
+                  right ? BrambleIcons.arrowRight : BrambleIcons.arrowLeft,
                   size: 20,
                   color: Color.lerp(
                     scheme.onSurfaceVariant,

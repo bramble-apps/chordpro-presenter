@@ -26,6 +26,7 @@ import 'share_dialog.dart';
 import 'edit_link.dart';
 import 'sync_dialog.dart';
 import 'song_usage.dart';
+import '../bramble_icons.dart';
 
 enum _Mode { songs, setlists, trash, find, libraries, bandSync }
 
@@ -320,7 +321,7 @@ class _SidebarState extends State<Sidebar> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(
-                          Icons.create_new_folder_outlined,
+                          BrambleIcons.folderPlus,
                           size: 18,
                         ),
                         label: const Text('New library'),
@@ -330,7 +331,7 @@ class _SidebarState extends State<Sidebar> {
                     const SizedBox(width: 8),
                     IconButton.outlined(
                       tooltip: 'OpenChords settings',
-                      icon: const Icon(Icons.cloud_sync_outlined, size: 20),
+                      icon: const Icon(BrambleIcons.tbCloudUp, size: 20),
                       onPressed: () => showOpenChordsSettings(context, model),
                     ),
                   ],
@@ -398,7 +399,7 @@ class _SidebarState extends State<Sidebar> {
     );
     MenuItemButton view(_Mode mode, String value, String label) =>
         MenuItemButton(
-          leadingIcon: Icon(_mode == mode ? Icons.check : null, size: 20),
+          leadingIcon: Icon(_mode == mode ? BrambleIcons.check : null, size: 20),
           onPressed: () => _menuAction(value),
           child: Text(label),
         );
@@ -406,7 +407,7 @@ class _SidebarState extends State<Sidebar> {
     return MenuAnchor(
       builder: (context, controller, _) => IconButton(
         tooltip: 'Menu',
-        icon: const Icon(Icons.menu),
+        icon: const Icon(BrambleIcons.list),
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
       ),
@@ -420,16 +421,16 @@ class _SidebarState extends State<Sidebar> {
         if (!model.remoteEdit)
           item(
             'libraries',
-            Icons.folder_outlined,
+            BrambleIcons.folder,
             'Libraries…',
             subtitle: model.currentLibrary.name,
           ),
-        item('tags', Icons.sell_outlined, 'Manage tags…'),
+        item('tags', BrambleIcons.tag, 'Manage tags…'),
         const Divider(height: 1),
         // With others.
         item(
           'bandsync',
-          Icons.groups_outlined,
+          BrambleIcons.usersThree,
           'Band Sync…',
           subtitle: switch (model.bandSync.role) {
             BandSyncRole.leading => 'Leading a session',
@@ -438,20 +439,20 @@ class _SidebarState extends State<Sidebar> {
           },
         ),
         if (!model.remoteEdit)
-          item('remote-edit', Icons.devices_outlined, 'Remote…'),
+          item('remote-edit', BrambleIcons.devices, 'Remote…'),
         SubmenuButton(
-          leadingIcon: const Icon(Icons.handyman_outlined, size: 20),
+          leadingIcon: const Icon(BrambleIcons.wrench, size: 20),
           menuChildren: [
-            item('chords', Icons.library_music_outlined, 'Chord Library…'),
+            item('chords', BrambleIcons.vinylRecord, 'Chord Library…'),
             item(
               'scanner',
-              Icons.document_scanner_outlined,
+              BrambleIcons.scan,
               'Sheet music scanner…',
               subtitle: 'Read printed music, play it, get its chords',
             ),
             item(
               'usage',
-              Icons.bar_chart_outlined,
+              BrambleIcons.chartBar,
               'Song usage…',
               subtitle: 'Which songs were projected, and how often',
               badge: const ReportingBadge(),
@@ -461,19 +462,19 @@ class _SidebarState extends State<Sidebar> {
         ),
         const Divider(height: 1),
         // The library in and out.
-        item('import', Icons.file_upload_outlined, 'Import…'),
+        item('import', BrambleIcons.fileArrowUp, 'Import…'),
         SubmenuButton(
-          leadingIcon: const Icon(Icons.file_download_outlined, size: 20),
+          leadingIcon: const Icon(BrambleIcons.fileArrowDown, size: 20),
           menuChildren: [
             item(
               'export',
-              Icons.inventory_2_outlined,
+              BrambleIcons.archive,
               'Backup of everything',
               subtitle: 'Songs, setlists and PDFs, to import here later',
             ),
             item(
               'export-justchords',
-              Icons.ios_share,
+              BrambleIcons.export,
               'For JustChords (.json)',
               subtitle: 'Restore in JustChords (replaces its library)',
             ),
@@ -481,11 +482,11 @@ class _SidebarState extends State<Sidebar> {
           child: const Text('Export'),
         ),
         if (!model.remoteEdit) ...[
-          item('sync', Icons.cloud_sync_outlined, 'Backup & sync…'),
+          item('sync', BrambleIcons.tbCloudUp, 'Backup & sync…'),
         ],
         const Divider(height: 1),
-        item('settings', Icons.settings_outlined, 'Settings…'),
-        item('donate', Icons.favorite_outline, 'Support development…'),
+        item('settings', BrambleIcons.slidersHorizontal, 'Settings…'),
+        item('donate', BrambleIcons.heart, 'Support development…'),
       ],
     );
   }
@@ -638,7 +639,7 @@ class _SidebarState extends State<Sidebar> {
           isLabelVisible: active,
           smallSize: 6,
           backgroundColor: eink ? scheme.onSurface : scheme.primary,
-          child: const Icon(Icons.filter_list),
+          child: const Icon(BrambleIcons.funnelSimple),
         ),
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
@@ -647,7 +648,7 @@ class _SidebarState extends State<Sidebar> {
         for (final s in _Sort.values)
           MenuItemButton(
             leadingIcon: Icon(
-              s == _sort ? Icons.radio_button_checked : Icons.radio_button_off,
+              s == _sort ? BrambleIcons.radioButton : BrambleIcons.circle,
               size: 18,
             ),
             onPressed: () => setState(() => _sort = s),
@@ -656,18 +657,18 @@ class _SidebarState extends State<Sidebar> {
         const Divider(height: 1),
         MenuItemButton(
           leadingIcon: Icon(
-            _grouped ? Icons.check_box : Icons.check_box_outline_blank,
+            _grouped ? BrambleIcons.checkSquareFill : BrambleIcons.square,
             size: 18,
           ),
           onPressed: () => setState(() => _grouped = !_grouped),
           child: const Text('Group by letter'),
         ),
         SubmenuButton(
-          leadingIcon: const Icon(Icons.music_note, size: 18),
+          leadingIcon: const Icon(BrambleIcons.musicNote, size: 18),
           menuChildren: [
             MenuItemButton(
               leadingIcon: Icon(
-                _keyFilter == null ? Icons.check : null,
+                _keyFilter == null ? BrambleIcons.check : null,
                 size: 18,
               ),
               onPressed: () => setState(() => _keyFilter = null),
@@ -677,7 +678,7 @@ class _SidebarState extends State<Sidebar> {
             for (final k in keys)
               MenuItemButton(
                 leadingIcon: Icon(
-                  _keyFilter == k ? Icons.check : null,
+                  _keyFilter == k ? BrambleIcons.check : null,
                   size: 18,
                 ),
                 onPressed: () => setState(() => _keyFilter = k),
@@ -687,13 +688,13 @@ class _SidebarState extends State<Sidebar> {
           child: Text(_keyFilter == null ? 'Key' : 'Key: $_keyFilter'),
         ),
         SubmenuButton(
-          leadingIcon: const Icon(Icons.visibility_off_outlined, size: 18),
+          leadingIcon: const Icon(BrambleIcons.eyeSlash, size: 18),
           menuChildren: [
             for (final t in model.tags)
               MenuItemButton(
                 closeOnActivate: false,
                 leadingIcon: Icon(
-                  t.hidden ? Icons.check_box : Icons.check_box_outline_blank,
+                  t.hidden ? BrambleIcons.checkSquareFill : BrambleIcons.square,
                   size: 18,
                 ),
                 onPressed: () => model.updateTag(t, hidden: !t.hidden),
@@ -726,13 +727,13 @@ class _SidebarState extends State<Sidebar> {
                     ),
                   ActionChip(
                     visualDensity: VisualDensity.compact,
-                    avatar: const Icon(Icons.add, size: 16),
+                    avatar: const Icon(BrambleIcons.plus, size: 16),
                     label: const Text('New tag'),
                     onPressed: _newTag,
                   ),
                   ActionChip(
                     visualDensity: VisualDensity.compact,
-                    avatar: const Icon(Icons.sell_outlined, size: 16),
+                    avatar: const Icon(BrambleIcons.tag, size: 16),
                     label: const Text('Manage tags'),
                     onPressed: _openTagManager,
                   ),
@@ -768,7 +769,7 @@ class _SidebarState extends State<Sidebar> {
                 controller: _search,
                 decoration: InputDecoration(
                   hintText: 'Search',
-                  prefixIcon: const Icon(Icons.search, size: 20),
+                  prefixIcon: const Icon(BrambleIcons.magnifyingGlass, size: 20),
                   // Same height as the buttons beside it, in every style
                   // (icons otherwise make the field 48 px tall).
                   prefixIconConstraints: const BoxConstraints(
@@ -789,7 +790,7 @@ class _SidebarState extends State<Sidebar> {
                         IconButton(
                           tooltip: 'Clear',
                           visualDensity: VisualDensity.compact,
-                          icon: const Icon(Icons.close, size: 18),
+                          icon: const Icon(BrambleIcons.x, size: 18),
                           onPressed: _search.clear,
                         ),
                       _filterMenu(),
@@ -813,7 +814,7 @@ class _SidebarState extends State<Sidebar> {
           children: [
             IconButton(
               tooltip: 'Back to songs',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _mode = _Mode.songs),
             ),
             Expanded(child: Text('Band Sync', style: style)),
@@ -824,7 +825,7 @@ class _SidebarState extends State<Sidebar> {
           children: [
             IconButton(
               tooltip: 'Back to songs',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _mode = _Mode.songs),
             ),
             Expanded(child: Text('Libraries', style: style)),
@@ -835,7 +836,7 @@ class _SidebarState extends State<Sidebar> {
           children: [
             IconButton(
               tooltip: 'Back',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _mode = _beforeFind),
             ),
             Expanded(child: Text('Find songs', style: style)),
@@ -847,7 +848,7 @@ class _SidebarState extends State<Sidebar> {
           children: [
             IconButton(
               tooltip: 'All setlists',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _openSetlistId = null),
             ),
             Expanded(
@@ -860,7 +861,7 @@ class _SidebarState extends State<Sidebar> {
             ),
             PopupMenuButton<String>(
               tooltip: 'Setlist options',
-              icon: const Icon(Icons.more_vert),
+              icon: const Icon(BrambleIcons.dotsThreeVertical),
               onSelected: (v) async {
                 if (v == 'edit') {
                   await showAppDialog<void>(
@@ -950,7 +951,7 @@ class _SidebarState extends State<Sidebar> {
               IconButton(
                 tooltip: 'Manage tags',
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.sell_outlined, size: 20),
+                icon: const Icon(BrambleIcons.tag, size: 20),
                 onPressed: _openTagManager,
               ),
               const SizedBox(width: 6),
@@ -978,7 +979,7 @@ class _SidebarState extends State<Sidebar> {
               IconButton(
                 tooltip: 'New tag',
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.add, size: 20),
+                icon: const Icon(BrambleIcons.plus, size: 20),
                 onPressed: _newTag,
               ),
             ],
@@ -1036,8 +1037,8 @@ class _SidebarState extends State<Sidebar> {
           _Row(
             leading: Icon(
               lib.id == model.libraryId
-                  ? Icons.folder_open
-                  : Icons.folder_outlined,
+                  ? BrambleIcons.folderOpen
+                  : BrambleIcons.folder,
             ),
             title: lib.name,
             subtitle: lib.id == model.libraryId
@@ -1147,24 +1148,24 @@ class _SidebarState extends State<Sidebar> {
           style: buttonStyle,
           onPressed: () =>
               controller.isOpen ? controller.close() : controller.open(),
-          child: const Icon(Icons.add, size: 20),
+          child: const Icon(BrambleIcons.plus, size: 20),
         ),
       ),
       menuChildren: [
         MenuItemButton(
-          leadingIcon: const Icon(Icons.music_note, size: 18),
+          leadingIcon: const Icon(BrambleIcons.musicNote, size: 18),
           onPressed: () => widget.onEditSong(Song(title: '', raw: '')),
           child: const Text('New song'),
         ),
         MenuItemButton(
-          leadingIcon: const Icon(Icons.playlist_add, size: 18),
+          leadingIcon: const Icon(BrambleIcons.listPlus, size: 18),
           onPressed: _newSetlist,
           child: const Text('New setlist'),
         ),
         if (openSet != null) ...[
           const Divider(height: 1),
           MenuItemButton(
-            leadingIcon: const Icon(Icons.library_add, size: 18),
+            leadingIcon: const Icon(BrambleIcons.tbLibraryPlus, size: 18),
             onPressed: () async {
               final ids = await _pickSongs(context, model);
               if (ids != null && ids.isNotEmpty) {
@@ -1176,9 +1177,9 @@ class _SidebarState extends State<Sidebar> {
           for (final t in [EntryType.divider, EntryType.label, EntryType.event])
             MenuItemButton(
               leadingIcon: Icon(switch (t) {
-                EntryType.divider => Icons.horizontal_rule,
-                EntryType.label => Icons.label_outline,
-                _ => Icons.event,
+                EntryType.divider => BrambleIcons.minus,
+                EntryType.label => BrambleIcons.tagSimple,
+                _ => BrambleIcons.calendarBlank,
               }, size: 18),
               onPressed: () => _addMarker(openSet, t),
               child: Text('Add ${_entryTypeName(t).toLowerCase()}'),
@@ -1186,22 +1187,22 @@ class _SidebarState extends State<Sidebar> {
           const Divider(height: 1),
         ],
         MenuItemButton(
-          leadingIcon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+          leadingIcon: const Icon(BrambleIcons.filePdf, size: 18),
           onPressed: _addPdfSongs,
           child: const Text('PDF or picture as a song…'),
         ),
         MenuItemButton(
-          leadingIcon: const Icon(Icons.travel_explore, size: 18),
+          leadingIcon: const Icon(BrambleIcons.globeSimple, size: 18),
           onPressed: _openFind,
           child: const Text('Find songs online'),
         ),
         MenuItemButton(
-          leadingIcon: const Icon(Icons.content_paste, size: 18),
+          leadingIcon: const Icon(BrambleIcons.clipboardText, size: 18),
           onPressed: () => _openFind(paste: true),
           child: const Text('Paste a song'),
         ),
         MenuItemButton(
-          leadingIcon: const Icon(Icons.cloud_download_outlined, size: 18),
+          leadingIcon: const Icon(BrambleIcons.cloudArrowDown, size: 18),
           onPressed: () async {
             final set = await showOpenChordsOpen(context, model);
             if (set != null && mounted) {
@@ -1219,7 +1220,7 @@ class _SidebarState extends State<Sidebar> {
     final inSongs = _mode == _Mode.songs;
     final toggle = FilledButton.tonalIcon(
       style: buttonStyle,
-      icon: Icon(inSongs ? Icons.queue_music : Icons.library_music, size: 18),
+      icon: Icon(inSongs ? BrambleIcons.playlist : BrambleIcons.musicNotesSimpleFill, size: 18),
       label: Text(inSongs ? 'Setlists' : 'Songs'),
       onPressed: () => setState(() {
         _mode = inSongs ? _Mode.setlists : _Mode.songs;
@@ -1241,7 +1242,7 @@ class _SidebarState extends State<Sidebar> {
         ),
         if (_mode == _Mode.trash)
           OutlinedButton.icon(
-            icon: const Icon(Icons.delete_forever, size: 18),
+            icon: const Icon(BrambleIcons.trash, size: 18),
             label: const Text('Empty Trash'),
             onPressed: model.trash.isEmpty
                 ? null
@@ -1684,7 +1685,7 @@ class _SidebarState extends State<Sidebar> {
         // Following a Band Sync session: the leader's setlist.
         if (band != null)
           _Row(
-            leading: const Icon(Icons.groups_outlined),
+            leading: const Icon(BrambleIcons.usersThree),
             title: band.name,
             subtitle:
                 'Band Sync · ${band.songCount} '
@@ -1924,7 +1925,7 @@ class _SetlistDetailState extends State<_SetlistDetail> {
       cursor: SystemMouseCursors.grab,
       child: Padding(
         padding: EdgeInsets.only(right: 8),
-        child: Icon(Icons.drag_indicator, size: 18),
+        child: Icon(BrambleIcons.dotsSixVertical, size: 18),
       ),
     ),
   );
@@ -2227,7 +2228,7 @@ class _SetlistDetailState extends State<_SetlistDetail> {
           SimpleDialogOption(
             onPressed: () => Navigator.pop(context, 'bg'),
             child: const ListTile(
-              leading: Icon(Icons.wallpaper),
+              leading: Icon(BrambleIcons.imageSquare),
               title: Text('Background for this song'),
               subtitle: Text('Here in this setlist'),
             ),
@@ -2235,7 +2236,7 @@ class _SetlistDetailState extends State<_SetlistDetail> {
           SimpleDialogOption(
             onPressed: () => Navigator.pop(context, 'after'),
             child: const ListTile(
-              leading: Icon(Icons.playlist_add),
+              leading: Icon(BrambleIcons.listPlus),
               title: Text('Play after this song'),
             ),
           ),
@@ -2403,11 +2404,11 @@ class _MediaEntryRow extends StatelessWidget {
       accent: colorNamed(entry.color),
       title: entry.title.isEmpty ? (item?.name ?? 'Media') : entry.title,
       icon: switch (item?.kind) {
-        MediaKind.image => Icons.image_outlined,
-        MediaKind.video => Icons.movie_outlined,
-        MediaKind.audio => Icons.music_note_outlined,
-        MediaKind.youtube => Icons.smart_display_outlined,
-        _ => Icons.link,
+        MediaKind.image => BrambleIcons.image,
+        MediaKind.video => BrambleIcons.filmStrip,
+        MediaKind.audio => BrambleIcons.musicNote,
+        MediaKind.youtube => BrambleIcons.monitorPlay,
+        _ => BrambleIcons.linkSimple,
       },
       subtitle:
           '${item?.kind.label ?? 'Media'} · ${switch (mode) {
@@ -2472,7 +2473,7 @@ class _BibleEntryRow extends StatelessWidget {
       leading: handle,
       accent: colorNamed(entry.color),
       title: entry.title.isEmpty ? (p?.reference ?? 'Bible') : entry.title,
-      icon: Icons.menu_book_outlined,
+      icon: BrambleIcons.bookOpenText,
       subtitle: 'Bible · ${p?.versions ?? '?'}',
       selected: entry.id == model.activeEntryId,
       onTap: p == null
@@ -2516,7 +2517,7 @@ class _MarkerRow extends StatelessWidget {
     final color = colorNamed(entry.color) ?? scheme.outline;
     final menu = PopupMenuButton<String>(
       tooltip: 'More',
-      icon: const Icon(Icons.more_horiz, size: 18),
+      icon: const Icon(BrambleIcons.dotsThree, size: 18),
       onSelected: (v) async {
         switch (v) {
           case 'rename':
@@ -2569,7 +2570,7 @@ class _MarkerRow extends StatelessWidget {
       ),
       _ => Row(
         children: [
-          Icon(Icons.event, size: 18, color: color),
+          Icon(BrambleIcons.calendarBlank, size: 18, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -2763,7 +2764,7 @@ class _Row extends StatelessWidget {
         ],
         PopupMenuButton<String>(
           tooltip: 'More',
-          icon: Icon(Icons.more_horiz, size: 18, color: on),
+          icon: Icon(BrambleIcons.dotsThree, size: 18, color: on),
           onSelected: (k) => menu[k]!(),
           itemBuilder: (_) => [
             for (final k in menu.keys) PopupMenuItem(value: k, child: Text(k)),
@@ -2889,9 +2890,9 @@ Future<String?> _pickColor(BuildContext context, String? current) {
                         namedColors[name] ??
                         Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: name == (current ?? '')
-                        ? const Icon(Icons.check, size: 16)
+                        ? const Icon(BrambleIcons.check, size: 16)
                         : (name.isEmpty
-                              ? const Icon(Icons.block, size: 16)
+                              ? const Icon(BrambleIcons.prohibit, size: 16)
                               : null),
                   ),
                 ),
@@ -3017,7 +3018,7 @@ Future<List<String>?> _pickSongs(BuildContext context, PresenterModel model) {
                   autofocus: true,
                   decoration: const InputDecoration(
                     hintText: 'Search',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: Icon(BrambleIcons.magnifyingGlass),
                     isDense: true,
                   ),
                   onChanged: (v) => setState(() => query = v),
@@ -3143,7 +3144,7 @@ class _SetlistDetailsDialogState extends State<_SetlistDetailsDialog> {
                 if (_date != null)
                   IconButton(
                     tooltip: 'Clear date',
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(BrambleIcons.x, size: 18),
                     onPressed: () => setState(() => _date = null),
                   ),
               ],
@@ -3256,8 +3257,8 @@ class _TagManager extends StatelessWidget {
                                     : 'Hide from All Songs',
                                 icon: Icon(
                                   tag.hidden
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
+                                      ? BrambleIcons.eyeSlash
+                                      : BrambleIcons.eye,
                                 ),
                                 onPressed: () =>
                                     model.updateTag(tag, hidden: !tag.hidden),
@@ -3267,7 +3268,7 @@ class _TagManager extends StatelessWidget {
                                     ? VisualDensity.compact
                                     : null,
                                 tooltip: 'Rename',
-                                icon: const Icon(Icons.edit_outlined),
+                                icon: const Icon(BrambleIcons.pencilSimple),
                                 onPressed: () async {
                                   final n = await _askName(
                                     context,
@@ -3287,8 +3288,8 @@ class _TagManager extends StatelessWidget {
                                     : 'OpenChords link & sync',
                                 icon: Icon(
                                   model.openChordsLinkFor(tag.id) == null
-                                      ? Icons.share_outlined
-                                      : Icons.cloud_done_outlined,
+                                      ? BrambleIcons.shareNetwork
+                                      : BrambleIcons.cloudCheck,
                                 ),
                                 onPressed: () =>
                                     showOpenChordsShareTag(context, model, tag),
@@ -3298,7 +3299,7 @@ class _TagManager extends StatelessWidget {
                                     ? VisualDensity.compact
                                     : null,
                                 tooltip: 'Delete tag',
-                                icon: const Icon(Icons.delete_outline),
+                                icon: const Icon(BrambleIcons.trash),
                                 onPressed: () async {
                                   final ok = await _confirm(
                                     context,
@@ -3464,7 +3465,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
     return [
       heading('Leading'),
       _Row(
-        leading: const Icon(Icons.podcasts),
+        leading: const Icon(BrambleIcons.broadcast),
         title: set?.name ?? 'Setlist',
         subtitle: 'Others can join as “${band.nickname}”',
         selected: true,
@@ -3479,7 +3480,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
         ),
       for (final f in band.followers)
         _Row(
-          leading: const Icon(Icons.tablet_mac_outlined),
+          leading: const Icon(BrambleIcons.deviceTablet),
           title: f,
           selected: false,
           onTap: null,
@@ -3488,7 +3489,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
       Padding(
         padding: const EdgeInsets.all(10),
         child: FilledButton.tonalIcon(
-          icon: const Icon(Icons.stop_rounded),
+          icon: const Icon(BrambleIcons.stopFill),
           label: const Text('Stop session'),
           onPressed: band.stopLeading,
         ),
@@ -3506,7 +3507,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
     return [
       heading('Following'),
       _Row(
-        leading: Icon(online ? Icons.wifi_tethering : Icons.wifi_tethering_off),
+        leading: Icon(online ? BrambleIcons.broadcast : BrambleIcons.tbAntennaBarsOff),
         title: set?.name ?? s?.title ?? 'Session',
         subtitle: [if (s != null) 'from ${s.leader}', ?band.status].join(' · '),
         selected: true,
@@ -3520,7 +3521,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
       Padding(
         padding: const EdgeInsets.all(10),
         child: FilledButton.tonalIcon(
-          icon: const Icon(Icons.logout),
+          icon: const Icon(BrambleIcons.signOut),
           label: const Text('Leave session'),
           onPressed: band.leave,
         ),
@@ -3548,7 +3549,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
             ),
           IconButton(
             tooltip: 'Scan again',
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(BrambleIcons.arrowsClockwise),
             onPressed: band.scan,
           ),
         ],
@@ -3556,7 +3557,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
       if (band.sessions.isEmpty) note('Looking for sessions on this network…'),
       for (final s in band.sessions)
         _Row(
-          leading: const Icon(Icons.podcasts),
+          leading: const Icon(BrambleIcons.broadcast),
           title: s.title.isEmpty ? 'Session' : s.title,
           subtitle: 'from ${s.leader}',
           selected: false,
@@ -3571,7 +3572,7 @@ class _BandSyncPaneState extends State<_BandSyncPane> {
       for (final set in model.setlists)
         _Row(
           leading: Icon(
-            Icons.queue_music,
+            BrambleIcons.playlist,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           title: set.name,

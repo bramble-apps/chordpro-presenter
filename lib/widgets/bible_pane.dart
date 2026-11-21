@@ -7,6 +7,7 @@ import '../browser.dart';
 import '../eink.dart';
 import '../state.dart';
 import '../themes.dart';
+import '../bramble_icons.dart';
 
 /// Presentation mode's Bible tool. Top: the version (and, when added, a
 /// second one shown beside it) and the chapter, with arrows to the next
@@ -266,7 +267,7 @@ class _BiblePaneState extends State<BiblePane> {
             children: [
               for (final s in model.setlists)
                 ListTile(
-                  leading: const Icon(Icons.queue_music_outlined),
+                  leading: const Icon(BrambleIcons.playlist),
                   title: Text(s.name),
                   subtitle: Text(
                     '${s.entries.length} item'
@@ -290,7 +291,7 @@ class _BiblePaneState extends State<BiblePane> {
                     ),
                     IconButton(
                       tooltip: 'Create it and save',
-                      icon: const Icon(Icons.add),
+                      icon: const Icon(BrambleIcons.plus),
                       onPressed: () => create(context),
                     ),
                   ],
@@ -452,7 +453,7 @@ class _BiblePaneState extends State<BiblePane> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          arrow(Icons.chevron_left_rounded, 'Previous chapter', -1),
+          arrow(BrambleIcons.caretLeft, 'Previous chapter', -1),
           Flexible(
             child: Tooltip(
               message: 'Choose a book and chapter, or type a passage',
@@ -470,7 +471,7 @@ class _BiblePaneState extends State<BiblePane> {
               ),
             ),
           ),
-          arrow(Icons.chevron_right_rounded, 'Next chapter', 1),
+          arrow(BrambleIcons.caretRight, 'Next chapter', 1),
         ],
       ),
     );
@@ -513,7 +514,7 @@ class _BiblePaneState extends State<BiblePane> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _pillLabel(id),
-                  const Icon(Icons.arrow_drop_down, size: 20),
+                  const Icon(BrambleIcons.caretDownFill, size: 20),
                 ],
               ),
             ),
@@ -526,7 +527,7 @@ class _BiblePaneState extends State<BiblePane> {
                 child: const SizedBox(
                   width: 36,
                   height: _control,
-                  child: Icon(Icons.close, size: 18),
+                  child: Icon(BrambleIcons.x, size: 18),
                 ),
               ),
             ),
@@ -549,7 +550,7 @@ class _BiblePaneState extends State<BiblePane> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.add, size: 20, color: scheme.primary),
+          Icon(BrambleIcons.plus, size: 20, color: scheme.primary),
           if (label) ...[
             const SizedBox(width: 4),
             Text(
@@ -635,7 +636,7 @@ class _BiblePaneState extends State<BiblePane> {
                 key: const Key('bible-queue'),
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.playlist_play),
+                leading: const Icon(BrambleIcons.tbPlaylist),
                 title: Text(queued == 0 ? 'Queue' : 'Queue ($queued)'),
               ),
             ),
@@ -644,7 +645,7 @@ class _BiblePaneState extends State<BiblePane> {
               child: ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.bookmarks_outlined),
+                leading: const Icon(BrambleIcons.bookmarksSimple),
                 title: Text(
                   saved == 0
                       ? 'Saved in setlists'
@@ -683,7 +684,7 @@ class _BiblePaneState extends State<BiblePane> {
             child: ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.file_open_outlined),
+              leading: Icon(BrambleIcons.folderOpen),
               title: Text('Import a Bible (XML)…'),
             ),
           ),
@@ -694,7 +695,7 @@ class _BiblePaneState extends State<BiblePane> {
                 child: ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.delete_outline),
+                  leading: const Icon(BrambleIcons.trash),
                   title: Text('Remove ${v.id}'),
                 ),
               ),
@@ -706,7 +707,7 @@ class _BiblePaneState extends State<BiblePane> {
             child: Badge(
               isLabelVisible: lists && queued > 0,
               label: Text('$queued'),
-              child: const Icon(Icons.more_vert),
+              child: const Icon(BrambleIcons.dotsThreeVertical),
             ),
           ),
         ),
@@ -796,7 +797,7 @@ class _BiblePaneState extends State<BiblePane> {
               context,
               key: const Key('bible-queue'),
               view: _View.queue,
-              icon: Icons.playlist_play,
+              icon: BrambleIcons.tbPlaylist,
               label: 'Queue',
               count: lib.queue.length,
             ),
@@ -804,7 +805,7 @@ class _BiblePaneState extends State<BiblePane> {
             _viewToggle(
               context,
               view: _View.saved,
-              icon: Icons.bookmarks_outlined,
+              icon: BrambleIcons.bookmarksSimple,
               label: 'Saved in setlists',
               count: model.savedPassages.length,
             ),
@@ -930,7 +931,11 @@ class _BiblePaneState extends State<BiblePane> {
               if (live)
                 Padding(
                   padding: const EdgeInsets.only(left: 6, top: 2),
-                  child: Icon(Icons.slideshow, size: 16, color: scheme.primary),
+                  child: Icon(
+                    BrambleIcons.presentationFill,
+                    size: 16,
+                    color: scheme.primary,
+                  ),
                 ),
             ],
           ),
@@ -947,7 +952,7 @@ class _BiblePaneState extends State<BiblePane> {
         children: [
           IconButton(
             tooltip: 'Back to the verses',
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(BrambleIcons.arrowLeft),
             onPressed: () => setState(() => _view = _View.verses),
           ),
           Expanded(
@@ -976,7 +981,9 @@ class _BiblePaneState extends State<BiblePane> {
       key: key,
       dense: true,
       selected: live,
-      leading: Icon(live ? Icons.slideshow : Icons.menu_book_outlined),
+      leading: Icon(
+        live ? BrambleIcons.presentationFill : BrambleIcons.bookOpenText,
+      ),
       title: Text(p.reference),
       subtitle: Text([?note, p.versions].join(' · ')),
       onTap: onTap,
@@ -994,7 +1001,7 @@ class _BiblePaneState extends State<BiblePane> {
               TextButton(onPressed: lib.clearQueue, child: const Text('Clear')),
               const SizedBox(width: 4),
               FilledButton.tonalIcon(
-                icon: const Icon(Icons.skip_next),
+                icon: const Icon(BrambleIcons.skipForwardFill),
                 label: const Text('Show next'),
                 onPressed: () {
                   final p = lib.queue.first;
@@ -1008,7 +1015,7 @@ class _BiblePaneState extends State<BiblePane> {
         Expanded(
           child: lib.queue.isEmpty
               ? const _Empty(
-                  icon: Icons.playlist_add,
+                  icon: BrambleIcons.listPlus,
                   text:
                       'Nothing lined up. Pick verses and press the queue '
                       'button next to Show.',
@@ -1034,14 +1041,14 @@ class _BiblePaneState extends State<BiblePane> {
                         children: [
                           IconButton(
                             tooltip: 'Remove from the queue',
-                            icon: const Icon(Icons.close, size: 18),
+                            icon: const Icon(BrambleIcons.x, size: 18),
                             onPressed: () => lib.dequeue(i),
                           ),
                           ReorderableDragStartListener(
                             index: i,
                             child: const Padding(
                               padding: EdgeInsets.all(8),
-                              child: Icon(Icons.drag_handle, size: 20),
+                              child: Icon(BrambleIcons.equals, size: 20),
                             ),
                           ),
                         ],
@@ -1062,7 +1069,7 @@ class _BiblePaneState extends State<BiblePane> {
         Expanded(
           child: saved.isEmpty
               ? const _Empty(
-                  icon: Icons.bookmark_add_outlined,
+                  icon: BrambleIcons.bookmarkSimple,
                   text:
                       'Nothing saved. Pick verses and press the bookmark '
                       'next to Show: the passage goes in a setlist (never '
@@ -1079,7 +1086,7 @@ class _BiblePaneState extends State<BiblePane> {
                         onTap: () => model.selectEntry(set, entry),
                         trailing: IconButton(
                           tooltip: 'Remove from ${set.name}',
-                          icon: const Icon(Icons.close, size: 18),
+                          icon: const Icon(BrambleIcons.x, size: 18),
                           onPressed: () => model.removeEntry(set, entry),
                         ),
                       ),
@@ -1160,7 +1167,7 @@ class _BiblePaneState extends State<BiblePane> {
             ),
             action(
               key: const Key('bible-queue-add'),
-              icon: Icons.playlist_add,
+              icon: BrambleIcons.listPlus,
               label: 'Queue',
               tooltip: 'Add to the queue',
               onPressed: () {
@@ -1169,7 +1176,7 @@ class _BiblePaneState extends State<BiblePane> {
               },
             ),
             action(
-              icon: Icons.bookmark_add_outlined,
+              icon: BrambleIcons.bookmarkSimple,
               label: 'Save',
               tooltip: 'Save in a setlist',
               onPressed: _saveToSetlist,
@@ -1187,7 +1194,7 @@ class _BiblePaneState extends State<BiblePane> {
                 visualDensity: VisualDensity.standard,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              icon: const Icon(Icons.slideshow),
+              icon: const Icon(BrambleIcons.presentationFill),
               label: const Text('Show'),
               onPressed: () => _show(p),
             ),
@@ -1397,7 +1404,7 @@ class _PassagePickerState extends State<_PassagePicker> {
           children: [
             IconButton(
               tooltip: 'All books',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _book = null),
             ),
             Text(
@@ -1452,13 +1459,13 @@ class _PassagePickerState extends State<_PassagePicker> {
           isDense: true,
           hintText: 'Type a passage: John 3:16-18',
           errorText: _error,
-          prefixIcon: const Icon(Icons.search, size: 20),
+          prefixIcon: const Icon(BrambleIcons.magnifyingGlass, size: 20),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(inkR(10)),
           ),
           suffixIcon: IconButton(
             tooltip: 'Go',
-            icon: const Icon(Icons.arrow_forward),
+            icon: const Icon(BrambleIcons.arrowRight),
             onPressed: _go,
           ),
         ),

@@ -9,6 +9,7 @@ import '../pdfs.dart';
 import '../state.dart';
 import 'scanner_screen.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// A song with PDFs or pictures: tabs at the top for its ChordPro (when it
 /// has any) and each file, and the sheet-music view options (cropped, theme
@@ -79,13 +80,13 @@ class _SongDocTabsState extends State<SongDocTabs> {
               IconButton(
                 tooltip: crop ? 'Show whole pages' : 'Crop the margins',
                 isSelected: crop,
-                icon: const Icon(Icons.crop),
+                icon: const Icon(BrambleIcons.crop),
                 onPressed: () =>
                     model.updateSettings((s) => s.sheetCrop = !crop),
               ),
               IconButton(
                 tooltip: 'Read the notes (play, export, chords)',
-                icon: const Icon(Icons.document_scanner_outlined),
+                icon: const Icon(BrambleIcons.scan),
                 onPressed: () async {
                   final pdf = widget.pdfs[pdfIndex];
                   final bytes = await PdfStore.bytes(pdf.id);
@@ -104,7 +105,7 @@ class _SongDocTabsState extends State<SongDocTabs> {
                     ? 'Show the original colours'
                     : 'Match the theme’s colours',
                 isSelected: themed,
-                icon: const Icon(Icons.contrast),
+                icon: const Icon(BrambleIcons.circleHalf),
                 onPressed: () =>
                     model.updateSettings((s) => s.sheetThemeColors = !themed),
               ),
@@ -136,14 +137,14 @@ class _SongDocTabsState extends State<SongDocTabs> {
                                 label: Text(t, overflow: TextOverflow.ellipsis),
                                 icon: Icon(
                                   k == 0 && widget.chordPro != null
-                                      ? Icons.music_note_outlined
+                                      ? BrambleIcons.musicNote
                                       : widget
                                             .pdfs[widget.chordPro != null
                                                 ? k - 1
                                                 : k]
                                             .isImage
-                                      ? Icons.image_outlined
-                                      : Icons.picture_as_pdf_outlined,
+                                      ? BrambleIcons.image
+                                      : BrambleIcons.filePdf,
                                   size: 18,
                                   color: scheme.onSurfaceVariant,
                                 ),

@@ -17,6 +17,7 @@ import '../pdfs.dart';
 import '../state.dart';
 import 'color_picker.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// One picture on the sheet.
 class SheetImage {
@@ -548,16 +549,22 @@ class _ImageOnSheetState extends State<_ImageOnSheet> {
       width: full.width,
       height: full.height,
       toolbar: _bar(scheme, [
-        _button('Done cropping', Icons.check, _finishCrop, scheme, on: true),
+        _button(
+          'Done cropping',
+          BrambleIcons.check,
+          _finishCrop,
+          scheme,
+          on: true,
+        ),
         _button(
           'Show the whole picture',
-          Icons.crop_free,
+          BrambleIcons.cornersOut,
           () => setState(() => _crop = [0, 0, 1, 1]),
           scheme,
         ),
         _button(
           'Cancel',
-          Icons.close,
+          BrambleIcons.x,
           () => setState(() => _cropping = false),
           scheme,
         ),
@@ -652,7 +659,7 @@ class _ImageOnSheetState extends State<_ImageOnSheet> {
           padding: EdgeInsets.zero,
           position: PopupMenuPosition.under,
           icon: Icon(
-            Icons.format_color_fill,
+            BrambleIcons.paintBucket,
             size: 21,
             color: img.tint == null ? null : scheme.primary,
           ),
@@ -700,7 +707,7 @@ class _ImageOnSheetState extends State<_ImageOnSheet> {
         img.mask
             ? 'Mask on: no white background'
             : 'Mask (remove the white background)',
-        Icons.layers_clear_outlined,
+        BrambleIcons.tbStackPop,
         () {
           setState(() => img.mask = !img.mask);
           widget.onChanged(true);
@@ -708,8 +715,8 @@ class _ImageOnSheetState extends State<_ImageOnSheet> {
         scheme,
         on: img.mask,
       ),
-      _button('Crop', Icons.crop, _startCrop, scheme),
-      _button('Delete picture', Icons.delete_outline, widget.onDelete, scheme),
+      _button('Crop', BrambleIcons.crop, _startCrop, scheme),
+      _button('Delete picture', BrambleIcons.trash, widget.onDelete, scheme),
     ]);
   }
 }

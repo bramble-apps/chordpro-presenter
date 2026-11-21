@@ -5,6 +5,7 @@ import '../music.dart';
 import '../translation.dart';
 import 'translate_dialog.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 class StructureResult {
   final List<StructureItem> structure;
@@ -189,7 +190,11 @@ class _StructureEditorState extends State<StructureEditor> {
       tooltip: 'Remove',
       visualDensity: VisualDensity.compact,
       onPressed: onTap,
-      icon: const Icon(Icons.remove_circle, size: 20, color: Color(0xFFE5534B)),
+      icon: const Icon(
+        BrambleIcons.minusCircleFill,
+        size: 20,
+        color: Color(0xFFE5534B),
+      ),
     );
 
     return Dialog(
@@ -204,7 +209,7 @@ class _StructureEditorState extends State<StructureEditor> {
                 children: [
                   IconButton.filledTonal(
                     tooltip: 'Cancel',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -225,13 +230,13 @@ class _StructureEditorState extends State<StructureEditor> {
                   IconButton(
                     tooltip: 'Translate slides',
                     isSelected: translatedLanguages(_raw).isNotEmpty,
-                    icon: const Icon(Icons.language_rounded),
+                    icon: const Icon(BrambleIcons.globe),
                     onPressed: _translate,
                   ),
                   const SizedBox(width: 4),
                   IconButton.filledTonal(
                     tooltip: 'Save',
-                    icon: const Icon(Icons.check),
+                    icon: const Icon(BrambleIcons.check),
                     onPressed: () => Navigator.pop(
                       context,
                       StructureResult([for (final i in _items) i.value], _raw),
@@ -339,10 +344,7 @@ class _StructureEditorState extends State<StructureEditor> {
                           const SizedBox(height: 10),
                           const Row(
                             children: [
-                              Icon(
-                                Icons.warning_amber_rounded,
-                                color: Colors.orange,
-                              ),
+                              Icon(BrambleIcons.warning, color: Colors.orange),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -361,7 +363,7 @@ class _StructureEditorState extends State<StructureEditor> {
                           ),
                           onPressed: () =>
                               _add(const StructureItem.keyChange(0)),
-                          icon: const Icon(Icons.add),
+                          icon: const Icon(BrambleIcons.plus),
                           label: const Text('Modulation'),
                         ),
                         const SizedBox(height: 8),
@@ -494,7 +496,7 @@ class _StructureEditorState extends State<StructureEditor> {
       index: group,
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Icon(Icons.drag_handle, size: 20),
+        child: Icon(BrambleIcons.equals, size: 20),
       ),
     );
     final remove = removeButton(() => _remove(i));
@@ -503,7 +505,7 @@ class _StructureEditorState extends State<StructureEditor> {
       final from = _fromLabel(i);
       body = Row(
         children: [
-          Icon(Icons.swap_vert, color: scheme.secondary),
+          Icon(BrambleIcons.arrowsDownUp, color: scheme.secondary),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -539,7 +541,7 @@ class _StructureEditorState extends State<StructureEditor> {
               children: [
                 IconButton(
                   tooltip: 'Down a semitone',
-                  icon: const Icon(Icons.remove),
+                  icon: const Icon(BrambleIcons.minus),
                   onPressed: () => setState(
                     () => item.value = StructureItem.keyChange(
                       normalizeTranspose(item.value.semitones - 1),
@@ -548,7 +550,7 @@ class _StructureEditorState extends State<StructureEditor> {
                 ),
                 IconButton(
                   tooltip: 'Up a semitone',
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(BrambleIcons.plus),
                   onPressed: () => setState(
                     () => item.value = StructureItem.keyChange(
                       normalizeTranspose(item.value.semitones + 1),
@@ -576,7 +578,7 @@ class _StructureEditorState extends State<StructureEditor> {
             IconButton(
               tooltip: 'Edit section',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.edit, size: 18),
+              icon: const Icon(BrambleIcons.pencilSimple, size: 18),
               onPressed: () => _editSection(item.value.name),
             ),
         ],

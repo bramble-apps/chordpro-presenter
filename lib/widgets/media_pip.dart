@@ -5,6 +5,7 @@ import '../browser.dart';
 import '../themes.dart';
 import 'floating_panel.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// The YouTube video id in a link (watch, youtu.be, shorts, embed,
 /// music…), or null.
@@ -119,7 +120,7 @@ class _MediaPipState extends State<MediaPip> {
                 children: [
                   const SizedBox(width: 10),
                   Icon(
-                    Icons.drag_indicator,
+                    BrambleIcons.dotsSixVertical,
                     size: 18,
                     color: scheme.onSurfaceVariant,
                   ),
@@ -135,7 +136,7 @@ class _MediaPipState extends State<MediaPip> {
                   IconButton(
                     tooltip: 'Close player',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close, size: 18),
+                    icon: const Icon(BrambleIcons.x, size: 18),
                     onPressed: widget.onClose,
                   ),
                 ],
@@ -191,7 +192,11 @@ class _FilePlayer extends StatelessWidget {
               )
             else
               const Center(
-                child: Icon(Icons.music_note, color: Colors.white38, size: 48),
+                child: Icon(
+                  BrambleIcons.musicNote,
+                  color: Colors.white38,
+                  size: 48,
+                ),
               ),
             Align(
               alignment: Alignment.bottomCenter,
@@ -200,7 +205,11 @@ class _FilePlayer extends StatelessWidget {
                   IconButton(
                     tooltip: v.isPlaying ? 'Pause' : 'Play',
                     color: Colors.white,
-                    icon: Icon(v.isPlaying ? Icons.pause : Icons.play_arrow),
+                    icon: Icon(
+                      v.isPlaying
+                          ? BrambleIcons.pauseFill
+                          : BrambleIcons.playFill,
+                    ),
                     onPressed: v.isPlaying ? controller.pause : controller.play,
                   ),
                   Expanded(

@@ -6,6 +6,7 @@ import 'chord_diagram.dart';
 import 'chord_sound.dart';
 import 'chord_strip.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Chord Library: every diagram for a chord on an instrument, plus the
 /// shapes you made (My chords). Tap a diagram to hear it; + makes a shape.
@@ -62,7 +63,7 @@ class _ChordLibraryDialogState extends State<_ChordLibraryDialog> {
           const Expanded(child: Text('Chord Library')),
           IconButton(
             tooltip: 'Make your own shape',
-            icon: const Icon(Icons.add),
+            icon: const Icon(BrambleIcons.plus),
             onPressed: () => _add(context),
           ),
         ],
@@ -345,7 +346,7 @@ class _ChordEditorState extends State<_ChordEditor> {
                     const Text('Base fret'),
                     IconButton(
                       tooltip: 'Lower',
-                      icon: const Icon(Icons.remove),
+                      icon: const Icon(BrambleIcons.minus),
                       onPressed: _baseFret > 1
                           ? () => setState(() => _baseFret--)
                           : null,
@@ -353,7 +354,7 @@ class _ChordEditorState extends State<_ChordEditor> {
                     Text('$_baseFret'),
                     IconButton(
                       tooltip: 'Higher',
-                      icon: const Icon(Icons.add),
+                      icon: const Icon(BrambleIcons.plus),
                       onPressed: _baseFret < 20
                           ? () => setState(() => _baseFret++)
                           : null,

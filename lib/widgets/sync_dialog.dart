@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../cloud_sync.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// The app's backups and sync (set up in main.dart; null in tests).
 CloudSync? cloudSync;
@@ -146,7 +147,7 @@ class _SyncDialogState extends State<_SyncDialog> {
               spacing: 10,
               children: [
                 // ---- Folder backup ----
-                heading(Icons.folder_copy_outlined, 'Folder backup'),
+                heading(BrambleIcons.folders, 'Folder backup'),
                 if (!widget.folderOk)
                   Text(
                     'Saving backups to a folder works in the computer app. '
@@ -219,7 +220,7 @@ class _SyncDialogState extends State<_SyncDialog> {
                 const Divider(height: 24),
 
                 // ---- WebDAV sync ----
-                heading(Icons.sync, 'Sync (WebDAV)'),
+                heading(BrambleIcons.arrowsClockwise, 'Sync (WebDAV)'),
                 Text(
                   'Keeps the library the same on every device signed in to '
                   'the same account, song by song. Works with Koofr '
@@ -285,7 +286,7 @@ class _SyncDialogState extends State<_SyncDialog> {
                     suffixIcon: IconButton(
                       tooltip: _showPass ? 'Hide' : 'Show',
                       icon: Icon(
-                        _showPass ? Icons.visibility_off : Icons.visibility,
+                        _showPass ? BrambleIcons.eyeSlash : BrambleIcons.eye,
                       ),
                       onPressed: () => setState(() => _showPass = !_showPass),
                     ),
@@ -344,14 +345,14 @@ class _SyncDialogState extends State<_SyncDialog> {
                   runSpacing: 4,
                   children: [
                     TextButton.icon(
-                      icon: const Icon(Icons.cloud_upload_outlined, size: 18),
+                      icon: const Icon(BrambleIcons.cloudArrowUp, size: 18),
                       label: const Text('Re-upload everything'),
                       onPressed: widget.sync.syncing || !s.davOn
                           ? null
                           : () => _force(SyncForce.push),
                     ),
                     TextButton.icon(
-                      icon: const Icon(Icons.cloud_download_outlined, size: 18),
+                      icon: const Icon(BrambleIcons.cloudArrowDown, size: 18),
                       label: const Text('Re-download everything'),
                       onPressed: widget.sync.syncing || !s.davOn
                           ? null

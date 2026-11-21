@@ -21,6 +21,7 @@ import 'dynamic_background.dart';
 import 'qr_share.dart';
 import 'slide_capture.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 enum ShareFormat { pdf, chordPro, text, slides, freeShow, justChords }
 
@@ -451,7 +452,7 @@ class _ShareDialogState extends State<ShareDialog> {
                   ),
                   IconButton(
                     tooltip: 'Close',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -462,12 +463,12 @@ class _ShareDialogState extends State<ShareDialog> {
                     const ButtonSegment(
                       value: ShareScope.song,
                       label: Text('This song'),
-                      icon: Icon(Icons.music_note_outlined),
+                      icon: Icon(BrambleIcons.musicNote),
                     ),
                     ButtonSegment(
                       value: ShareScope.setlist,
                       label: Text('Whole setlist (${_setSongs.length})'),
-                      icon: const Icon(Icons.queue_music_rounded),
+                      icon: const Icon(BrambleIcons.playlist),
                     ),
                   ],
                   selected: {_scope},
@@ -481,32 +482,32 @@ class _ShareDialogState extends State<ShareDialog> {
                     ButtonSegment(
                       value: ShareFormat.pdf,
                       label: Text('PDF'),
-                      icon: Icon(Icons.picture_as_pdf_outlined),
+                      icon: Icon(BrambleIcons.filePdf),
                     ),
                     ButtonSegment(
                       value: ShareFormat.chordPro,
                       label: Text('ChordPro'),
-                      icon: Icon(Icons.music_note_outlined),
+                      icon: Icon(BrambleIcons.musicNote),
                     ),
                     ButtonSegment(
                       value: ShareFormat.text,
                       label: Text('Text'),
-                      icon: Icon(Icons.notes),
+                      icon: Icon(BrambleIcons.textAlignLeft),
                     ),
                     ButtonSegment(
                       value: ShareFormat.slides,
                       label: Text('Slides'),
-                      icon: Icon(Icons.slideshow_outlined),
+                      icon: Icon(BrambleIcons.presentation),
                     ),
                     ButtonSegment(
                       value: ShareFormat.freeShow,
                       label: Text('FreeShow'),
-                      icon: Icon(Icons.live_tv_outlined),
+                      icon: Icon(BrambleIcons.broadcast),
                     ),
                     ButtonSegment(
                       value: ShareFormat.justChords,
                       label: Text('JustChords'),
-                      icon: Icon(Icons.library_music_outlined),
+                      icon: Icon(BrambleIcons.vinylRecord),
                     ),
                   ],
                   selected: {_format},
@@ -620,12 +621,12 @@ class _ShareDialogState extends State<ShareDialog> {
                         ButtonSegment(
                           value: true,
                           label: Text('Editable text'),
-                          icon: Icon(Icons.text_fields_rounded),
+                          icon: Icon(BrambleIcons.textT),
                         ),
                         ButtonSegment(
                           value: false,
                           label: Text('Pictures'),
-                          icon: Icon(Icons.image_outlined),
+                          icon: Icon(BrambleIcons.image),
                         ),
                       ],
                       selected: {_editable},
@@ -672,7 +673,7 @@ class _ShareDialogState extends State<ShareDialog> {
                           _format == ShareFormat.text) &&
                       !_isSet)
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.qr_code_2, size: 18),
+                      icon: const Icon(BrambleIcons.qrCode, size: 18),
                       label: const Text('QR code'),
                       onPressed: () => showTextQr(
                         context,
@@ -683,7 +684,7 @@ class _ShareDialogState extends State<ShareDialog> {
                   if (_format == ShareFormat.chordPro && !_isSet ||
                       _format == ShareFormat.text)
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.copy, size: 18),
+                      icon: const Icon(BrambleIcons.copy, size: 18),
                       label: const Text('Copy'),
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: _text));
@@ -700,7 +701,7 @@ class _ShareDialogState extends State<ShareDialog> {
                             dimension: 18,
                             child: AppSpinner(strokeWidth: 2),
                           )
-                        : const Icon(Icons.download, size: 18),
+                        : const Icon(BrambleIcons.downloadSimple, size: 18),
                     label: Text(_downloadLabel),
                     onPressed: canDownload ? _download : null,
                   ),
@@ -859,7 +860,7 @@ class _ShareDialogState extends State<ShareDialog> {
               for (final n in names)
                 ListTile(
                   dense: true,
-                  leading: const Icon(Icons.description_outlined),
+                  leading: const Icon(BrambleIcons.fileText),
                   title: Text(n),
                 ),
             ],
@@ -891,7 +892,7 @@ class _ShareDialogState extends State<ShareDialog> {
               const SizedBox(height: 12),
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.description_outlined),
+                leading: const Icon(BrambleIcons.fileText),
                 title: Text('$_stem.jcarchive'),
               ),
             ],

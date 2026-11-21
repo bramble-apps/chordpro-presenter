@@ -6,6 +6,7 @@ import '../browser.dart';
 import '../native.dart';
 import '../state.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// "Show on another screen": Chromecast, attached / AirPlay displays.
 class CastDialog extends StatefulWidget {
@@ -126,7 +127,7 @@ class _CastDialogState extends State<CastDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                heading(Icons.cast, 'Chromecast & Google TV'),
+                heading(BrambleIcons.screencast, 'Chromecast & Google TV'),
                 // The Android app casts with Google's Cast SDK.
                 if (NativeCastSection.available)
                   NativeCastSection(model: model)
@@ -145,7 +146,7 @@ class _CastDialogState extends State<CastDialog> {
                                 height: 16,
                                 child: AppSpinner(strokeWidth: 2),
                               )
-                            : const Icon(Icons.refresh),
+                            : const Icon(BrambleIcons.arrowsClockwise),
                         label: const Text('Find devices'),
                       ),
                     ],
@@ -156,8 +157,8 @@ class _CastDialogState extends State<CastDialog> {
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(
                         _castingTo.contains(d['id'])
-                            ? Icons.cast_connected
-                            : Icons.tv,
+                            ? BrambleIcons.screencastFill
+                            : BrambleIcons.televisionSimple,
                       ),
                       title: Text('${d['name']}'),
                       subtitle: Text('${d['model']}'),
@@ -198,13 +199,13 @@ class _CastDialogState extends State<CastDialog> {
                     children: [
                       FilledButton.icon(
                         onPressed: _busy || model.casting ? null : _cast,
-                        icon: const Icon(Icons.cast),
+                        icon: const Icon(BrambleIcons.screencast),
                         label: const Text('Cast…'),
                       ),
                       if (model.casting)
                         OutlinedButton.icon(
                           onPressed: model.stopCast,
-                          icon: const Icon(Icons.cast_connected),
+                          icon: const Icon(BrambleIcons.screencastFill),
                           label: const Text('Stop casting'),
                         ),
                     ],
@@ -216,7 +217,7 @@ class _CastDialogState extends State<CastDialog> {
                     child: Text(_message!),
                   ),
                 if (_relay != null) ...[
-                  heading(Icons.qr_code_2, 'Any screen with a web browser'),
+                  heading(BrambleIcons.qrCode, 'Any screen with a web browser'),
                   note(
                     'Open this link on a smart TV, tablet, phone or another '
                     'computer on the same Wi-Fi. It shows the projector and '
@@ -244,7 +245,7 @@ class _CastDialogState extends State<CastDialog> {
                               onPressed: () => Clipboard.setData(
                                 ClipboardData(text: '${_relay!['url']}'),
                               ),
-                              icon: const Icon(Icons.copy, size: 16),
+                              icon: const Icon(BrambleIcons.copy, size: 16),
                               label: const Text('Copy link'),
                             ),
                           ],
@@ -256,19 +257,16 @@ class _CastDialogState extends State<CastDialog> {
                 // The Android app shows the projector on a monitor / TV /
                 // projector plugged into the phone (or Samsung DeX).
                 if (NativeDisplaySection.available) ...[
-                  heading(Icons.connected_tv, 'External display'),
+                  heading(BrambleIcons.television, 'External display'),
                   NativeDisplaySection(model: model),
                 ] else
-                  heading(
-                    Icons.desktop_windows_outlined,
-                    'Displays on this computer',
-                  ),
+                  heading(BrambleIcons.desktop, 'Displays on this computer'),
                 if (NativeDisplaySection.available)
                   const SizedBox.shrink()
                 else if (displayListSupported) ...[
                   OutlinedButton.icon(
                     onPressed: _findDisplays,
-                    icon: const Icon(Icons.search),
+                    icon: const Icon(BrambleIcons.magnifyingGlass),
                     label: const Text('Find displays'),
                   ),
                   if (_displays != null && _displays!.isEmpty)
@@ -277,7 +275,11 @@ class _CastDialogState extends State<CastDialog> {
                     ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(d.primary ? Icons.laptop_mac : Icons.tv),
+                      leading: Icon(
+                        d.primary
+                            ? BrambleIcons.laptop
+                            : BrambleIcons.televisionSimple,
+                      ),
                       title: Text(d.label),
                       subtitle: Text(
                         '${d.width}×${d.height}${d.primary ? ' · this screen' : ''}',
@@ -293,7 +295,7 @@ class _CastDialogState extends State<CastDialog> {
                     'Open the projector window (▶), drag it onto the other '
                     'display, then press F (or double-click) for fullscreen.',
                   ),
-                heading(Icons.airplay, 'AirPlay'),
+                heading(BrambleIcons.screencast, 'AirPlay'),
                 if (isMac) ...[
                   note(
                     'AirPlay is part of macOS, so use it as an extra display:',

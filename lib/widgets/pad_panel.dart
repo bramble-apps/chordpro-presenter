@@ -9,6 +9,7 @@ import '../pads/pad_controller.dart';
 import '../pads/sf2.dart';
 import 'floating_panel.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// The worship pad: twelve keys (the song's key marked; the one playing
 /// lit), follow the song's key, octave, volume, and the sound (built in or
@@ -64,7 +65,10 @@ class PadPanel extends StatelessWidget {
                         child: Row(
                           spacing: 6,
                           children: [
-                            Icon(Icons.drag_indicator, color: scheme.outline),
+                            Icon(
+                              BrambleIcons.dotsSixVertical,
+                              color: scheme.outline,
+                            ),
                             Text('Pads', style: theme.textTheme.titleMedium),
                             if (pads.busy)
                               const SizedBox.square(
@@ -82,21 +86,23 @@ class PadPanel extends StatelessWidget {
                     color: pads.playing && !isEink(context)
                         ? scheme.primary
                         : null,
-                    icon: const Icon(Icons.power_settings_new),
+                    icon: const Icon(BrambleIcons.power),
                     onPressed: pads.toggle,
                   ),
                   if (onFullscreen != null)
                     IconButton(
                       tooltip: fullscreen ? 'Exit full screen' : 'Full screen',
                       icon: Icon(
-                        fullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                        fullscreen
+                            ? BrambleIcons.cornersIn
+                            : BrambleIcons.cornersOut,
                       ),
                       onPressed: onFullscreen,
                     ),
                   if (onClose != null)
                     IconButton(
                       tooltip: 'Close pads (keeps playing)',
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(BrambleIcons.x),
                       onPressed: onClose,
                     ),
                 ],
@@ -151,7 +157,7 @@ class _PadBody extends StatelessWidget {
             Expanded(child: _SoundButton(pads: pads)),
             IconButton(
               tooltip: 'Sound settings',
-              icon: const Icon(Icons.tune),
+              icon: const Icon(BrambleIcons.slidersHorizontal),
               onPressed: () => _showSoundSettings(context, pads),
             ),
           ],
@@ -222,7 +228,7 @@ class _PadBody extends StatelessWidget {
             IconButton(
               tooltip: 'Octave down',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.remove),
+              icon: const Icon(BrambleIcons.minus),
               onPressed: s.padOctave > -1
                   ? () => pads.change((s) => s.padOctave--)
                   : null,
@@ -236,7 +242,7 @@ class _PadBody extends StatelessWidget {
             IconButton(
               tooltip: 'Octave up',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.add),
+              icon: const Icon(BrambleIcons.plus),
               onPressed: s.padOctave < 2
                   ? () => pads.change((s) => s.padOctave++)
                   : null,
@@ -245,7 +251,7 @@ class _PadBody extends StatelessWidget {
         ),
         Row(
           children: [
-            Icon(Icons.volume_down, color: scheme.onSurfaceVariant),
+            Icon(BrambleIcons.speakerLow, color: scheme.onSurfaceVariant),
             Expanded(
               child: Slider(
                 value: s.padVolume,
@@ -254,7 +260,7 @@ class _PadBody extends StatelessWidget {
                 onChanged: pads.setVolume,
               ),
             ),
-            Icon(Icons.volume_up, color: scheme.onSurfaceVariant),
+            Icon(BrambleIcons.speakerHigh, color: scheme.onSurfaceVariant),
           ],
         ),
       ],
@@ -366,7 +372,7 @@ class _SoundButton extends StatelessWidget {
                 SizedBox(
                   width: 28,
                   child: c.id == current.id
-                      ? const Icon(Icons.check, size: 18)
+                      ? const Icon(BrambleIcons.check, size: 18)
                       : null,
                 ),
                 Expanded(child: Text(c.name, overflow: TextOverflow.ellipsis)),
@@ -374,7 +380,7 @@ class _SoundButton extends StatelessWidget {
                   IconButton(
                     tooltip: 'Remove this sound',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.delete_outline, size: 18),
+                    icon: const Icon(BrambleIcons.trash, size: 18),
                     onPressed: () {
                       Navigator.pop(context);
                       pads.deleteSound(c);
@@ -390,7 +396,7 @@ class _SoundButton extends StatelessWidget {
             children: [
               SizedBox(
                 width: 28,
-                child: Icon(Icons.file_open_outlined, size: 18),
+                child: Icon(BrambleIcons.folderOpen, size: 18),
               ),
               Text('Import SoundFont (.sf2)…'),
             ],
@@ -402,7 +408,7 @@ class _SoundButton extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              current.imported ? Icons.library_music_outlined : Icons.waves,
+              current.imported ? BrambleIcons.vinylRecord : BrambleIcons.waves,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -413,7 +419,7 @@ class _SoundButton extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
-            const Icon(Icons.arrow_drop_down),
+            const Icon(BrambleIcons.caretDownFill),
           ],
         ),
       ),
@@ -570,7 +576,7 @@ class _PresetPickerState extends State<_PresetPicker> {
             TextField(
               autofocus: true,
               decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(BrambleIcons.magnifyingGlass),
                 hintText: 'Find a sound (pad, strings, choir…)',
               ),
               onChanged: (v) => setState(() => _filter = v),

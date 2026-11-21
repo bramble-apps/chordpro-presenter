@@ -1,3 +1,4 @@
+import 'package:bilingual_projector/bramble_icons.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
@@ -340,8 +341,8 @@ void main() {
   testWidgets('screen menu: open window, copy link, stop', (tester) async {
     final model = await pumpApp(tester);
     expect(find.byTooltip('Project'), findsOneWidget);
-    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
-    expect(find.byIcon(Icons.cast), findsNothing, reason: 'one button now');
+    expect(find.byIcon(BrambleIcons.playFill), findsNothing);
+    expect(find.byIcon(BrambleIcons.screencast), findsNothing, reason: 'one button now');
 
     await tester.tap(find.byTooltip('Project'));
     await tester.pumpAndSettle();
@@ -884,7 +885,7 @@ void main() {
     expect(model.stickiesOf(song).single.colour, 0xFFFFB3D1);
 
     // Moving it hides the toolbar; where it lands is saved.
-    final strip = find.byIcon(Icons.drag_handle).last;
+    final strip = find.byIcon(BrambleIcons.equals).last;
     final g = await tester.startGesture(tester.getCenter(strip));
     await g.moveBy(const Offset(60, 40));
     await tester.pump(const Duration(milliseconds: 300));
@@ -1399,7 +1400,7 @@ void main() {
     expect(note.width, greaterThanOrEqualTo(110));
 
     // Move it against the right edge; the toolbar stays on screen.
-    final strip = find.byIcon(Icons.drag_handle).last;
+    final strip = find.byIcon(BrambleIcons.equals).last;
     await tester.drag(strip, const Offset(600, 0));
     await tester.pumpAndSettle();
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
@@ -1655,7 +1656,7 @@ void main() {
     bool on() => tester
         .widget<IconButton>(
           find.ancestor(
-            of: find.byIcon(Icons.brush_outlined),
+            of: find.byIcon(BrambleIcons.paintBrush),
             matching: find.byType(IconButton),
           ),
         )
@@ -1740,7 +1741,7 @@ void main() {
     addTearDown(mouse.removePointer);
     // Into the middle of the page (at its edge, pinning keeps it inside).
     await tester.drag(
-      find.byIcon(Icons.drag_handle).last,
+      find.byIcon(BrambleIcons.equals).last,
       const Offset(-500, 60),
     );
     await tester.pumpAndSettle();
@@ -1875,7 +1876,7 @@ void main() {
     expect(find.byTooltip('Unlink (separate slides)'), findsOneWidget);
 
     // Drag Chorus above the linked pair: the pair moves as one.
-    final handles = find.byIcon(Icons.drag_handle);
+    final handles = find.byIcon(BrambleIcons.equals);
     final g = await tester.startGesture(tester.getCenter(handles.last));
     await tester.pump(kLongPressTimeout);
     for (var i = 0; i < 10; i++) {
@@ -2563,7 +2564,7 @@ void main() {
 
     final plus = tester.getSize(
       find.ancestor(
-        of: find.byIcon(Icons.add).last,
+        of: find.byIcon(BrambleIcons.plus).last,
         matching: find.byType(FilledButton),
       ),
     );
@@ -2795,7 +2796,7 @@ void main() {
     );
     final handle = find.descendant(
       of: settingsRow,
-      matching: find.byIcon(Icons.drag_indicator),
+      matching: find.byIcon(BrambleIcons.dotsSixVertical),
     );
     final g = await tester.startGesture(tester.getCenter(handle));
     await tester.pump(kLongPressTimeout);

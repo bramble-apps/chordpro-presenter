@@ -8,6 +8,7 @@ import '../state.dart';
 import 'floating_panel.dart';
 import 'rich_note_controller.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Classic sticky-note colours.
 const stickyColours = <(String, int)>[
@@ -323,7 +324,7 @@ class _StickyCardState extends State<StickyCard>
                       ),
                       alignment: Alignment.center,
                       child: Icon(
-                        Icons.drag_handle,
+                        BrambleIcons.equals,
                         size: 14,
                         color: eink ? ink : ink.withValues(alpha: 0.35),
                       ),
@@ -470,18 +471,18 @@ class _StickyCardState extends State<StickyCard>
             // The selection, or the whole note when nothing is selected.
             button(
               'Bold',
-              Icons.format_bold,
+              BrambleIcons.textB,
               _text.toggleBold,
               on: _text.all((c) => c.bold),
             ),
             button(
               'Italic',
-              Icons.format_italic,
+              BrambleIcons.textItalic,
               _text.toggleItalic,
               on: _text.all((c) => c.italic),
             ),
-            button('Smaller text', Icons.remove, () => _text.resize(-2)),
-            button('Larger text', Icons.add, () => _text.resize(2)),
+            button('Smaller text', BrambleIcons.minus, () => _text.resize(-2)),
+            button('Larger text', BrambleIcons.plus, () => _text.resize(2)),
             slot(
               PopupMenuButton<int>(
                 tooltip: 'Note colour',
@@ -534,13 +535,13 @@ class _StickyCardState extends State<StickyCard>
               note.pinned
                   ? 'Unpin (float over the app)'
                   : 'Pin to the page (scrolls with it)',
-              note.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+              note.pinned ? BrambleIcons.pushPinFill : BrambleIcons.pushPin,
               _togglePin,
               on: note.pinned,
             ),
             button(
               'Delete note',
-              Icons.delete_outline,
+              BrambleIcons.trash,
               () => widget.model.removeSticky(widget.song, note.id),
             ),
           ],

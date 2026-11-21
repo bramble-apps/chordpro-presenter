@@ -13,6 +13,7 @@ import '../media_library.dart';
 import '../state.dart';
 import '../themes.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Whether the media pane is open (presentation mode).
 final mediaPaneOpen = ValueNotifier(false);
@@ -290,12 +291,12 @@ class _MediaPaneState extends State<MediaPane> {
                   _crumb(
                     '',
                     'Media',
-                    icon: Icons.perm_media_outlined,
+                    icon: BrambleIcons.images,
                     style: theme.textTheme.titleSmall,
                   ),
                   for (var i = 0; i < path.length; i++) ...[
                     Icon(
-                      Icons.chevron_right,
+                      BrambleIcons.caretRight,
                       size: 18,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -313,7 +314,7 @@ class _MediaPaneState extends State<MediaPane> {
             // Wide enough that its rows' titles stay on one line.
             constraints: const BoxConstraints(minWidth: 240, maxWidth: 340),
             tooltip: 'Add',
-            icon: const Icon(Icons.add),
+            icon: const Icon(BrambleIcons.plus),
             onSelected: (v) => switch (v) {
               'files' => _importFiles(),
               'link' => _addLink(),
@@ -323,7 +324,7 @@ class _MediaPaneState extends State<MediaPane> {
               PopupMenuItem(
                 value: 'files',
                 child: ListTile(
-                  leading: Icon(Icons.perm_media_outlined),
+                  leading: Icon(BrambleIcons.images),
                   title: Text('Pictures, videos or audio…'),
                   subtitle: Text('Choose several at once'),
                 ),
@@ -331,14 +332,14 @@ class _MediaPaneState extends State<MediaPane> {
               PopupMenuItem(
                 value: 'link',
                 child: ListTile(
-                  leading: Icon(Icons.smart_display_outlined),
+                  leading: Icon(BrambleIcons.monitorPlay),
                   title: Text('YouTube or other link…'),
                 ),
               ),
               PopupMenuItem(
                 value: 'folder',
                 child: ListTile(
-                  leading: Icon(Icons.create_new_folder_outlined),
+                  leading: Icon(BrambleIcons.folderPlus),
                   title: Text('New folder…'),
                 ),
               ),
@@ -347,7 +348,7 @@ class _MediaPaneState extends State<MediaPane> {
           if (widget.onClose != null)
             IconButton(
               tooltip: 'Close media',
-              icon: const Icon(Icons.close),
+              icon: const Icon(BrambleIcons.x),
               onPressed: widget.onClose,
             ),
         ],
@@ -449,7 +450,7 @@ class _MediaPaneState extends State<MediaPane> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.file_download_outlined,
+              BrambleIcons.fileArrowDown,
               size: 32,
               color: scheme.onSurfaceVariant,
             ),
@@ -550,20 +551,22 @@ class _LiveBarState extends State<_LiveBar> {
         IconButton(
           tooltip: live.playing ? 'Pause' : 'Play',
           visualDensity: VisualDensity.compact,
-          icon: Icon(live.playing ? Icons.pause : Icons.play_arrow),
+          icon: Icon(
+            live.playing ? BrambleIcons.pauseFill : BrambleIcons.playFill,
+          ),
           onPressed: () => model.setLivePlaying(!live.playing),
         ),
         IconButton(
           tooltip: 'Start again',
           visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.replay),
+          icon: const Icon(BrambleIcons.arrowCounterClockwise),
           onPressed: model.restartLive,
         ),
       ],
       IconButton(
         tooltip: 'Stop (back to the lyrics)',
         visualDensity: VisualDensity.compact,
-        icon: const Icon(Icons.stop_rounded),
+        icon: const Icon(BrambleIcons.stopFill),
         onPressed: model.stopLive,
       ),
     ];
@@ -652,11 +655,11 @@ class _LiveBarState extends State<_LiveBar> {
 }
 
 IconData _iconOf(MediaKind kind) => switch (kind) {
-  MediaKind.image => Icons.image_outlined,
-  MediaKind.video => Icons.movie_outlined,
-  MediaKind.audio => Icons.music_note_outlined,
-  MediaKind.youtube => Icons.smart_display_outlined,
-  MediaKind.link => Icons.link,
+  MediaKind.image => BrambleIcons.image,
+  MediaKind.video => BrambleIcons.filmStrip,
+  MediaKind.audio => BrambleIcons.musicNote,
+  MediaKind.youtube => BrambleIcons.monitorPlay,
+  MediaKind.link => BrambleIcons.linkSimple,
 };
 
 class _FolderTile extends StatelessWidget {
@@ -706,7 +709,7 @@ class _FolderTile extends StatelessWidget {
           color: scheme.primaryContainer,
           child: Center(
             child: Icon(
-              Icons.folder_rounded,
+              BrambleIcons.folderFill,
               size: 52,
               color: scheme.onPrimaryContainer,
             ),
@@ -743,8 +746,8 @@ class _ItemTile extends StatelessWidget {
         entry(
           'play',
           item.kind == MediaKind.audio
-              ? Icons.play_arrow
-              : Icons.slideshow_outlined,
+              ? BrambleIcons.playFill
+              : BrambleIcons.presentation,
           item.kind == MediaKind.audio
               ? 'Play'
               : item.kind == MediaKind.image
@@ -752,23 +755,23 @@ class _ItemTile extends StatelessWidget {
               : 'Play full screen',
         ),
       if (item.canProject && item.kind != MediaKind.audio)
-        entry('overlay', Icons.layers_outlined, 'Show over the lyrics'),
+        entry('overlay', BrambleIcons.stack, 'Show over the lyrics'),
       if (item.canBeBackground)
-        entry('background', Icons.wallpaper, 'Set as background'),
+        entry('background', BrambleIcons.imageSquare, 'Set as background'),
       if (item.url.isNotEmpty)
-        entry('open', Icons.open_in_new, 'Open in browser'),
+        entry('open', BrambleIcons.arrowSquareOut, 'Open in browser'),
       if (model.setlists.isNotEmpty)
-        entry('setlist', Icons.playlist_add, 'Add to setlist…'),
+        entry('setlist', BrambleIcons.listPlus, 'Add to setlist…'),
       const PopupMenuDivider(),
-      entry('rename', Icons.edit_outlined, 'Rename…'),
+      entry('rename', BrambleIcons.pencilSimple, 'Rename…'),
       if (model.mediaFolders.isNotEmpty || item.folder.isNotEmpty)
-        entry('move', Icons.drive_file_move_outlined, 'Move to folder…'),
+        entry('move', BrambleIcons.folderSimpleDashed, 'Move to folder…'),
       entry(
         'export',
-        Icons.download_outlined,
+        BrambleIcons.downloadSimple,
         item.file == null ? 'Save link' : 'Save a copy',
       ),
-      entry('delete', Icons.delete_outline, 'Delete'),
+      entry('delete', BrambleIcons.trash, 'Delete'),
     ]);
     if (!context.mounted || v == null) return;
     switch (v) {
@@ -1055,7 +1058,11 @@ class _ThumbState extends State<_Thumb> {
             errorBuilder: (_, _, _) => const SizedBox(),
           ),
           const Center(
-            child: Icon(Icons.play_circle, color: Colors.white, size: 36),
+            child: Icon(
+              BrambleIcons.playCircleFill,
+              color: Colors.white,
+              size: 36,
+            ),
           ),
         ],
       );
@@ -1097,7 +1104,7 @@ Future<String?> _pickFolder(
             child: Row(
               children: [
                 SizedBox(width: 16.0 * '/'.allMatches(f).length),
-                Icon(f.isEmpty ? Icons.perm_media_outlined : Icons.folder),
+                Icon(f.isEmpty ? BrambleIcons.images : BrambleIcons.folderFill),
                 const SizedBox(width: 10),
                 Text(f.isEmpty ? 'All media (top)' : folderName(f)),
               ],

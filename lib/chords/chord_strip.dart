@@ -5,6 +5,7 @@ import 'chord_db.dart';
 import 'chord_diagram.dart';
 import 'chord_sound.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// How a chord sheet shows and plays chords (from the settings).
 class ChordDiagramsConfig {
@@ -85,7 +86,9 @@ class ChordStrip extends StatelessWidget {
                   : 'Hide chord diagrams',
               visualDensity: VisualDensity.compact,
               icon: Icon(
-                config.collapsed ? Icons.expand_more : Icons.expand_less,
+                config.collapsed
+                    ? BrambleIcons.caretDown
+                    : BrambleIcons.caretUp,
               ),
               onPressed: config.onToggleCollapsed,
             ),
@@ -220,7 +223,7 @@ Future<void> showChordDiagramsSheet(
                             IconButton(
                               tooltip: 'Make your own shape',
                               visualDensity: VisualDensity.compact,
-                              icon: const Icon(Icons.add, size: 20),
+                              icon: const Icon(BrambleIcons.plus, size: 20),
                               onPressed: () {
                                 Navigator.pop(context);
                                 onAddShape();

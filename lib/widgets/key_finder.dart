@@ -12,6 +12,7 @@ import '../music.dart';
 import '../tuner/key_detect.dart';
 import '../tuner/microphone.dart';
 import 'tuner_panel.dart' show MicProblem, MicState;
+import '../bramble_icons.dart';
 
 /// The key finder page. [written] is the song's key (to offer moving the
 /// song to the key heard); [onUse] gets the semitones to transpose by.
@@ -167,7 +168,7 @@ class _KeyFinderViewState extends State<KeyFinderView> {
                                 : scheme.primary.withValues(alpha: .12 + .3 * level),
                             border: ink ? Border.all(color: scheme.onSurface, width: inkW(2)) : null,
                           ),
-                          child: Icon(Icons.mic, color: ink ? scheme.onSurface : scheme.primary),
+                          child: Icon(BrambleIcons.microphoneFill, color: ink ? scheme.onSurface : scheme.primary),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -260,7 +261,7 @@ class _KeyFinderViewState extends State<KeyFinderView> {
           children: [
             TextButton.icon(
               onPressed: guess == null ? null : () => setState(_listener.reset),
-              icon: const Icon(Icons.refresh, size: 18),
+              icon: const Icon(BrambleIcons.arrowsClockwise, size: 18),
               label: const Text('Start over'),
             ),
             const Spacer(),
@@ -390,14 +391,14 @@ class _KeyMenuState extends State<KeyMenu> {
         if (_finding)
           IconButton(
             tooltip: 'Back to the key wheel',
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(BrambleIcons.arrowLeft),
             onPressed: back,
           )
         else
           IconButton(
             key: const ValueKey('key-finder-open'),
             tooltip: 'Find the key by ear (sing or play)',
-            icon: const Icon(Icons.mic_none),
+            icon: const Icon(BrambleIcons.microphone),
             onPressed: () => setState(() => _finding = true),
           ),
       ],

@@ -1,3 +1,4 @@
+import 'package:bilingual_projector/bramble_icons.dart';
 import 'package:bilingual_projector/state.dart';
 import 'package:bilingual_projector/widgets/song_editor.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ void main() {
       frame: frame,
       left: find.byType(TextField).first,
       top: find.byType(TextField).first,
-      right: find.widgetWithIcon(IconButton, Icons.check),
+      right: find.widgetWithIcon(IconButton, BrambleIcons.check),
       reason: 'dialog',
     );
     // The editor's text lines up with the title field's edge.
@@ -84,7 +85,7 @@ void main() {
       frame: frame,
       left: find.byType(TextField).first,
       top: find.byType(TextField).first,
-      right: find.widgetWithIcon(IconButton, Icons.check),
+      right: find.widgetWithIcon(IconButton, BrambleIcons.check),
       reason: 'sheet',
     );
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));

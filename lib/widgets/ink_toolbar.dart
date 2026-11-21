@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../eink.dart';
 import 'color_picker.dart';
 import 'ink_layer.dart';
+import '../bramble_icons.dart';
 
 /// The annotation tools, as a pill (shown in a floating panel): pen /
 /// highlighter / eraser / move, the colour (of the pen or highlighter),
@@ -184,20 +185,20 @@ class InkToolbar extends StatelessWidget {
                         IconButton(
                           tooltip: 'Undo',
                           iconSize: 26,
-                          icon: const Icon(Icons.undo),
+                          icon: const Icon(BrambleIcons.arrowCounterClockwise),
                           onPressed: c.canUndo ? c.undo : null,
                         ),
                         IconButton(
                           tooltip: 'Redo',
                           iconSize: 26,
-                          icon: const Icon(Icons.redo),
+                          icon: const Icon(BrambleIcons.arrowClockwise),
                           onPressed: c.canRedo ? c.redo : null,
                         ),
                         const SizedBox(width: 4),
                         IconButton.filledTonal(
                           tooltip: 'Done',
                           iconSize: 26,
-                          icon: const Icon(Icons.check),
+                          icon: const Icon(BrambleIcons.check),
                           onPressed: onDone,
                         ),
                       ],
@@ -272,7 +273,7 @@ class _ToolButton extends StatelessWidget {
           // The move arrows stay put; the others stand taller in use.
           child: tool == InkTool.select
               ? Icon(
-                  Icons.open_with,
+                  BrambleIcons.arrowsOutCardinal,
                   size: 26,
                   color: selected ? scheme.primary : scheme.onSurfaceVariant,
                 )

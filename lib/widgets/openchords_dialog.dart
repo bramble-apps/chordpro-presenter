@@ -13,6 +13,7 @@ import '../eink.dart';
 import '../openchords.dart';
 import '../state.dart';
 import 'qr_share.dart';
+import '../bramble_icons.dart';
 
 /// [text] with "{apps}" as a small (i) listing the apps that open
 /// OpenChords links.
@@ -33,7 +34,7 @@ Widget openChordsAppsText(String text, TextStyle? style) {
                     'JustChords, OpenSongApp',
                 triggerMode: TooltipTriggerMode.tap,
                 child: Icon(
-                  Icons.info_outline,
+                  BrambleIcons.info,
                   size: 16,
                   color: style?.color,
                   semanticLabel: 'Apps that open OpenChords links',
@@ -355,7 +356,7 @@ class _LinkBox extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'Copy link',
-            icon: const Icon(Icons.copy, size: 18),
+            icon: const Icon(BrambleIcons.copy, size: 18),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: link));
               ScaffoldMessenger.maybeOf(context)
@@ -364,7 +365,7 @@ class _LinkBox extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'QR code',
-            icon: const Icon(Icons.qr_code_2, size: 20),
+            icon: const Icon(BrambleIcons.qrCode, size: 20),
             onPressed: () => showTextQr(context, title, link),
           ),
         ],
@@ -549,7 +550,7 @@ class _OpenDialogState extends State<_OpenDialog> {
                 isDense: true,
                 suffixIcon: IconButton(
                   tooltip: 'Look',
-                  icon: const Icon(Icons.arrow_forward),
+                  icon: const Icon(BrambleIcons.arrowRight),
                   onPressed: _busy ? null : _look,
                 ),
               ),
@@ -568,7 +569,7 @@ class _OpenDialogState extends State<_OpenDialog> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(
-                  isSet ? Icons.queue_music : Icons.folder_outlined,
+                  isSet ? BrambleIcons.playlist : BrambleIcons.folder,
                 ),
                 title: Text(
                   (f['title'] as String?)?.trim().isNotEmpty == true
@@ -593,12 +594,12 @@ class _OpenDialogState extends State<_OpenDialog> {
                 segments: const [
                   ButtonSegment(
                     value: false,
-                    icon: Icon(Icons.library_add_outlined, size: 18),
+                    icon: Icon(BrambleIcons.tbLibraryPlus, size: 18),
                     label: Text('Into this library'),
                   ),
                   ButtonSegment(
                     value: true,
-                    icon: Icon(Icons.create_new_folder_outlined, size: 18),
+                    icon: Icon(BrambleIcons.folderPlus, size: 18),
                     label: Text('As a new library'),
                   ),
                 ],
@@ -793,9 +794,9 @@ class _OpenChordsPageState extends State<_OpenChordsPage> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(switch (link.kind) {
-        OpenChordsKind.setlist => Icons.queue_music,
-        OpenChordsKind.folder => Icons.sell_outlined,
-        OpenChordsKind.library => Icons.library_music_outlined,
+        OpenChordsKind.setlist => BrambleIcons.playlist,
+        OpenChordsKind.folder => BrambleIcons.tag,
+        OpenChordsKind.library => BrambleIcons.vinylRecord,
       }),
       title: Text(name ?? '${link.title} (removed here)'),
       subtitle: Text(
@@ -890,7 +891,10 @@ class _OpenChordsPageState extends State<_OpenChordsPage> {
                         ),
                         if (links.isNotEmpty)
                           TextButton.icon(
-                            icon: const Icon(Icons.sync, size: 18),
+                            icon: const Icon(
+                              BrambleIcons.arrowsClockwise,
+                              size: 18,
+                            ),
                             label: const Text('Sync all now'),
                             onPressed: _busy ? null : _syncAll,
                           ),
@@ -951,14 +955,17 @@ class _OpenChordsPageState extends State<_OpenChordsPage> {
                         children: [
                           IconButton(
                             tooltip: 'Copy',
-                            icon: const Icon(Icons.copy, size: 18),
+                            icon: const Icon(BrambleIcons.copy, size: 18),
                             onPressed: () => Clipboard.setData(
                               ClipboardData(text: m.openChordsUserId),
                             ),
                           ),
                           IconButton(
                             tooltip: 'Use another device\'s ID',
-                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            icon: const Icon(
+                              BrambleIcons.pencilSimple,
+                              size: 18,
+                            ),
                             onPressed: _changeId,
                           ),
                         ],
@@ -1084,13 +1091,13 @@ class _NewLibraryDialogState extends State<_NewLibraryDialog> {
               segments: [
                 const ButtonSegment(
                   value: false,
-                  icon: Icon(Icons.folder_outlined, size: 18),
+                  icon: Icon(BrambleIcons.folder, size: 18),
                   label: Text('Personal'),
                 ),
                 ButtonSegment(
                   value: true,
                   enabled: available,
-                  icon: const Icon(Icons.cloud_outlined, size: 18),
+                  icon: const Icon(BrambleIcons.cloud, size: 18),
                   label: const Text('OpenChords'),
                 ),
               ],
@@ -1113,12 +1120,12 @@ class _NewLibraryDialogState extends State<_NewLibraryDialog> {
                 segments: const [
                   ButtonSegment(
                     value: false,
-                    icon: Icon(Icons.add, size: 18),
+                    icon: Icon(BrambleIcons.plus, size: 18),
                     label: Text('Start one'),
                   ),
                   ButtonSegment(
                     value: true,
-                    icon: Icon(Icons.link, size: 18),
+                    icon: Icon(BrambleIcons.linkSimple, size: 18),
                     label: Text('Join with a link'),
                   ),
                 ],

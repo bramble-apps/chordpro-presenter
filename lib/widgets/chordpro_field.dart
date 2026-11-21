@@ -9,6 +9,7 @@ import '../chordpro.dart';
 import '../fonts.dart';
 import '../music.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 final _chordOrDirective = RegExp(r'\[[^\]\n]*\]|\{[^}\n]*\}');
 
@@ -397,7 +398,7 @@ class _ChordProFieldState extends State<ChordProField> {
         style: const TextStyle(fontSize: 14),
         decoration: dense.copyWith(
           hintText: 'Find',
-          prefixIcon: const Icon(Icons.search, size: 18),
+          prefixIcon: const Icon(BrambleIcons.magnifyingGlass, size: 18),
           suffixText: count,
           suffixStyle: TextStyle(
             fontSize: 12,
@@ -414,13 +415,13 @@ class _ChordProFieldState extends State<ChordProField> {
         IconButton(
           tooltip: 'Previous match (Shift+Enter)',
           visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.keyboard_arrow_up),
+          icon: const Icon(BrambleIcons.caretUp),
           onPressed: found.isEmpty ? null : _previous,
         ),
         IconButton(
           tooltip: 'Next match (Enter)',
           visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.keyboard_arrow_down),
+          icon: const Icon(BrambleIcons.caretDown),
           onPressed: found.isEmpty ? null : _next,
         ),
       ],
@@ -429,7 +430,7 @@ class _ChordProFieldState extends State<ChordProField> {
       tooltip: 'Match case',
       visualDensity: VisualDensity.compact,
       isSelected: c.matchCase,
-      icon: const Icon(Icons.text_fields_rounded, size: 20),
+      icon: const Icon(BrambleIcons.textT, size: 20),
       onPressed: () {
         c.setFind(c.findText, matchCase: !c.matchCase);
         _search(_findField.text);
@@ -442,7 +443,7 @@ class _ChordProFieldState extends State<ChordProField> {
       style: const TextStyle(fontSize: 14),
       decoration: dense.copyWith(
         hintText: 'Replace with',
-        prefixIcon: const Icon(Icons.find_replace_rounded, size: 18),
+        prefixIcon: const Icon(BrambleIcons.tbReplace, size: 18),
       ),
     );
     final small = TextButton.styleFrom(
@@ -493,13 +494,13 @@ class _ChordProFieldState extends State<ChordProField> {
                 tooltip: _replaceOpen ? 'Hide replace' : 'Replace…',
                 visualDensity: VisualDensity.compact,
                 isSelected: _replaceOpen,
-                icon: const Icon(Icons.find_replace_rounded, size: 20),
+                icon: const Icon(BrambleIcons.tbReplace, size: 20),
                 onPressed: () => setState(() => _replaceOpen = !_replaceOpen),
               ),
               IconButton(
                 tooltip: 'Close (Esc)',
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close, size: 20),
+                icon: const Icon(BrambleIcons.x, size: 20),
                 onPressed: _closeFind,
               ),
             ],
@@ -798,7 +799,7 @@ class _ChordProFieldState extends State<ChordProField> {
               '',
               _findOpen ? _closeFind : _openFind,
               tooltip: 'Find & replace',
-              icon: Icons.search,
+              icon: BrambleIcons.magnifyingGlass,
               fill: _findOpen ? scheme.primary : scheme.primaryContainer,
               ink: _findOpen ? scheme.onPrimary : scheme.onPrimaryContainer,
             ),

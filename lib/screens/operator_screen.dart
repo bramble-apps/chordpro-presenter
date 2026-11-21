@@ -56,6 +56,7 @@ import '../widgets/import_dialog.dart';
 import '../widgets/pdf_view.dart';
 import '../widgets/sheet_images.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Main window: sidebar | chord sheet | optional format panel.
 class OperatorScreen extends StatefulWidget {
@@ -1312,19 +1313,19 @@ class _OperatorScreenState extends State<OperatorScreen>
     return [
       PopupMenuItem(
         value: 'window',
-        child: _menuRow(Icons.open_in_new_rounded, 'Open projector window'),
+        child: _menuRow(BrambleIcons.arrowSquareOut, 'Open projector window'),
       ),
       PopupMenuItem(
         value: 'cast',
         child: _menuRow(
-          model.casting ? Icons.cast_connected_rounded : Icons.cast_rounded,
+          model.casting ? BrambleIcons.screencastFill : BrambleIcons.screencast,
           'Cast to a TV or display…',
         ),
       ),
       PopupMenuItem(
         value: 'link',
         child: _menuRow(
-          Icons.link_rounded,
+          BrambleIcons.linkSimple,
           'Copy projection link',
           subtitle: 'Open it on any phone, tablet or TV browser',
         ),
@@ -1334,7 +1335,7 @@ class _OperatorScreenState extends State<OperatorScreen>
         PopupMenuItem(
           value: 'stop',
           child: _menuRow(
-            Icons.stop_rounded,
+            BrambleIcons.stopFill,
             'Stop projecting',
             subtitle: 'Closes every projector screen and cast',
             color: scheme.error,
@@ -1411,7 +1412,7 @@ class _OperatorScreenState extends State<OperatorScreen>
     return PopupMenuButton<String>(
       tooltip: on ? 'Projecting' : 'Project',
       icon: Icon(
-        on ? Icons.connected_tv_rounded : Icons.tv_rounded,
+        on ? BrambleIcons.television : BrambleIcons.projectorScreen,
         color: on ? scheme.primary : null,
       ),
       onSelected: _projectionChoice,
@@ -1798,7 +1799,7 @@ class _OperatorScreenState extends State<OperatorScreen>
     return Builder(
       builder: (context) => PopupMenuButton<String>(
         tooltip: 'More',
-        icon: const Icon(Icons.more_vert),
+        icon: const Icon(BrambleIcons.dotsThreeCircle),
         // Wide enough that labels stay on one line.
         constraints: const BoxConstraints(minWidth: 220, maxWidth: 320),
         // Below the toolbar, not over it.
@@ -1834,7 +1835,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                 children: [
                   toolbarItem(id).icon,
                   Text(_toolLabel(id), maxLines: 1, softWrap: false),
-                  if (_toolSelected(id)) const Icon(Icons.check, size: 18),
+                  if (_toolSelected(id)) const Icon(BrambleIcons.check, size: 18),
                 ],
               ),
             ),
@@ -1856,7 +1857,7 @@ class _OperatorScreenState extends State<OperatorScreen>
             ? 'Play reference recording'
             : 'Open reference recording',
         isSelected: _pipUrl == song.audioUrl.trim(),
-        icon: const Icon(Icons.play_circle_outline),
+        icon: const Icon(BrambleIcons.tbPlayerPlay),
         onPressed: () => _play(song),
       ),
     if (song != null &&
@@ -1867,7 +1868,7 @@ class _OperatorScreenState extends State<OperatorScreen>
       IconButton(
         tooltip: 'Tuner',
         isSelected: _tunerOpen,
-        icon: const Icon(Icons.graphic_eq),
+        icon: const Icon(BrambleIcons.waveform),
         onPressed: () => setState(() {
           _tunerOpen = !_tunerOpen;
           _tunerFull = false;
@@ -1879,7 +1880,7 @@ class _OperatorScreenState extends State<OperatorScreen>
         builder: (context, _) => IconButton(
           tooltip: model.pads.playing ? 'Pads (playing)' : 'Pads',
           isSelected: _padsOpen || model.pads.playing,
-          icon: const Icon(Icons.waves),
+          icon: const Icon(BrambleIcons.waves),
           onPressed: () => setState(() {
             _padsOpen = !_padsOpen;
             _padsFull = false;
@@ -1898,7 +1899,7 @@ class _OperatorScreenState extends State<OperatorScreen>
         tooltip: model.blackout ? 'Show lyrics again (B)' : 'Blackout (B)',
         isSelected: model.blackout,
         icon: Icon(
-          model.blackout ? Icons.visibility_off : Icons.visibility_off_outlined,
+          model.blackout ? BrambleIcons.eyeSlash : BrambleIcons.eyeSlash,
         ),
         onPressed: model.toggleBlackout,
       ),
@@ -1911,7 +1912,7 @@ class _OperatorScreenState extends State<OperatorScreen>
           children: [
             IconButton(
               tooltip: 'Previous part (↑ ← PgUp)',
-              icon: const Icon(Icons.chevron_left),
+              icon: const Icon(BrambleIcons.caretLeft),
               onPressed: index > 0 ? model.previous : null,
             ),
             Text(
@@ -1924,7 +1925,7 @@ class _OperatorScreenState extends State<OperatorScreen>
             ),
             IconButton(
               tooltip: 'Next part (↓ → PgDn Space)',
-              icon: const Icon(Icons.chevron_right),
+              icon: const Icon(BrambleIcons.caretRight),
               onPressed: index < model.slides.length - 1 ? model.next : null,
             ),
           ],
@@ -2426,14 +2427,14 @@ class _MetronomeButton extends StatelessWidget {
                 IconButton(
                   tooltip: 'Slower',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.remove, size: 20),
+                  icon: const Icon(BrambleIcons.minus, size: 20),
                   onPressed: () => m.setBpm(m.bpm - 1),
                 ),
                 _BpmField(metronome: m),
                 IconButton(
                   tooltip: 'Faster',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.add, size: 20),
+                  icon: const Icon(BrambleIcons.plus, size: 20),
                   onPressed: () => m.setBpm(m.bpm + 1),
                 ),
                 const SizedBox(width: 4),
@@ -2453,7 +2454,7 @@ class _MetronomeButton extends StatelessWidget {
                   builder: (context, controller, _) => IconButton(
                     tooltip: 'Metronome settings',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.arrow_drop_down),
+                    icon: const Icon(BrambleIcons.caretDownFill),
                     onPressed: () => controller.isOpen
                         ? controller.close()
                         : controller.open(),
@@ -2579,14 +2580,14 @@ class _MetronomeSettings extends StatelessWidget {
                 children: [
                   const Text('Beats per bar'),
                   IconButton(
-                    icon: const Icon(Icons.remove, size: 18),
+                    icon: const Icon(BrambleIcons.minus, size: 18),
                     onPressed: m.beatsPerBar > 1
                         ? () => m.setBeatsPerBar(m.beatsPerBar - 1)
                         : null,
                   ),
                   Text('${m.beatsPerBar}'),
                   IconButton(
-                    icon: const Icon(Icons.add, size: 18),
+                    icon: const Icon(BrambleIcons.plus, size: 18),
                     onPressed: m.beatsPerBar < 16
                         ? () => m.setBeatsPerBar(m.beatsPerBar + 1)
                         : null,
@@ -2666,8 +2667,8 @@ class _AutoscrollButton extends StatelessWidget {
                 isSelected: a.running,
                 icon: Icon(
                   a.running
-                      ? Icons.pause_rounded
-                      : Icons.keyboard_double_arrow_down_rounded,
+                      ? BrambleIcons.pauseFill
+                      : BrambleIcons.caretDoubleDown,
                   color: a.running ? scheme.primary : null,
                 ),
                 onPressed: a.toggle,
@@ -2743,7 +2744,7 @@ class _AutoscrollTimeState extends State<_AutoscrollTime> {
         IconButton(
           tooltip: '30 seconds less',
           visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.remove, size: 20),
+          icon: const Icon(BrambleIcons.minus, size: 20),
           onPressed: () => a.addRemaining(-Autoscroll.step),
         ),
         SizedBox(
@@ -2771,7 +2772,7 @@ class _AutoscrollTimeState extends State<_AutoscrollTime> {
         IconButton(
           tooltip: '30 seconds more',
           visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.add, size: 20),
+          icon: const Icon(BrambleIcons.plus, size: 20),
           onPressed: () => a.addRemaining(Autoscroll.step),
         ),
       ],
@@ -2817,7 +2818,7 @@ class _KeyButton extends StatelessWidget {
               SizedBox(
                 width: 20,
                 child: offset == current
-                    ? const Icon(Icons.check, size: 16)
+                    ? const Icon(BrambleIcons.check, size: 16)
                     : null,
               ),
               SizedBox(width: 56, child: Text(labelFor(offset))),
@@ -2850,7 +2851,7 @@ class _KeyButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.music_note,
+              BrambleIcons.musicNote,
               size: 18,
               color: setSpecific ? scheme.tertiary : null,
             ),
@@ -2867,7 +2868,7 @@ class _KeyButton extends StatelessWidget {
                 color: scheme.onSurface,
               ),
             ),
-            const Icon(Icons.arrow_drop_down, size: 18),
+            const Icon(BrambleIcons.caretDownFill, size: 18),
           ],
         ),
       ),
@@ -2937,8 +2938,8 @@ class _GospelButton extends StatelessWidget {
       builder: (context) => IconButton(
         tooltip: 'Gospelizer',
         isSelected: song.gospelOn,
-        icon: const Icon(Icons.auto_awesome_outlined),
-        selectedIcon: const Icon(Icons.auto_awesome),
+        icon: const Icon(BrambleIcons.sparkle),
+        selectedIcon: const Icon(BrambleIcons.sparkleFill),
         onPressed: () {
           final box = context.findRenderObject() as RenderBox;
           final overlay =
@@ -2990,7 +2991,7 @@ class _GospelPanelState extends State<_GospelPanel> {
           children: [
             SwitchListTile(
               dense: true,
-              secondary: const Icon(Icons.auto_awesome_outlined),
+              secondary: const Icon(BrambleIcons.sparkle),
               title: const Text('Gospelizer'),
               subtitle: const Text('Gospel reharmonization of this song'),
               value: song.gospelOn,
@@ -3281,7 +3282,7 @@ class _DropTarget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 8,
           children: [
-            Icon(Icons.file_download_outlined, size: 56, color: scheme.primary),
+            Icon(BrambleIcons.fileArrowDown, size: 56, color: scheme.primary),
             Text(
               media ? 'Drop to add to Media' : 'Drop to import',
               style: Theme.of(context).textTheme.headlineSmall,

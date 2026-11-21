@@ -13,6 +13,7 @@ import 'chordpro_field.dart';
 import 'structure_editor.dart';
 import '../eink.dart';
 import 'detent_sheet.dart';
+import '../bramble_icons.dart';
 
 /// Edit dialog with three tabs: the ChordPro text, each chord's beats, and
 /// song details (key, tempo, CCLI, tags...). "Save" (⌘S) keeps the changes; "Cancel" drops
@@ -198,7 +199,7 @@ class _SongEditorState extends State<SongEditor> {
                       tooltip: 'Cancel',
                       style: _roundButton(context, tonal: true),
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(BrambleIcons.x),
                     ),
                     const SizedBox(width: 8),
                     ListenableBuilder(
@@ -207,7 +208,7 @@ class _SongEditorState extends State<SongEditor> {
                         tooltip: 'Save',
                         style: _roundButton(context),
                         onPressed: _canSave ? _save : null,
-                        icon: const Icon(Icons.check),
+                        icon: const Icon(BrambleIcons.check),
                       ),
                     ),
                   ],
@@ -262,7 +263,7 @@ class _SongEditorState extends State<SongEditor> {
   Widget _rewriteButton() => PopupMenuButton<MusicKey>(
     tooltip: 'Rewrite into key',
     position: PopupMenuPosition.under,
-    icon: const Icon(Icons.swap_vert),
+    icon: const Icon(BrambleIcons.arrowsDownUp),
     itemBuilder: (context) {
       final from = (_working..key = _song.key).writtenKey;
       return [
@@ -425,7 +426,7 @@ class _SongEditorState extends State<SongEditor> {
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
-                icon: const Icon(Icons.account_tree_outlined, size: 18),
+                icon: const Icon(BrambleIcons.tbListTree, size: 18),
                 label: const Text('Edit structure…'),
                 onPressed: () async {
                   final result = await StructureEditor.show(
@@ -510,9 +511,7 @@ class _SongEditorState extends State<SongEditor> {
               contentPadding: EdgeInsets.zero,
               dense: true,
               leading: Icon(
-                p.isImage
-                    ? Icons.image_outlined
-                    : Icons.picture_as_pdf_outlined,
+                p.isImage ? BrambleIcons.image : BrambleIcons.filePdf,
               ),
               title: Text(p.name),
               trailing: Row(
@@ -520,7 +519,7 @@ class _SongEditorState extends State<SongEditor> {
                 children: [
                   IconButton(
                     tooltip: 'Move up',
-                    icon: const Icon(Icons.arrow_upward),
+                    icon: const Icon(BrambleIcons.arrowUp),
                     onPressed: i == 0
                         ? null
                         : () => setLocal(() {
@@ -531,7 +530,7 @@ class _SongEditorState extends State<SongEditor> {
                   ),
                   IconButton(
                     tooltip: 'Move down',
-                    icon: const Icon(Icons.arrow_downward),
+                    icon: const Icon(BrambleIcons.arrowDown),
                     onPressed: i == pdfsOf(_song).length - 1
                         ? null
                         : () => setLocal(() {
@@ -542,7 +541,7 @@ class _SongEditorState extends State<SongEditor> {
                   ),
                   IconButton(
                     tooltip: 'Remove',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: () => setLocal(
                       () => setPdfs(_song, [
                         for (final q in pdfsOf(_song))
@@ -556,7 +555,7 @@ class _SongEditorState extends State<SongEditor> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              icon: const Icon(Icons.attach_file),
+              icon: const Icon(BrambleIcons.paperclip),
               label: const Text('Attach PDF or picture…'),
               onPressed: () async {
                 final files = await pickBinaryFiles(sheetMusicExtensions);
@@ -634,7 +633,7 @@ class _SongEditorState extends State<SongEditor> {
               ),
               IconButton(
                 tooltip: 'Remove this field',
-                icon: const Icon(Icons.remove_circle_outline),
+                icon: const Icon(BrambleIcons.minusCircle),
                 onPressed: () => setLocal(() {
                   final (n, v) = _custom.removeAt(i);
                   n.dispose();
@@ -649,7 +648,7 @@ class _SongEditorState extends State<SongEditor> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             TextButton.icon(
-              icon: const Icon(Icons.add),
+              icon: const Icon(BrambleIcons.plus),
               label: const Text('Add field'),
               onPressed: () => add(''),
             ),

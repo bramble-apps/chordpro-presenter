@@ -20,6 +20,7 @@ import 'color_picker.dart';
 import 'media_pane.dart';
 import 'projection_view.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Presentation mode: every slide of the song as a tile (as it looks on
 /// the projector), grouped under section headers. Tap a tile to show it.
@@ -180,8 +181,8 @@ class _PresentationViewState extends State<PresentationView>
             TabBar(
               controller: _dockTabs,
               tabs: const [
-                _IconTab(Icons.tune_rounded, 'Functions'),
-                _IconTab(Icons.menu_book_outlined, 'Scripture'),
+                _IconTab(BrambleIcons.slidersHorizontal, 'Functions'),
+                _IconTab(BrambleIcons.bookOpenText, 'Scripture'),
               ],
             ),
           ];
@@ -246,10 +247,10 @@ class _PresentationViewState extends State<PresentationView>
             TabBar(
               controller: _tabs,
               tabs: const [
-                _IconTab(Icons.grid_view_rounded, 'Slides'),
-                _IconTab(Icons.tune_rounded, 'Functions'),
-                _IconTab(Icons.perm_media_outlined, 'Media'),
-                _IconTab(Icons.menu_book_outlined, 'Scripture'),
+                _IconTab(BrambleIcons.squaresFour, 'Slides'),
+                _IconTab(BrambleIcons.slidersHorizontal, 'Functions'),
+                _IconTab(BrambleIcons.images, 'Media'),
+                _IconTab(BrambleIcons.bookOpenText, 'Scripture'),
               ],
             ),
             Expanded(
@@ -450,7 +451,7 @@ class _ScriptureDivider extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.menu_book_outlined,
+            BrambleIcons.bookOpenText,
             size: 18,
             color: scheme.onSurfaceVariant,
           ),
@@ -476,7 +477,7 @@ class _ScriptureDivider extends StatelessWidget {
           IconButton(
             tooltip: 'Remove the scripture slides',
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.close, size: 18),
+            icon: const Icon(BrambleIcons.x, size: 18),
             onPressed: model.closeScripture,
           ),
         ],
@@ -675,7 +676,7 @@ class _Dock extends StatelessWidget {
               IconButton(
                 tooltip: 'Previous slide',
                 visualDensity: density,
-                icon: const Icon(Icons.chevron_left_rounded),
+                icon: const Icon(BrambleIcons.caretLeft),
                 onPressed: model.previous,
               ),
               // Shrinks rather than overflow (narrow dock, large text).
@@ -711,7 +712,7 @@ class _Dock extends StatelessWidget {
               IconButton(
                 tooltip: 'Next slide',
                 visualDensity: density,
-                icon: const Icon(Icons.chevron_right_rounded),
+                icon: const Icon(BrambleIcons.caretRight),
                 onPressed: model.next,
               ),
               IconButton(
@@ -720,7 +721,7 @@ class _Dock extends StatelessWidget {
                 isSelected:
                     model.currentSong != null &&
                     translatedLanguages(model.currentSong!.raw).isNotEmpty,
-                icon: const Icon(Icons.language_rounded),
+                icon: const Icon(BrambleIcons.globe),
                 onPressed: model.currentSong == null
                     ? null
                     : () => translateCurrentSong(context, model),
@@ -729,14 +730,14 @@ class _Dock extends StatelessWidget {
                 tooltip: model.blackout ? 'Show slides again' : 'Blackout',
                 visualDensity: density,
                 isSelected: model.blackout,
-                icon: const Icon(Icons.contrast_rounded),
+                icon: const Icon(BrambleIcons.circleHalf),
                 onPressed: model.toggleBlackout,
               ),
               if (model.live != null)
                 IconButton(
                   tooltip: 'Stop the media (back to the lyrics)',
                   visualDensity: density,
-                  icon: const Icon(Icons.stop_circle_outlined),
+                  icon: const Icon(BrambleIcons.stopCircle),
                   onPressed: model.stopLive,
                 )
               else if (onMedia != null)
@@ -744,18 +745,18 @@ class _Dock extends StatelessWidget {
                   tooltip: mediaOpen ? 'Hide media' : 'Media',
                   visualDensity: density,
                   isSelected: mediaOpen,
-                  icon: const Icon(Icons.perm_media_outlined),
+                  icon: const Icon(BrambleIcons.images),
                   onPressed: onMedia,
                 ),
               if (!compact && !tight) ...[
                 IconButton(
                   tooltip: 'Bigger tiles (fewer columns)',
-                  icon: const Icon(Icons.zoom_in_rounded),
+                  icon: const Icon(BrambleIcons.magnifyingGlassPlus),
                   onPressed: () => onZoom(1),
                 ),
                 IconButton(
                   tooltip: 'Smaller tiles (more columns)',
-                  icon: const Icon(Icons.zoom_out_rounded),
+                  icon: const Icon(BrambleIcons.magnifyingGlassMinus),
                   onPressed: () => onZoom(-1),
                 ),
               ],
@@ -906,8 +907,8 @@ class _TimerPanelState extends State<_TimerPanel> {
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
                         model.timerRunning
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
+                            ? BrambleIcons.pauseFill
+                            : BrambleIcons.playFill,
                       ),
                       onPressed: left == 0 && !model.timerRunning
                           ? null
@@ -964,8 +965,8 @@ class _TimerPanelState extends State<_TimerPanel> {
                       style: _iconStyle,
                       icon: Icon(
                         model.projection.timerShow
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+                            ? BrambleIcons.eye
+                            : BrambleIcons.eyeSlash,
                       ),
                       onPressed: () => model.updateProjection(
                         (p) => p.timerShow = !p.timerShow,
@@ -977,7 +978,7 @@ class _TimerPanelState extends State<_TimerPanel> {
                           'projector)',
                       visualDensity: VisualDensity.compact,
                       style: _iconStyle,
-                      icon: const Icon(Icons.stop_rounded),
+                      icon: const Icon(BrambleIcons.stopFill),
                       onPressed: model.timerStop,
                     ),
                     IconButton(
@@ -985,7 +986,7 @@ class _TimerPanelState extends State<_TimerPanel> {
                       isSelected: _format,
                       visualDensity: VisualDensity.compact,
                       style: _iconStyle,
-                      icon: const Icon(Icons.text_format_rounded),
+                      icon: const Icon(BrambleIcons.textAa),
                       onPressed: () => setState(() => _format = !_format),
                     ),
                   ],
@@ -1055,19 +1056,19 @@ class _TimerFormat extends StatelessWidget {
                 children: [
                   toggle(
                     'Bold',
-                    const Icon(Icons.format_bold),
+                    const Icon(BrambleIcons.textB),
                     p.timerBold,
                     () => set((p) => p.timerBold = !p.timerBold),
                   ),
                   toggle(
                     'Italic',
-                    const Icon(Icons.format_italic),
+                    const Icon(BrambleIcons.textItalic),
                     p.timerItalic,
                     () => set((p) => p.timerItalic = !p.timerItalic),
                   ),
                   toggle(
                     'Shadow',
-                    const Icon(Icons.blur_on),
+                    const Icon(BrambleIcons.tbBlur),
                     p.timerShadow,
                     () => set((p) => p.timerShadow = !p.timerShadow),
                   ),
@@ -1159,7 +1160,7 @@ class _TimerFormat extends StatelessWidget {
               Tooltip(
                 message: 'Size',
                 child: Icon(
-                  Icons.format_size_rounded,
+                  BrambleIcons.textAa,
                   size: 20,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -1320,7 +1321,7 @@ class _UnderscanPanelState extends State<UnderscanPanel> {
           children: [
             Row(
               children: [
-                Icon(Icons.fit_screen_outlined, color: scheme.onSurfaceVariant),
+                Icon(BrambleIcons.frameCorners, color: scheme.onSurfaceVariant),
                 const SizedBox(width: 8),
                 const Expanded(child: Text('Underscan')),
                 Switch(
@@ -1374,8 +1375,8 @@ class _UnderscanPanelState extends State<UnderscanPanel> {
                     visualDensity: VisualDensity.compact,
                     icon: Icon(
                       p.underscanLocked
-                          ? Icons.lock_outline
-                          : Icons.lock_open_outlined,
+                          ? BrambleIcons.lock
+                          : BrambleIcons.lockOpen,
                       size: 20,
                     ),
                     onPressed: () => _set((p) {

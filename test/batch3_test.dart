@@ -1,3 +1,5 @@
+import 'package:bilingual_projector/bramble_icons.dart';
+
 import 'dart:convert';
 
 import 'package:bilingual_projector/browser.dart';
@@ -184,7 +186,7 @@ void main() {
     expect(model.songById('z')!.extra['icon'], 'christmas');
     expect(model.currentSong!.id, open);
     expect(
-      find.descendant(of: row, matching: find.byIcon(Icons.park_rounded)),
+      find.descendant(of: row, matching: find.byIcon(BrambleIcons.tree)),
       findsOneWidget,
     );
   });

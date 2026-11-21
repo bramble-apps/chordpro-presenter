@@ -85,6 +85,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # The app's icons: Bramble Icons, the set Echoes uses (Phosphor + Tabler,
+  # MIT), cut down to the icons used by tool/make_bramble_icons.py.
+  fonts:
+    - family: BrambleIcons
+      fonts:
+        - asset: assets/icons/BrambleIcons.ttf
+
   # Loaded on demand (lib/fonts.dart), not at startup.
   assets:
     - assets/fonts/

@@ -6,6 +6,7 @@ import '../chordpro.dart';
 import '../state.dart';
 import '../translation.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// "Translate slides": pick a language and every section gets a translated
 /// copy linked to it (shown together on the slide). Translate again to
@@ -123,7 +124,7 @@ class _TranslateDialogState extends State<TranslateDialog> {
     final width = math.min(380.0, MediaQuery.sizeOf(context).width - 112);
     return AlertDialog(
       scrollable: true,
-      icon: const Icon(Icons.language_rounded),
+      icon: const Icon(BrambleIcons.globe),
       title: const Text('Translate slides'),
       content: SizedBox(
         width: width,
@@ -135,7 +136,7 @@ class _TranslateDialogState extends State<TranslateDialog> {
               key: const Key('translate-language'),
               width: 380,
               label: const Text('Language'),
-              leadingIcon: const Icon(Icons.public_rounded),
+              leadingIcon: const Icon(BrambleIcons.globeHemisphereWest),
               initialSelection: _language,
               enableFilter: true,
               requestFocusOnTap: true,
@@ -148,7 +149,11 @@ class _TranslateDialogState extends State<TranslateDialog> {
                     label: l.name,
                     labelWidget: Text(l.label),
                     trailingIcon: done.contains(l.tag)
-                        ? Icon(Icons.check, size: 18, color: scheme.primary)
+                        ? Icon(
+                            BrambleIcons.check,
+                            size: 18,
+                            color: scheme.primary,
+                          )
                         : null,
                   ),
               ],
@@ -166,7 +171,7 @@ class _TranslateDialogState extends State<TranslateDialog> {
                       dimension: 18,
                       child: AppSpinner(strokeWidth: 2),
                     )
-                  : const Icon(Icons.translate_rounded),
+                  : const Icon(BrambleIcons.translate),
               label: Text(
                 busy
                     ? (_progress!.$2 == 0
@@ -191,18 +196,18 @@ class _TranslateDialogState extends State<TranslateDialog> {
                 ListTile(
                   dense: true,
                   contentPadding: const EdgeInsets.only(left: 4),
-                  leading: const Icon(Icons.link_rounded, size: 20),
+                  leading: const Icon(BrambleIcons.linkSimple, size: 20),
                   title: Text(languageFor(tag)?.label ?? tag),
                   trailing: IconButton(
                     tooltip: 'Remove ${languageFor(tag)?.name ?? tag}',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: busy ? null : () => _remove(tag),
                   ),
                 ),
               const SizedBox(height: 4),
               OutlinedButton.icon(
                 onPressed: busy ? null : _remove,
-                icon: const Icon(Icons.delete_outline),
+                icon: const Icon(BrambleIcons.trash),
                 label: const Text('Remove all translations'),
               ),
             ],

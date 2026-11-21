@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../state.dart';
 import '../toolbar_items.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Settings → Customize toolbar, in a side pane: the top toolbar's buttons
 /// as one list in two parts, the toolbar and its ⋯ menu. Drag a button up
@@ -76,7 +77,7 @@ class ToolbarEditor extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: 'Close',
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(BrambleIcons.x),
                     onPressed: onClose,
                   ),
                 ],
@@ -137,7 +138,7 @@ class ToolbarEditor extends StatelessWidget {
                                   child: MouseRegion(
                                     cursor: SystemMouseCursors.grab,
                                     child: Icon(
-                                      Icons.drag_indicator,
+                                      BrambleIcons.dotsSixVertical,
                                       color: scheme.outline,
                                     ),
                                   ),
@@ -169,8 +170,8 @@ class ToolbarEditor extends StatelessWidget {
                                     : 'Move to the toolbar',
                                 icon: Icon(
                                   shown
-                                      ? Icons.keyboard_double_arrow_down
-                                      : Icons.keyboard_double_arrow_up,
+                                      ? BrambleIcons.caretDoubleDown
+                                      : BrambleIcons.caretDoubleUp,
                                 ),
                                 onPressed: () {
                                   final next = [...list]..remove(id);
@@ -194,7 +195,7 @@ class ToolbarEditor extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(12),
               child: OutlinedButton.icon(
-                icon: const Icon(Icons.restart_alt, size: 18),
+                icon: const Icon(BrambleIcons.arrowCounterClockwise, size: 18),
                 label: const Text('Reset to default'),
                 onPressed: model.settings.toolbarBar == null
                     ? null

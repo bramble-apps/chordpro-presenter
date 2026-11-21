@@ -31,6 +31,7 @@ import '../scanner/score.dart';
 import '../scanner/score_export.dart';
 import '../state.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Opens the scanner: on [files] (name, bytes) if given (read straight
 /// away), else on the list of kept scans. [song]: the song the music
@@ -773,7 +774,7 @@ class _ScannerScreenState extends State<ScannerScreen>
             ? [
                 IconButton(
                   tooltip: 'Open a photo, picture or PDF of sheet music',
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  icon: const Icon(BrambleIcons.tbPhotoPlus),
                   onPressed: _busy == null ? _pick : null,
                 ),
               ]
@@ -787,12 +788,12 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ButtonSegment(
                       value: false,
                       label: Text('Scan'),
-                      icon: Icon(Icons.image_outlined, size: 18),
+                      icon: Icon(BrambleIcons.image, size: 18),
                     ),
                     ButtonSegment(
                       value: true,
                       label: Text('Notes'),
-                      icon: Icon(Icons.music_note, size: 18),
+                      icon: Icon(BrambleIcons.musicNote, size: 18),
                     ),
                   ],
                   selected: {_notesView},
@@ -804,7 +805,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                       ? 'Done correcting'
                       : 'Correct notes (tap one)',
                   isSelected: _editing,
-                  icon: const Icon(Icons.edit_outlined),
+                  icon: const Icon(BrambleIcons.pencilSimple),
                   onPressed: () => setState(() {
                     _editing = !_editing;
                     _selected = null;
@@ -812,7 +813,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 ),
                 IconButton(
                   tooltip: 'Chords from the music',
-                  icon: const Icon(Icons.queue_music),
+                  icon: const Icon(BrambleIcons.playlist),
                   onPressed: _chords,
                 ),
                 PopupMenuButton<String>(
@@ -846,7 +847,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     const PopupMenuItem(
                       value: 'xml',
                       child: ListTile(
-                        leading: Icon(Icons.description_outlined),
+                        leading: Icon(BrambleIcons.fileText),
                         title: Text('Export MusicXML'),
                         subtitle: Text('MuseScore, Finale, Sibelius, Dorico…'),
                       ),
@@ -854,7 +855,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     const PopupMenuItem(
                       value: 'abc',
                       child: ListTile(
-                        leading: Icon(Icons.text_snippet_outlined),
+                        leading: Icon(BrambleIcons.article),
                         title: Text('Export ABC'),
                         subtitle: Text('Also copied, to paste into a song'),
                       ),
@@ -862,21 +863,21 @@ class _ScannerScreenState extends State<ScannerScreen>
                     const PopupMenuItem(
                       value: 'midi',
                       child: ListTile(
-                        leading: Icon(Icons.piano_outlined),
+                        leading: Icon(BrambleIcons.pianoKeys),
                         title: Text('Export MIDI'),
                       ),
                     ),
                     const PopupMenuItem(
                       value: 'wav',
                       child: ListTile(
-                        leading: Icon(Icons.audio_file_outlined),
+                        leading: Icon(BrambleIcons.fileAudio),
                         title: Text('Export audio (WAV)'),
                       ),
                     ),
                     const PopupMenuItem(
                       value: 'pdf',
                       child: ListTile(
-                        leading: Icon(Icons.picture_as_pdf_outlined),
+                        leading: Icon(BrambleIcons.filePdf),
                         title: Text('Export PDF (the notes, redrawn)'),
                       ),
                     ),
@@ -884,7 +885,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     const PopupMenuItem(
                       value: 'rename',
                       child: ListTile(
-                        leading: Icon(Icons.drive_file_rename_outline),
+                        leading: Icon(BrambleIcons.pencilSimpleLine),
                         title: Text('Rename…'),
                       ),
                     ),
@@ -892,21 +893,21 @@ class _ScannerScreenState extends State<ScannerScreen>
                       const PopupMenuItem(
                         value: 'again',
                         child: ListTile(
-                          leading: Icon(Icons.refresh),
+                          leading: Icon(BrambleIcons.arrowsClockwise),
                           title: Text('Read the music again'),
                         ),
                       ),
                     const PopupMenuItem(
                       value: 'open',
                       child: ListTile(
-                        leading: Icon(Icons.add_photo_alternate_outlined),
+                        leading: Icon(BrambleIcons.tbPhotoPlus),
                         title: Text('Scan other music…'),
                       ),
                     ),
                     const PopupMenuItem(
                       value: 'list',
                       child: ListTile(
-                        leading: Icon(Icons.library_music_outlined),
+                        leading: Icon(BrambleIcons.vinylRecord),
                         title: Text('All scans'),
                       ),
                     ),
@@ -1000,7 +1001,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: _busy == null ? _pick : null,
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  icon: const Icon(BrambleIcons.tbPhotoPlus),
                   label: const Text('Open photo, picture or PDF…'),
                 ),
               ],
@@ -1012,7 +1013,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           Text('Scans', style: theme.textTheme.titleMedium),
           for (final s in _saved)
             ListTile(
-              leading: const Icon(Icons.music_note_outlined),
+              leading: const Icon(BrambleIcons.musicNote),
               title: Text(s.title),
               subtitle: Text(
                 '${s.notes} notes · ${s.pages} page${s.pages == 1 ? '' : 's'}',
@@ -1020,7 +1021,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               onTap: () => _open(s),
               trailing: IconButton(
                 tooltip: 'Delete',
-                icon: const Icon(Icons.delete_outline),
+                icon: const Icon(BrambleIcons.trash),
                 onPressed: () async {
                   await ScanStore.delete(s.id);
                   _loadList();
@@ -1181,12 +1182,12 @@ class _ScannerScreenState extends State<ScannerScreen>
             if (!n.rest) ...[
               IconButton.filledTonal(
                 tooltip: 'Higher',
-                icon: const Icon(Icons.keyboard_arrow_up),
+                icon: const Icon(BrambleIcons.caretUp),
                 onPressed: () => edit(() => n.diatonic++),
               ),
               IconButton.filledTonal(
                 tooltip: 'Lower',
-                icon: const Icon(Icons.keyboard_arrow_down),
+                icon: const Icon(BrambleIcons.caretDown),
                 onPressed: () => edit(() => n.diatonic--),
               ),
               SegmentedButton<int>(
@@ -1254,7 +1255,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 onSelected: (v) => edit(() => n.voice = v ? 2 : 1),
               ),
             TextButton.icon(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(BrambleIcons.trash),
               label: const Text('Delete'),
               onPressed: () => edit(() {
                 score.notes.removeAt(_selected!);
@@ -1262,7 +1263,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               }),
             ),
             TextButton.icon(
-              icon: const Icon(Icons.play_arrow),
+              icon: const Icon(BrambleIcons.playFill),
               label: const Text('Play from here'),
               onPressed: () => _playMeasure(n.measure),
             ),
@@ -1296,14 +1297,18 @@ class _ScannerScreenState extends State<ScannerScreen>
                         dimension: 22,
                         child: AppSpinner(strokeWidth: 2.5),
                       )
-                    : Icon(_playing ? Icons.pause : Icons.play_arrow),
+                    : Icon(
+                        _playing
+                            ? BrambleIcons.pauseFill
+                            : BrambleIcons.playFill,
+                      ),
                 onPressed: _preparing
                     ? null
                     : () => _playing ? _stop() : _start(),
               ),
               IconButton(
                 tooltip: 'Back to the start',
-                icon: const Icon(Icons.skip_previous),
+                icon: const Icon(BrambleIcons.skipBackFill),
                 onPressed: () {
                   final was = _playing;
                   _stop(toStart: true);
@@ -1349,7 +1354,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 children: [
                   IconButton(
                     tooltip: 'Down a semitone',
-                    icon: const Icon(Icons.remove),
+                    icon: const Icon(BrambleIcons.minus),
                     onPressed: shift <= -24
                         ? null
                         : () {
@@ -1367,7 +1372,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ),
                   IconButton(
                     tooltip: 'Up a semitone',
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(BrambleIcons.plus),
                     onPressed: shift >= 24
                         ? null
                         : () {
@@ -1382,7 +1387,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ? 'Sustain on (notes ring on a little)'
                     : 'Sustain (notes ring on a little)',
                 isSelected: _play.sustain,
-                icon: const Icon(Icons.waves),
+                icon: const Icon(BrambleIcons.waves),
                 onPressed: () {
                   _play.sustain = !_play.sustain;
                   _replay();
@@ -1391,7 +1396,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               IconButton(
                 tooltip: _play.reverb ? 'Reverb on' : 'Reverb (room sound)',
                 isSelected: _play.reverb,
-                icon: const Icon(Icons.surround_sound_outlined),
+                icon: const Icon(BrambleIcons.speakerHifi),
                 onPressed: () {
                   _play.reverb = !_play.reverb;
                   _replay();
@@ -1400,7 +1405,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               IconButton(
                 tooltip: _play.metronome ? 'Metronome on' : 'Metronome',
                 isSelected: _play.metronome,
-                icon: const Icon(Icons.av_timer),
+                icon: const Icon(BrambleIcons.timer),
                 onPressed: () {
                   _play.metronome = !_play.metronome;
                   _replay();
@@ -1409,7 +1414,7 @@ class _ScannerScreenState extends State<ScannerScreen>
               if (score.staves > 1) _partsButton(score),
               IconButton(
                 tooltip: 'Instruments, mixer and sound',
-                icon: const Icon(Icons.tune),
+                icon: const Icon(BrambleIcons.slidersHorizontal),
                 onPressed: () => _mixer(score),
               ),
               if (perfLen > 0 && _q > 0)
@@ -1475,7 +1480,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           mainAxisSize: MainAxisSize.min,
           spacing: 4,
           children: [
-            const Icon(Icons.groups_outlined),
+            const Icon(BrambleIcons.usersThree),
             Text(
               all
                   ? 'All parts'
@@ -1483,7 +1488,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                         ? names[playing.first]
                         : '${playing.length} parts'),
             ),
-            const Icon(Icons.arrow_drop_down),
+            const Icon(BrambleIcons.caretDownFill),
           ],
         ),
       ),
@@ -1553,8 +1558,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                           isSelected: _play.part(st).muted,
                           icon: Icon(
                             _play.part(st).muted
-                                ? Icons.volume_off
-                                : Icons.volume_up,
+                                ? BrambleIcons.speakerSlash
+                                : BrambleIcons.speakerHigh,
                           ),
                           onPressed: () => change(
                             () => _play.part(st).muted = !_play.part(st).muted,

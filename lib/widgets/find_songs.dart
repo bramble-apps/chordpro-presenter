@@ -8,6 +8,7 @@ import '../song_sources.dart';
 import '../state.dart';
 import '../themes.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Find songs online, in the side pane: one search across the song sites,
 /// a preview, and "Add to library". Sites that won't hand songs to the app
@@ -256,12 +257,12 @@ class _FindSongsPaneState extends State<FindSongsPane> {
           onSubmitted: (_) => _run(),
           decoration: InputDecoration(
             hintText: 'Type song name',
-            prefixIcon: const Icon(Icons.search, size: 20),
+            prefixIcon: const Icon(BrambleIcons.magnifyingGlass, size: 20),
             suffixIcon: _query.text.isEmpty
                 ? null
                 : IconButton(
                     tooltip: 'Clear',
-                    icon: const Icon(Icons.cancel, size: 18),
+                    icon: const Icon(BrambleIcons.xCircleFill, size: 18),
                     onPressed: () => setState(() {
                       _query.clear();
                       _results.clear();
@@ -369,7 +370,11 @@ class _FindSongsPaneState extends State<FindSongsPane> {
         rows.add(
           ListTile(
             dense: true,
-            leading: Icon(Icons.cloud_off, size: 18, color: scheme.outline),
+            leading: Icon(
+              BrambleIcons.cloudSlash,
+              size: 18,
+              color: scheme.outline,
+            ),
             title: Text(site),
             subtitle: Text(r.error!),
           ),
@@ -384,7 +389,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
         rows.add(
           ListTile(
             dense: true,
-            leading: Icon(Icons.expand_more, color: scheme.primary),
+            leading: Icon(BrambleIcons.caretDown, color: scheme.primary),
             title: Text(
               'More from $site (${r.hits.length - _perSite})',
               style: TextStyle(color: scheme.primary),
@@ -475,7 +480,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
                 child: Tooltip(
                   message: 'In your library',
                   child: Icon(
-                    Icons.check_circle,
+                    BrambleIcons.checkCircleFill,
                     size: 16,
                     color: scheme.primary,
                   ),
@@ -483,8 +488,8 @@ class _FindSongsPaneState extends State<FindSongsPane> {
               ),
             Icon(
               hit.opensInBrowser && !_viaBrowser(hit)
-                  ? Icons.open_in_new
-                  : Icons.chevron_right,
+                  ? BrambleIcons.arrowSquareOut
+                  : BrambleIcons.caretRight,
               size: 18,
               color: scheme.onSurfaceVariant,
             ),
@@ -505,7 +510,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
           children: [
             IconButton(
               tooltip: 'Back to results',
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(BrambleIcons.arrowLeft),
               onPressed: () => setState(() => _open = null),
             ),
             Expanded(
@@ -542,8 +547,8 @@ class _FindSongsPaneState extends State<FindSongsPane> {
                 child: FilledButton.icon(
                   icon: Icon(
                     song != null && _added.contains(song.url)
-                        ? Icons.check
-                        : Icons.library_add,
+                        ? BrambleIcons.check
+                        : BrambleIcons.tbLibraryPlus,
                     size: 18,
                   ),
                   label: Text(
@@ -558,7 +563,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
               ),
               IconButton.outlined(
                 tooltip: 'Open on ${hit.source}',
-                icon: const Icon(Icons.open_in_new, size: 18),
+                icon: const Icon(BrambleIcons.arrowSquareOut, size: 18),
                 onPressed: () => openUrl(hit.url),
               ),
             ],
@@ -635,14 +640,14 @@ class _FindSongsPaneState extends State<FindSongsPane> {
       trailing: custom
           ? IconButton(
               tooltip: 'Remove ${site.name}',
-              icon: const Icon(Icons.close, size: 18),
+              icon: const Icon(BrambleIcons.x, size: 18),
               onPressed: () => model.updateSettings(
                 (s) => s.songSites.removeWhere(
                   (j) => j['name'] == site.name && j['url'] == site.searchUrl,
                 ),
               ),
             )
-          : const Icon(Icons.open_in_new, size: 18),
+          : const Icon(BrambleIcons.arrowSquareOut, size: 18),
     );
     return Column(
       children: [
@@ -650,7 +655,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
         for (final s in _customSites) row(s, custom: true),
         ListTile(
           dense: true,
-          leading: Icon(Icons.add, color: scheme.primary),
+          leading: Icon(BrambleIcons.plus, color: scheme.primary),
           title: const Text('Add site'),
           onTap: _addSite,
         ),
@@ -713,7 +718,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
     if (!_pasting) {
       return ListTile(
         dense: true,
-        leading: const Icon(Icons.content_paste),
+        leading: const Icon(BrambleIcons.clipboardText),
         title: const Text('Paste a song copied from any website'),
         subtitle: const Text('Chords above the words become ChordPro'),
         onTap: () => setState(() => _pasting = true),
@@ -773,7 +778,7 @@ class _FindSongsPaneState extends State<FindSongsPane> {
             ],
           ),
           FilledButton.icon(
-            icon: const Icon(Icons.library_add, size: 18),
+            icon: const Icon(BrambleIcons.tbLibraryPlus, size: 18),
             label: const Text('Add to library'),
             onPressed: _paste.text.trim().isEmpty ? null : _addPasted,
           ),

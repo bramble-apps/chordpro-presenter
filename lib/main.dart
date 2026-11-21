@@ -27,6 +27,15 @@ Future<void> main() async {
       'chords-db',
     ], await rootBundle.loadString('assets/chords/LICENSE-chords-db.txt'));
   });
+  // The icons: Bramble Icons, made from Phosphor and Tabler (MIT licences).
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Phosphor Icons',
+    ], await rootBundle.loadString('assets/fonts/LICENSE-phosphor.txt'));
+    yield LicenseEntryWithLineBreaks([
+      'Tabler Icons',
+    ], await rootBundle.loadString('assets/fonts/LICENSE-tabler.txt'));
+  });
   // Desktop app: the projector window runs its own app.
   if (!kIsWeb && await runDesktopProjector()) return;
   // Installed apps: save on the device, system pickers and sharing.

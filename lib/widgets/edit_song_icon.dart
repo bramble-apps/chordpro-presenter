@@ -29,12 +29,13 @@ class _EditSongPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Drawn on a 24 × 24 grid.
+    // Drawn on a 24 × 24 grid, in the app icons' style (Bramble Icons:
+    // Phosphor's 1.5 line, round ends and corners).
     canvas.scale(size.width / 24, size.height / 24);
     final pen = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.9
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     // [
@@ -58,7 +59,7 @@ class _EditSongPainter extends CustomPainter {
     // The text cursor (an I-beam), taller than the brackets.
     final cursor = Paint()
       ..color = color
-      ..strokeWidth = 1.6
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(const Offset(12, 3), const Offset(12, 21), cursor);
     canvas.drawLine(const Offset(10.3, 3), const Offset(13.7, 3), cursor);

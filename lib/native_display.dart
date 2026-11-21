@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'browser.dart';
 import 'state.dart';
 import 'eink.dart';
+import 'bramble_icons.dart';
 
 /// A screen the projector can go on.
 class ExternalScreen {
@@ -206,11 +207,11 @@ class _NativeDisplaySectionState extends State<NativeDisplaySection> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.desktop_access_disabled_outlined),
+              leading: const Icon(BrambleIcons.tbDeviceDesktopOff),
               title: const Text('No external screen connected'),
               trailing: IconButton(
                 tooltip: 'Look again',
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(BrambleIcons.arrowsClockwise),
                 onPressed: _find,
               ),
             )
@@ -221,8 +222,8 @@ class _NativeDisplaySectionState extends State<NativeDisplaySection> {
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(
                   on?.id == s.id
-                      ? Icons.connected_tv
-                      : Icons.desktop_windows_outlined,
+                      ? BrambleIcons.television
+                      : BrambleIcons.desktop,
                 ),
                 title: Text(s.name),
                 subtitle: Text(

@@ -5,29 +5,30 @@
 import 'package:flutter/material.dart';
 
 import 'state.dart';
+import 'bramble_icons.dart';
 
 /// The icons to choose from, by the name saved with the song.
 const Map<String, (IconData, String)> songIcons = {
-  'star': (Icons.star_rounded, 'Star'),
-  'heart': (Icons.favorite_rounded, 'Favourite'),
-  'hymn': (Icons.menu_book_rounded, 'Hymn'),
-  'church': (Icons.church_rounded, 'Church'),
-  'piano': (Icons.piano, 'Piano'),
-  'mic': (Icons.mic_rounded, 'Vocal'),
-  'note': (Icons.music_note_rounded, 'Music'),
-  'globe': (Icons.public, 'Bilingual'),
-  'kids': (Icons.child_care_rounded, 'Kids'),
-  'christmas': (Icons.park_rounded, 'Christmas'),
-  'easter': (Icons.egg_rounded, 'Easter'),
-  'communion': (Icons.bakery_dining_rounded, 'Communion'),
-  'baptism': (Icons.water_drop_rounded, 'Baptism'),
-  'fire': (Icons.local_fire_department_rounded, 'Upbeat'),
-  'calm': (Icons.nightlight_round, 'Slow'),
-  'sun': (Icons.wb_sunny_rounded, 'Opener'),
-  'new': (Icons.fiber_new_rounded, 'New'),
-  'check': (Icons.check_circle_rounded, 'Ready'),
-  'flag': (Icons.flag_rounded, 'Needs work'),
-  'bolt': (Icons.bolt_rounded, 'Special'),
+  'star': (BrambleIcons.starFill, 'Star'),
+  'heart': (BrambleIcons.heartFill, 'Favourite'),
+  'hymn': (BrambleIcons.bookOpenText, 'Hymn'),
+  'church': (BrambleIcons.church, 'Church'),
+  'piano': (BrambleIcons.pianoKeys, 'Piano'),
+  'mic': (BrambleIcons.microphone, 'Vocal'),
+  'note': (BrambleIcons.musicNote, 'Music'),
+  'globe': (BrambleIcons.globeHemisphereWest, 'Bilingual'),
+  'kids': (BrambleIcons.baby, 'Kids'),
+  'christmas': (BrambleIcons.tree, 'Christmas'),
+  'easter': (BrambleIcons.egg, 'Easter'),
+  'communion': (BrambleIcons.bread, 'Communion'),
+  'baptism': (BrambleIcons.drop, 'Baptism'),
+  'fire': (BrambleIcons.fire, 'Upbeat'),
+  'calm': (BrambleIcons.moon, 'Slow'),
+  'sun': (BrambleIcons.sun, 'Opener'),
+  'new': (BrambleIcons.tbNewSection, 'New'),
+  'check': (BrambleIcons.checkCircleFill, 'Ready'),
+  'flag': (BrambleIcons.flag, 'Needs work'),
+  'bolt': (BrambleIcons.lightning, 'Special'),
 };
 
 /// [song]'s icon, if it has one.

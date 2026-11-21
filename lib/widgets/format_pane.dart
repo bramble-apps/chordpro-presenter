@@ -16,6 +16,7 @@ import '../chords/chord_db.dart';
 import '../chords/chord_library.dart';
 import '../chords/chord_sound.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Right-hand "Format" panel with Projection and Page tabs.
 class FormatPane extends StatefulWidget {
@@ -67,7 +68,7 @@ class _FormatPaneState extends State<FormatPane> {
               const Spacer(),
               IconButton(
                 tooltip: 'Close',
-                icon: const Icon(Icons.close),
+                icon: const Icon(BrambleIcons.x),
                 onPressed: widget.onClose,
               ),
             ],
@@ -121,7 +122,7 @@ class _FormatPaneState extends State<FormatPane> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(w.title),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const Icon(BrambleIcons.caretRight),
           onTap: () => setState(() => _einkSection = w.title),
         ),
     ];
@@ -219,25 +220,25 @@ class _FormatPaneState extends State<FormatPane> {
                 children: [
                   _Toggle(
                     'Bold',
-                    Icons.format_bold,
+                    BrambleIcons.textB,
                     p.textBold,
                     (v) => set((p) => p.textBold = v),
                   ),
                   _Toggle(
                     'Italic',
-                    Icons.format_italic,
+                    BrambleIcons.textItalic,
                     p.textItalic,
                     (v) => set((p) => p.textItalic = v),
                   ),
                   _Toggle(
                     'All caps',
-                    Icons.text_fields,
+                    BrambleIcons.textT,
                     p.textCaps,
                     (v) => set((p) => p.textCaps = v),
                   ),
                   _Toggle(
                     'Shadow',
-                    Icons.blur_on,
+                    BrambleIcons.tbBlur,
                     p.textShadow,
                     (v) => set((p) => p.textShadow = v),
                   ),
@@ -257,15 +258,15 @@ class _FormatPaneState extends State<FormatPane> {
                 segments: const [
                   ButtonSegment(
                     value: HAlign.left,
-                    icon: Icon(Icons.format_align_left),
+                    icon: Icon(BrambleIcons.textAlignLeft),
                   ),
                   ButtonSegment(
                     value: HAlign.center,
-                    icon: Icon(Icons.format_align_center),
+                    icon: Icon(BrambleIcons.textAlignCenter),
                   ),
                   ButtonSegment(
                     value: HAlign.right,
-                    icon: Icon(Icons.format_align_right),
+                    icon: Icon(BrambleIcons.textAlignRight),
                   ),
                 ],
                 selected: {p.textAlign},
@@ -279,15 +280,15 @@ class _FormatPaneState extends State<FormatPane> {
                 segments: const [
                   ButtonSegment(
                     value: VAlign.top,
-                    icon: Icon(Icons.vertical_align_top),
+                    icon: Icon(BrambleIcons.alignTop),
                   ),
                   ButtonSegment(
                     value: VAlign.center,
-                    icon: Icon(Icons.vertical_align_center),
+                    icon: Icon(BrambleIcons.alignCenterVertical),
                   ),
                   ButtonSegment(
                     value: VAlign.bottom,
-                    icon: Icon(Icons.vertical_align_bottom),
+                    icon: Icon(BrambleIcons.alignBottom),
                   ),
                 ],
                 selected: {p.textPosition},
@@ -546,19 +547,19 @@ class _FormatPaneState extends State<FormatPane> {
                   segments: const [
                     ButtonSegment(
                       value: Corner.topLeft,
-                      icon: Icon(Icons.north_west),
+                      icon: Icon(BrambleIcons.arrowUpLeft),
                     ),
                     ButtonSegment(
                       value: Corner.topRight,
-                      icon: Icon(Icons.north_east),
+                      icon: Icon(BrambleIcons.arrowUpRight),
                     ),
                     ButtonSegment(
                       value: Corner.bottomLeft,
-                      icon: Icon(Icons.south_west),
+                      icon: Icon(BrambleIcons.arrowDownLeft),
                     ),
                     ButtonSegment(
                       value: Corner.bottomRight,
-                      icon: Icon(Icons.south_east),
+                      icon: Icon(BrambleIcons.arrowDownRight),
                     ),
                   ],
                   selected: {p.logoCorner},
@@ -1143,7 +1144,7 @@ class _SectionState extends State<_Section> {
                   children: [
                     Expanded(child: title),
                     Icon(
-                      _open ? Icons.expand_less : Icons.expand_more,
+                      _open ? BrambleIcons.caretUp : BrambleIcons.caretDown,
                       size: 20,
                       color: scheme.onSurfaceVariant,
                     ),
@@ -1224,7 +1225,7 @@ class _ElementEditor extends StatelessWidget {
                 IconButton(
                   tooltip: s.hidden ? 'Show' : 'Hide',
                   icon: Icon(
-                    s.hidden ? Icons.visibility_off : Icons.visibility,
+                    s.hidden ? BrambleIcons.eyeSlash : BrambleIcons.eye,
                     size: 20,
                   ),
                   onPressed: () => update((s) => s.hidden = !s.hidden),
@@ -1237,19 +1238,19 @@ class _ElementEditor extends StatelessWidget {
                 children: [
                   toggle(
                     'Bold',
-                    const Icon(Icons.format_bold),
+                    const Icon(BrambleIcons.textB),
                     s.bold,
                     (v) => s.bold = v,
                   ),
                   toggle(
                     'Italic',
-                    const Icon(Icons.format_italic),
+                    const Icon(BrambleIcons.textItalic),
                     s.italic,
                     (v) => s.italic = v,
                   ),
                   toggle(
                     'Underline',
-                    const Icon(Icons.format_underline),
+                    const Icon(BrambleIcons.textUnderline),
                     s.underline,
                     (v) => s.underline = v,
                   ),
@@ -1271,7 +1272,7 @@ class _ElementEditor extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.remove_circle),
+                    icon: const Icon(BrambleIcons.minusCircleFill),
                     onPressed: s.size > 8
                         ? () => update((s) => s.size -= 1)
                         : null,
@@ -1285,7 +1286,7 @@ class _ElementEditor extends StatelessWidget {
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.add_circle),
+                    icon: const Icon(BrambleIcons.plusCircleFill),
                     onPressed: s.size < 60
                         ? () => update((s) => s.size += 1)
                         : null,
@@ -1324,7 +1325,7 @@ class _ElementEditor extends StatelessWidget {
                       ][i],
                       color: highlightColors[i] ?? scheme.surface,
                       selected: s.highlightHex == null && s.highlight == i,
-                      icon: i == 0 ? Icons.block : null,
+                      icon: i == 0 ? BrambleIcons.prohibit : null,
                       onTap: () => update((s) {
                         s.highlight = i;
                         s.highlightHex = null;
@@ -1455,7 +1456,11 @@ class _SwatchRow extends StatelessWidget {
                             width: inkW(1),
                           ),
                         ),
-                        child: Icon(Icons.add, size: 16, color: scheme.primary),
+                        child: Icon(
+                          BrambleIcons.plus,
+                          size: 16,
+                          color: scheme.primary,
+                        ),
                       ),
                     ),
                   ),
@@ -1530,12 +1535,12 @@ class _CustomFonts extends StatelessWidget {
         for (final f in fonts)
           Row(
             children: [
-              const Icon(Icons.font_download_outlined, size: 18),
+              const Icon(BrambleIcons.textAa, size: 18),
               const SizedBox(width: 8),
               Expanded(child: Text(f.name, overflow: TextOverflow.ellipsis)),
               IconButton(
                 tooltip: 'Remove font',
-                icon: const Icon(Icons.delete_outline, size: 18),
+                icon: const Icon(BrambleIcons.trash, size: 18),
                 onPressed: () async {
                   await FontService.removeCustom(f);
                   model.updateSettings((s) {
@@ -1549,7 +1554,7 @@ class _CustomFonts extends StatelessWidget {
             ],
           ),
         TextButton.icon(
-          icon: const Icon(Icons.upload_file, size: 18),
+          icon: const Icon(BrambleIcons.fileArrowUp, size: 18),
           label: const Text('Add your own font (.ttf / .otf)…'),
           onPressed: () async {
             final files = await pickFontFiles();
@@ -1628,14 +1633,14 @@ class _Stepper extends StatelessWidget {
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: 'Less',
-                icon: const Icon(Icons.remove, size: 18),
+                icon: const Icon(BrambleIcons.minus, size: 18),
                 onPressed: onMinus,
               ),
               Container(width: 1, height: 18, color: scheme.outlineVariant),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: 'More',
-                icon: const Icon(Icons.add, size: 18),
+                icon: const Icon(BrambleIcons.plus, size: 18),
                 onPressed: onPlus,
               ),
             ],
@@ -1703,7 +1708,7 @@ class _MediaRow extends StatelessWidget {
           child: m == null
               ? null
               : m.isVideo
-              ? const Icon(Icons.movie_outlined, color: Colors.white70)
+              ? const Icon(BrambleIcons.filmStrip, color: Colors.white70)
               : MediaBackground(media: m, fit: MediaFit.fill),
         ),
         Expanded(
@@ -1737,7 +1742,7 @@ class _MediaRow extends StatelessWidget {
         if (m != null)
           IconButton(
             tooltip: 'Remove',
-            icon: const Icon(Icons.close, size: 18),
+            icon: const Icon(BrambleIcons.x, size: 18),
             onPressed: () async {
               await MediaStore.delete(m);
               onChanged(null);
@@ -1994,7 +1999,7 @@ class _DynamicControlsState extends State<_DynamicControls> {
       children: [
         Row(
           children: [
-            arrow(Icons.chevron_left, 'Previous backgrounds', page - 1),
+            arrow(BrambleIcons.caretLeft, 'Previous backgrounds', page - 1),
             Expanded(
               child: Column(
                 spacing: 4,
@@ -2014,7 +2019,7 @@ class _DynamicControlsState extends State<_DynamicControls> {
                 ],
               ),
             ),
-            arrow(Icons.chevron_right, 'More backgrounds', page + 1),
+            arrow(BrambleIcons.caretRight, 'More backgrounds', page + 1),
           ],
         ),
         // Page dots.
@@ -2175,12 +2180,12 @@ class _SheetLayoutControls extends StatelessWidget {
             ButtonSegment(
               value: false,
               label: Text('Scroll'),
-              icon: Icon(Icons.view_day_outlined),
+              icon: Icon(BrambleIcons.tbLayoutRows),
             ),
             ButtonSegment(
               value: true,
               label: Text('Pages'),
-              icon: Icon(Icons.auto_stories_outlined),
+              icon: Icon(BrambleIcons.bookOpen),
             ),
           ],
           selected: {layout.pageMode},
@@ -2285,7 +2290,7 @@ class _LinkedControls extends StatelessWidget {
                   ButtonSegment(
                     value: false,
                     tooltip: 'Top & bottom',
-                    icon: Icon(Icons.view_agenda_outlined),
+                    icon: Icon(BrambleIcons.rows),
                   ),
                   ButtonSegment(
                     value: true,
@@ -2293,7 +2298,7 @@ class _LinkedControls extends StatelessWidget {
                     // The top & bottom icon turned: two panels side by side.
                     icon: RotatedBox(
                       quarterTurns: 1,
-                      child: Icon(Icons.view_agenda_outlined),
+                      child: Icon(BrambleIcons.rows),
                     ),
                   ),
                 ],
@@ -2322,26 +2327,26 @@ class _LinkedControls extends StatelessWidget {
               children: [
                 _Toggle(
                   'Bold',
-                  Icons.format_bold,
+                  BrambleIcons.textB,
                   look.bold,
                   (v) => onChange((l) => l.bold = v),
                 ),
                 _Toggle(
                   'Italic',
-                  Icons.format_italic,
+                  BrambleIcons.textItalic,
                   look.italic,
                   (v) => onChange((l) => l.italic = v),
                 ),
                 _Toggle(
                   'Dimmed',
-                  Icons.opacity,
+                  BrambleIcons.dropHalf,
                   look.dim,
                   (v) => onChange((l) => l.dim = v),
                 ),
                 if (projector)
                   _Toggle(
                     'Shadow',
-                    Icons.blur_on,
+                    BrambleIcons.tbBlur,
                     look.shadow,
                     (v) => onChange((l) => l.shadow = v),
                   ),
@@ -2357,7 +2362,7 @@ class _LinkedControls extends StatelessWidget {
                   IconButton(
                     tooltip: 'Same colour as the main section',
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.format_color_reset_outlined),
+                    icon: const Icon(BrambleIcons.tbDropletOff),
                     onPressed: () => onChange((l) => l.color = null),
                   ),
                 ColorField(
@@ -2450,7 +2455,7 @@ class _ChordDiagramControls extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
-          icon: const Icon(Icons.library_music_outlined, size: 18),
+          icon: const Icon(BrambleIcons.vinylRecord, size: 18),
           label: const Text('Chord Library…'),
           onPressed: () => showChordLibrary(context, model),
         ),

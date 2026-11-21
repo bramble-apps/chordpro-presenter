@@ -21,6 +21,7 @@ import 'chord_line.dart';
 import 'paged_sheet.dart';
 import 'snake_columns.dart';
 import '../eink.dart';
+import '../bramble_icons.dart';
 
 /// Formatted chord sheet: title/artist/details on top, sections (tap one to
 /// centre it), chords above or inline with the lyrics, key changes from the
@@ -532,7 +533,7 @@ class _ChordSheetState extends State<ChordSheet>
         blocks.add(
           Row(
             children: [
-              Icon(Icons.swap_vert, size: 18, color: scheme.secondary),
+              Icon(BrambleIcons.arrowsDownUp, size: 18, color: scheme.secondary),
               const SizedBox(width: 6),
               Text(
                 'Key change → ${key?.name ?? (extra > 0 ? '+$extra' : '$extra')}',

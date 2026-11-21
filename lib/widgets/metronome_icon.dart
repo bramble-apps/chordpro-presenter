@@ -33,12 +33,13 @@ class _MetronomePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Drawn on a 24 × 24 grid, like the Material icons.
+    // Drawn on a 24 × 24 grid, in the app icons' style (Bramble Icons:
+    // Phosphor's 1.5 line, round ends).
     canvas.scale(size.width / 24, size.height / 24);
     final line = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.9
+      ..strokeWidth = 1.5
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
     // The case: a tall trapezoid with a flat top.
@@ -56,7 +57,8 @@ class _MetronomePainter extends CustomPainter {
     final a = swing.clamp(-1.0, 1.0) * 0.5; // up to ~29°
     final dir = Offset(math.sin(a), -math.cos(a));
     canvas.drawLine(pivot, pivot + dir * 13, line);
-    canvas.drawCircle(pivot + dir * 8.2, 1.9, Paint()..color = color);
+    // (the weight: a small ring, as the icons draw dots on a line)
+    canvas.drawCircle(pivot + dir * 8.2, 1.5, line);
   }
 
   @override

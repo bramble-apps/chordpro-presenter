@@ -15,6 +15,7 @@ import 'cast_v2.dart';
 import 'cast_feeder.dart';
 import 'state.dart';
 import 'eink.dart';
+import 'bramble_icons.dart';
 
 /// A Chromecast / Google TV to cast to (from Google's Cast SDK on
 /// Android, or our own discovery on desktop).
@@ -278,7 +279,9 @@ class _NativeCastSectionState extends State<NativeCastSection> {
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(
-                        on == d.name ? Icons.cast_connected : Icons.tv,
+                        on == d.name
+                            ? BrambleIcons.screencastFill
+                            : BrambleIcons.televisionSimple,
                       ),
                       title: Text(d.name),
                       subtitle: d.model == null ? null : Text(d.model!),
