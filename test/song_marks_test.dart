@@ -2,6 +2,7 @@ import 'package:bilingual_projector/chordpro.dart';
 import 'package:bilingual_projector/format.dart';
 import 'package:bilingual_projector/music.dart';
 import 'package:bilingual_projector/state.dart';
+import 'package:bilingual_projector/widgets/chord_line.dart';
 import 'package:bilingual_projector/widgets/chord_sheet.dart';
 import 'package:bilingual_projector/widgets/song_marks.dart';
 import 'package:flutter/material.dart';
@@ -104,5 +105,14 @@ void main() {
     // nothing written out again in the details line
     expect(find.textContaining('BPM'), findsNothing);
     expect(find.textContaining('Key G'), findsNothing);
+  });
+
+  // The words start in line with the title (the selection's highlight and
+  // bar reach out past them, into the margin).
+  testWidgets('the parts\' words are in line with the title', (tester) async {
+    await _sheet(tester, 1000, song);
+    final title = tester.getRect(find.text('10 000 Reasons'));
+    final words = tester.getRect(find.byType(ChordLine).first);
+    expect(words.left, closeTo(title.left, .5));
   });
 }

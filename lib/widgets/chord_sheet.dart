@@ -763,7 +763,13 @@ class _ChordSheetState extends State<ChordSheet>
     final layout = widget.layout;
     final placed = SheetInsets.maybeOf(context);
     final inset = placed?.inset ?? EdgeInsets.zero;
-    final pad = const EdgeInsets.all(16) + inset;
+    // (labels in a margin: room for their badges beside the text, which
+    // stays in line with the title)
+    final labelRoom = EdgeInsets.only(
+      left: side == 'left' ? _PartBlock.labelRoom : 0,
+      right: side == 'right' ? _PartBlock.labelRoom : 0,
+    );
+    final pad = const EdgeInsets.all(16) + inset + labelRoom;
     if (layout != null && layout.pageMode) {
       // Printed-page view: title across the top of page 1, then the parts
       // flowing down the columns.
@@ -789,11 +795,17 @@ class _ChordSheetState extends State<ChordSheet>
               pageColor: scheme.surfaceContainerLowest,
               edgeColor: scheme.outlineVariant,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: column(headerWidgets),
-                ),
-                ...body,
+                for (final c in [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: column(headerWidgets),
+                  ),
+                  ...body,
+                ])
+                  // (on paper too: room for margin badges)
+                  labelRoom == EdgeInsets.zero
+                      ? c
+                      : Padding(padding: labelRoom / content, child: c),
               ],
             ),
           ),
@@ -1366,6 +1378,12 @@ class _PartBlock extends StatelessWidget {
   final String? marginLabel;
   final String marginSide;
 
+  /// How far the highlight and the bar reach past the words on the left.
+  static const _bleed = 12.0;
+
+  /// The room a margin badge takes beside the words (its width and gap).
+  static const labelRoom = _MarginBadge.width + 8;
+
   const _PartBlock({
     this.marginLabel,
     this.marginSide = '',
@@ -1403,12 +1421,21 @@ class _PartBlock extends StatelessWidget {
           // Two plain layers (a tint with evenly rounded corners and a
           // separate bar) — a left-only border with rounded corners leaves
           // faint hairline arcs at the corners.
+          // The words in line with the title; the highlight, the bar and
+          // a margin badge reach out past them (into the sheet's margin).
+          final left = margin && marginSide == 'left';
+          final right = margin && marginSide == 'right';
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 if (tint)
-                  Positioned.fill(
+                  Positioned(
+                    left: -_bleed - (left ? _MarginBadge.width : 0),
+                    right: -_bleed / 2 - (right ? _MarginBadge.width : 0),
+                    top: 0,
+                    bottom: 0,
                     child: AnimatedOpacity(
                       duration: d,
                       opacity: selected ? 1 : 0,
@@ -1424,7 +1451,7 @@ class _PartBlock extends StatelessWidget {
                   ),
                 if (bar && !margin)
                   Positioned(
-                    left: 0,
+                    left: -_bleed,
                     top: 0,
                     bottom: 0,
                     width: 4,
@@ -1440,12 +1467,7 @@ class _PartBlock extends StatelessWidget {
                     ),
                   ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    16 + (margin && marginSide == 'left' ? _MarginBadge.width : 0),
-                    6,
-                    8 + (margin && marginSide == 'right' ? _MarginBadge.width : 0),
-                    2,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(0, 6, 0, 2),
                   child: content,
                 ),
                 // (selected: its rail is the selection bar, its badge filled)
@@ -1453,8 +1475,9 @@ class _PartBlock extends StatelessWidget {
                   Positioned(
                     top: 0,
                     bottom: 0,
-                    left: marginSide == 'left' ? 8 : null,
-                    right: marginSide == 'right' ? 4 : null,
+                    // (12 from the words, as before)
+                    left: left ? -(_MarginBadge.width + 8) : null,
+                    right: right ? -(_MarginBadge.width + 4) : null,
                     width: _MarginBadge.width - 4,
                     child: _MarginBadge(
                       name: marginLabel!,
