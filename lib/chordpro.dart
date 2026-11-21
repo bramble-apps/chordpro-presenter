@@ -708,9 +708,18 @@ class ChordPro {
 
   /// Section labels like "Verse 1:", "Chorus", or any line ending with ":".
   static bool isSectionLabel(String line) {
-    if (line.trim().endsWith(':')) return true;
+    // A line ending in a colon is a label ("Verse 1:", "Bridge:")…
+    // unless it has chords: then it's a sung line whose words end in a
+    // colon (French often does: "…mon âme s'écrie :").
+    if (line.trim().endsWith(':')) return !_hasChord.hasMatch(line);
     return _labelRegex.hasMatch(line);
   }
+
+  /// A chord in brackets ("[G]", "[Em]", "[D/F#]", "[Cmaj7]"); not a
+  /// bracketed name such as "[Chorus]".
+  static final _hasChord = RegExp(
+    r'\[[A-G][#b\u266F\u266D]?(?:\]|[mM/\d(+\-\u00B0\u00F8\u2206]|maj|min|dim|aug|sus|add)',
+  );
 
   /// A section name shortened for a margin badge: "Verse 1" -> "V1",
   /// "Chorus" -> "C", "Pre-Chorus 2" -> "PC2", "Bridge" -> "B" (French

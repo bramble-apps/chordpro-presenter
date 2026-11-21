@@ -209,4 +209,20 @@ void main() {
       '', // one blank slide for the instrumental, not two
     ]);
   });
+
+  test('a sung line ending in a colon is not a section', () {
+    expect(
+      ChordPro.isSectionLabel(
+        "[D]Sans crainte, a[Em]ujourd'h[Bm]ui, [G]mon \u00E2m[A]e s'\u00E9cr[D]ie :",
+      ),
+      isFalse,
+    );
+    expect(ChordPro.isSectionLabel('[Cmaj7]Nous chantons :'), isFalse);
+    expect(ChordPro.isSectionLabel('Et je dis [D/F#]:'), isFalse);
+    // labels stay labels
+    expect(ChordPro.isSectionLabel('Couplet 1:'), isTrue);
+    expect(ChordPro.isSectionLabel('Refrain :'), isTrue);
+    expect(ChordPro.isSectionLabel('[Chorus]:'), isTrue);
+    expect(ChordPro.sectionName('Couplet 1:'), 'Couplet 1');
+  });
 }
