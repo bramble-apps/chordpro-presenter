@@ -47,6 +47,7 @@ import 'package:bilingual_projector/widgets/chordpro_field.dart';
 import 'package:bilingual_projector/widgets/floating_panel.dart';
 import 'package:bilingual_projector/widgets/format_pane.dart';
 import 'package:bilingual_projector/themes.dart';
+import 'package:bilingual_projector/widgets/color_picker.dart';
 
 Future<PresenterModel> pumpApp(
   WidgetTester tester, {
@@ -2207,7 +2208,7 @@ void main() {
     expect(model.selection.value, 1);
   });
 
-  testWidgets('colour rows end with + that opens the colour picker', (
+  testWidgets('a colour well opens the colour picker', (
     tester,
   ) async {
     final model = await pumpApp(tester);
@@ -2224,20 +2225,18 @@ void main() {
           .first,
     );
     await tester.pumpAndSettle();
-    final plus = find.byTooltip('Custom colour…', skipOffstage: false).first;
-    await tester.ensureVisible(plus);
+    // The title's colour: one well (its colour and a wheel), the default.
+    final well = find
+        .descendant(
+          of: find
+              .byWidgetPredicate((w) => w is ColorWell && w.label == 'Colour')
+              .first,
+          matching: find.byType(InkWell),
+        )
+        .first;
+    await tester.ensureVisible(well);
     await tester.pumpAndSettle();
-    // The swatches sit in one horizontally scrolling row.
-    expect(
-      find.ancestor(
-        of: plus,
-        matching: find.byWidgetPredicate(
-          (w) => w is ListView && w.scrollDirection == Axis.horizontal,
-        ),
-      ),
-      findsOneWidget,
-    );
-    await tester.tap(plus);
+    await tester.tap(well);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Hex'), '#123456');
     await tester.pump();
@@ -2246,7 +2245,18 @@ void main() {
     final title = model.format[SheetElement.title];
     expect(title.color, '#123456');
     expect(title.textStyle().color, const Color(0xFF123456));
-    expect(find.byTooltip('Custom #123456'), findsOneWidget);
+    // A preset swatch is chosen at once (by its name); the first swatch
+    // goes back to the default.
+    await tester.tap(well);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('red'));
+    await tester.pumpAndSettle();
+    expect(title.color, 'red');
+    await tester.tap(well);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Default (light or dark mode)').last);
+    await tester.pumpAndSettle();
+    expect(title.color, isNull);
 
     // Custom highlight survives a save / load.
     title.highlightHex = '#FF0000';

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../bramble_icons.dart';
 import '../eink.dart';
 import '../format.dart' show namedColors;
 import 'dialog_buttons.dart';
@@ -33,10 +34,7 @@ class ColorField extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(inkR(8)),
         onTap: () async {
-          final picked = await showAppDialog<Color>(
-            context: context,
-            builder: (_) => _PickerDialog(initial: value),
-          );
+          final picked = await pickColor(context, value);
           if (picked != null) onChanged(picked);
         },
         child: Container(
@@ -79,11 +77,37 @@ class ColorField extends StatelessWidget {
 }
 
 /// Opens the colour picker; returns the chosen colour (null if cancelled).
-Future<Color?> pickColor(BuildContext context, Color initial) =>
-    showAppDialog<Color>(
+Future<Color?> pickColor(BuildContext context, Color initial) async =>
+    (await showAppDialog<ColorPick>(
       context: context,
       builder: (_) => _PickerDialog(initial: initial),
-    );
+    ))?.color;
+
+/// What a picker with a "Default" / "None" choice returns: a colour, or
+/// null for that choice.
+class ColorPick {
+  final Color? color;
+  const ColorPick(this.color);
+}
+
+/// The picker with a first swatch for no colour of its own ([clearLabel]:
+/// "Default", drawn split white and black when [splitClear]; or "None")
+/// and its own [presets]. A swatch is chosen at once.
+Future<ColorPick?> pickColorOrClear(
+  BuildContext context,
+  Color initial, {
+  required String clearLabel,
+  bool splitClear = false,
+  Map<String, Color>? presets,
+}) => showAppDialog<ColorPick>(
+  context: context,
+  builder: (_) => _PickerDialog(
+    initial: initial,
+    clearLabel: clearLabel,
+    splitClear: splitClear,
+    presets: presets,
+  ),
+);
 
 String hexOf(Color c) =>
     '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
@@ -96,7 +120,15 @@ Color? parseHex(String text) {
 
 class _PickerDialog extends StatefulWidget {
   final Color initial;
-  const _PickerDialog({required this.initial});
+  final String? clearLabel;
+  final bool splitClear;
+  final Map<String, Color>? presets;
+  const _PickerDialog({
+    required this.initial,
+    this.clearLabel,
+    this.splitClear = false,
+    this.presets,
+  });
 
   @override
   State<_PickerDialog> createState() => _PickerDialogState();
@@ -157,7 +189,7 @@ class _PickerDialogState extends State<_PickerDialog> {
           DialogCancelButton(onPressed: () => Navigator.pop(context)),
           DialogDoneButton(
             tooltip: 'Use colour',
-            onPressed: () => Navigator.pop(context, color),
+            onPressed: () => Navigator.pop(context, ColorPick(color)),
           ),
         ],
       ),
@@ -284,12 +316,28 @@ class _PickerDialogState extends State<_PickerDialog> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final MapEntry(key: name, value: c) in namedColors.entries)
+                if (widget.clearLabel case final clear?)
+                  Tooltip(
+                    message: clear,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(inkR(6)),
+                      onTap: () =>
+                          Navigator.pop(context, const ColorPick(null)),
+                      child: ColorTile(
+                        color: null,
+                        split: widget.splitClear,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                for (final MapEntry(key: name, value: c)
+                    in (widget.presets ?? namedColors).entries)
                   Tooltip(
                     message: name,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(inkR(6)),
-                      onTap: () => _set(HSVColor.fromColor(c)),
+                      // (a swatch: chosen at once, its exact colour)
+                      onTap: () => Navigator.pop(context, ColorPick(c)),
                       child: Container(
                         width: 28,
                         height: 28,
@@ -454,4 +502,172 @@ class _WheelPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_WheelPainter old) => old.angle != angle;
+}
+
+/// A colour as a small rounded tile; null: no colour of its own, drawn
+/// split white and black ([split]: follows light or dark mode) or with a
+/// "no" sign (none).
+class ColorTile extends StatelessWidget {
+  final Color? color;
+  final bool split;
+  final double size;
+  final double? width;
+  const ColorTile({
+    super.key,
+    required this.color,
+    this.split = false,
+    this.size = 24,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(inkR(6));
+    return Container(
+      width: width ?? size,
+      height: size,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        color: color ?? (split ? null : scheme.surface),
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: radius,
+        border: Border.all(color: scheme.outlineVariant, width: inkW(1)),
+      ),
+      child: color != null
+          ? null
+          : split
+          ? const CustomPaint(painter: _SplitPainter())
+          : Icon(BrambleIcons.prohibit, size: size * .6, color: scheme.outline),
+    );
+  }
+}
+
+/// White above the diagonal, black below: light mode's text, dark mode's.
+class _SplitPainter extends CustomPainter {
+  const _SplitPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas
+      ..drawRect(Offset.zero & size, Paint()..color = const Color(0xFFFFFFFF))
+      ..drawPath(
+        Path()
+          ..moveTo(size.width, 0)
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close(),
+        Paint()..color = const Color(0xFF000000),
+      );
+  }
+
+  @override
+  bool shouldRepaint(_SplitPainter old) => false;
+}
+
+/// A colour setting as Letters' inspector shows one: its colour in a tile
+/// and a colour wheel, together in a pill; either opens the picker (the
+/// colour square, hue, hex and swatches).
+class ColorWell extends StatelessWidget {
+  final String label;
+
+  /// The colour; null: [clearLabel] (the default, or none).
+  final Color? value;
+  final String clearLabel;
+  final bool splitClear;
+  final Map<String, Color>? presets;
+  final ValueChanged<Color?> onChanged;
+
+  const ColorWell({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.clearLabel,
+    required this.onChanged,
+    this.splitClear = false,
+    this.presets,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Future<void> open() async {
+      final pick = await pickColorOrClear(
+        context,
+        value ?? scheme.primary,
+        clearLabel: clearLabel,
+        splitClear: splitClear,
+        presets: presets,
+      );
+      if (pick != null) onChanged(pick.color);
+    }
+
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        Tooltip(
+          message: value == null ? clearLabel : hexOf(value!),
+          child: Material(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(inkR(10)),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(inkR(10)),
+              onTap: open,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 6,
+                  children: [
+                    ColorTile(
+                      color: value,
+                      split: splitClear,
+                      size: 24,
+                      width: 44,
+                    ),
+                    const _Wheel(size: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A small colour wheel (the hues round a circle, white at its middle).
+class _Wheel extends StatelessWidget {
+  final double size;
+  const _Wheel({required this.size});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: SweepGradient(
+        colors: [
+          Color(0xFFFF0000),
+          Color(0xFFFFFF00),
+          Color(0xFF00FF00),
+          Color(0xFF00FFFF),
+          Color(0xFF0000FF),
+          Color(0xFFFF00FF),
+          Color(0xFFFF0000),
+        ],
+      ),
+    ),
+    foregroundDecoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RadialGradient(
+        colors: [Color(0xCCFFFFFF), Color(0x00FFFFFF)],
+        stops: [0, 1],
+      ),
+    ),
+  );
 }

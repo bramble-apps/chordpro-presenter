@@ -1438,203 +1438,51 @@ class _ElementEditor extends StatelessWidget {
                   ),
                 ],
               ),
-              _SwatchRow(
+              // The text's colour and its highlight, each a colour and a
+              // wheel that open the picker (swatches, hex…).
+              ColorWell(
                 label: 'Colour',
-                swatches: [
-                  for (final name in [null, ...namedColors.keys])
-                    _Swatch(
-                      tooltip: name ?? 'Default (light or dark mode)',
-                      color: namedColors[name] ?? scheme.onSurface,
-                      selected: s.color == name,
-                      split: name == null,
-                      onTap: () => update((s) => s.color = name),
-                    ),
-                ],
-                custom: namedColors.containsKey(s.color)
-                    ? null
-                    : colorFromHex(s.color),
-                onCustom: (c) => update((s) => s.color = hexOf(c)),
+                value: namedColors[s.color] ?? colorFromHex(s.color),
+                clearLabel: 'Default (light or dark mode)',
+                splitClear: true,
+                onChanged: (c) => update((s) {
+                  final name = namedColors.entries
+                      .where((e) => e.value == c)
+                      .firstOrNull
+                      ?.key;
+                  s.color = c == null ? null : name ?? hexOf(c);
+                }),
               ),
               const SizedBox(height: 6),
-              _SwatchRow(
+              ColorWell(
                 label: 'Highlight',
-                swatches: [
-                  for (var i = 0; i < highlightColors.length; i++)
-                    _Swatch(
-                      tooltip: const [
-                        'None',
-                        'Yellow',
-                        'Green',
-                        'Blue',
-                        'Pink',
-                        'Orange', //
-                      ][i],
-                      color: highlightColors[i] ?? scheme.surface,
-                      selected: s.highlightHex == null && s.highlight == i,
-                      icon: i == 0 ? BrambleIcons.prohibit : null,
-                      onTap: () => update((s) {
-                        s.highlight = i;
-                        s.highlightHex = null;
-                      }),
-                    ),
-                ],
-                custom: colorFromHex(s.highlightHex),
-                onCustom: (c) => update((s) => s.highlightHex = hexOf(c)),
+                value: s.highlightHex != null
+                    ? colorFromHex(s.highlightHex)
+                    : highlightColors[s.highlight.clamp(
+                        0,
+                        highlightColors.length - 1,
+                      )],
+                clearLabel: 'None',
+                presets: {
+                  for (final (i, name) in const [
+                    'Yellow',
+                    'Green',
+                    'Blue',
+                    'Pink',
+                    'Orange',
+                  ].indexed)
+                    name: highlightColors[i + 1]!,
+                },
+                onChanged: (c) => update((s) {
+                  final i = c == null ? 0 : highlightColors.indexOf(c);
+                  s.highlight = i < 0 ? 0 : i;
+                  s.highlightHex = c != null && i < 0 ? hexOf(c) : null;
+                }),
               ),
             ],
           ],
         ),
       ),
-    );
-  }
-}
-
-class _Swatch {
-  final String tooltip;
-  final Color color;
-  final bool selected;
-  final IconData? icon;
-  final VoidCallback onTap;
-
-  /// Split corner to corner, white and black: the default colour, which
-  /// follows light or dark mode.
-  final bool split;
-  const _Swatch({
-    required this.tooltip,
-    required this.color,
-    required this.selected,
-    required this.onTap,
-    this.icon,
-    this.split = false,
-  });
-}
-
-/// One scrollable row of colour swatches (rounded squares); the + at the
-/// end opens the full colour picker. A custom colour shows as its own
-/// (selected) swatch.
-class _SwatchRow extends StatelessWidget {
-  final String label;
-  final List<_Swatch> swatches;
-  final Color? custom;
-  final ValueChanged<Color> onCustom;
-
-  const _SwatchRow({
-    required this.label,
-    required this.swatches,
-    required this.custom,
-    required this.onCustom,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final radius = BorderRadius.circular(inkR(6));
-    Widget circle({
-      required String tooltip,
-      required Color color,
-      required bool selected,
-      required VoidCallback onTap,
-      IconData? icon,
-      bool split = false,
-    }) => Tooltip(
-      message: tooltip,
-      child: InkWell(
-        borderRadius: radius,
-        onTap: onTap,
-        child: Container(
-          width: 24,
-          height: 24,
-          foregroundDecoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(
-              width: inkW(selected ? 2.5 : 1),
-              color: selected ? scheme.primary : scheme.outlineVariant,
-            ),
-          ),
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            color: split ? null : color,
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: split
-              ? const CustomPaint(painter: _SplitPainter())
-              : icon == null
-              ? null
-              : Icon(icon, size: 14, color: scheme.outline),
-        ),
-      ),
-    );
-
-    return Row(
-      children: [
-        SizedBox(width: 72, child: Text(label)),
-        Expanded(
-          child: SizedBox(
-            height: 32,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
-              children: [
-                for (final sw in [
-                  ...swatches.map(
-                    (sw) => circle(
-                      tooltip: sw.tooltip,
-                      color: sw.color,
-                      selected: sw.selected,
-                      onTap: sw.onTap,
-                      icon: sw.icon,
-                      split: sw.split,
-                    ),
-                  ),
-                  if (custom != null)
-                    circle(
-                      tooltip: 'Custom ${hexOf(custom!)}',
-                      color: custom!,
-                      selected: true,
-                      onTap: () async {
-                        final c = await pickColor(context, custom!);
-                        if (c != null) onCustom(c);
-                      },
-                    ),
-                  Tooltip(
-                    message: 'Custom colour…',
-                    child: InkWell(
-                      borderRadius: radius,
-                      onTap: () async {
-                        final c = await pickColor(
-                          context,
-                          custom ?? scheme.primary,
-                        );
-                        if (c != null) onCustom(c);
-                      },
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          borderRadius: radius,
-                          border: Border.all(
-                            color: scheme.outline,
-                            width: inkW(1),
-                          ),
-                        ),
-                        child: Icon(
-                          BrambleIcons.plus,
-                          size: 16,
-                          color: scheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ])
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Center(child: sw),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -2671,29 +2519,6 @@ class _ExtensionSample extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The default colour's swatch: white above the diagonal, black below it
-/// (light mode's text, dark mode's).
-class _SplitPainter extends CustomPainter {
-  const _SplitPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas
-      ..drawRect(Offset.zero & size, Paint()..color = const Color(0xFFFFFFFF))
-      ..drawPath(
-        Path()
-          ..moveTo(size.width, 0)
-          ..lineTo(size.width, size.height)
-          ..lineTo(0, size.height)
-          ..close(),
-        Paint()..color = const Color(0xFF000000),
-      );
-  }
-
-  @override
-  bool shouldRepaint(_SplitPainter old) => false;
 }
 
 /// A labelled slider with its value shown at the end (line spacing,
