@@ -950,13 +950,12 @@ class _OperatorScreenState extends State<OperatorScreen>
               // centre, where the button box puts it.
               double openTop() => eink
                   ? (extras.headerBar ? 0 : em)
+                  // (the sidebar's row: centred on the header bar, as the
+                  // button box puts it; else 12 from the top, as the
+                  // toolbar)
                   : extras.headerBar
-                  ? 3 +
-                        // (its width: it's round, and the bar may squeeze
-                        // its height)
-                        math.max(40.0, _toggleWidth) / 2 -
-                        (_headerHeight - inkW(1)) / 2
-                  : 8;
+                  ? 0
+                  : 12;
               // (from the pane's right edge: its 4 of padding and the button)
               double inRow() => _toggleWidth + 4;
               // (measured as drawn, for the room and the place above)

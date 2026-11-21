@@ -256,12 +256,15 @@ class _SidebarState extends State<Sidebar> {
                     )
                   : null,
               // (The 2 px line counts towards the 46: 2 + 40 + 2 + 2.)
+              // Lined up with the toolbar beside it: in the header bar,
+              // centred on it as its buttons are (above its 1 px line);
+              // with floating toolbars, 12 from the top as they are.
               padding: isEink(context)
                   ? const EdgeInsets.fromLTRB(_einkSide, 2, _einkSide, 2)
                   : StyleExtras.of(context).headerBar
-                  ? const EdgeInsets.fromLTRB(4, 3, 4, 3)
-                  : const EdgeInsets.fromLTRB(4, 8, 4, 4),
-              child: Row(
+                  ? const EdgeInsets.fromLTRB(4, 0, 4, 1)
+                  : const EdgeInsets.fromLTRB(4, 12, 4, 4),
+              child: _centredInHeader(Row(
                 spacing: 6,
                 children: [
                   _menu(),
@@ -275,7 +278,7 @@ class _SidebarState extends State<Sidebar> {
                           SizedBox(width: size.width),
                     ),
                 ],
-              ),
+              )),
             ),
             if (model.remoteEdit) RemoteEditStrip(model: model),
             // (E-ink: in the filter menu, all at once.)
@@ -739,6 +742,17 @@ class _SidebarState extends State<Sidebar> {
           ),
         ],
       ],
+    );
+  }
+
+  /// The top row in a desktop style: centred on the header bar beside it
+  /// (45 above its line), as the bar's own buttons are, whatever their size
+  /// (taller touch-sized ones reach past its edges a little, as there).
+  Widget _centredInHeader(Widget row) {
+    if (isEink(context) || !StyleExtras.of(context).headerBar) return row;
+    return SizedBox(
+      height: 45,
+      child: OverflowBox(minHeight: 0, maxHeight: double.infinity, child: row),
     );
   }
 
