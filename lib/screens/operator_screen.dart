@@ -943,7 +943,12 @@ class _OperatorScreenState extends State<OperatorScreen>
               // edge as it slides, and parks at the left.
               final eink = isEink(context);
               final em = _einkMargin(_compact);
-              final double edge = eink ? em : 8;
+              // (the button's own backing as far from the left as the
+              // toolbar is from the right: 12, 8 on phones; in the header
+              // bar the button's 4 of room make it 12)
+              final double edge = eink
+                  ? em
+                  : (extras.headerBar || _compact ? 8 : 12);
               final double closedTop = extras.headerBar ? 0 : (eink ? em : 12);
               // Open: centred on the sidebar's top row (its 3 or 8 of
               // padding, then a row as tall as its buttons, at least the
@@ -2040,7 +2045,9 @@ class _OperatorScreenState extends State<OperatorScreen>
               color: extras.headerColor,
               border: Border(bottom: border),
             ),
-            padding: const EdgeInsets.only(right: 6),
+            // (its last button 12 from the right, as the sidebar button
+            // from the left: the buttons have 4 of room round them)
+            padding: const EdgeInsets.only(right: 8),
             // Left gap for the sidebar button, which floats over the bar
             // (docked: only while the sidebar is closed; open, the button
             // is in the sidebar, and the gap closes as it slides)
@@ -2163,7 +2170,8 @@ class _OperatorScreenState extends State<OperatorScreen>
     // mode the slides run to the bottom of the window, under the toolbar
     // (they scroll out from behind it), or the media pane does.
     final presenting = sheetArea == null;
-    final barPad = _compact ? 8.0 : 14.0;
+    // (as far from the right as the sidebar button is from the left)
+    final barPad = _compact ? 8.0 : 12.0;
     return LayoutBuilder(
       builder: (context, box) => ListenableBuilder(
         listenable: _bottomLayout,
@@ -2281,7 +2289,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                 top: eink ? em : 12,
                 // (E-ink: past the sidebar button by the same margin.)
                 left: eink ? em * 2 + 48 : 64,
-                right: eink ? em : (_compact ? 8 : 14),
+                right: eink ? em : barPad,
                 // What doesn't fit goes into ⋯, a button at a time as the
                 // window narrows (no jump at a breakpoint).
                 child: LayoutBuilder(
