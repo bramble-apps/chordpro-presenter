@@ -2321,9 +2321,22 @@ class _SheetLayoutControls extends StatelessWidget {
         const SizedBox(height: 6),
         SegmentedButton<int>(
           segments: const [
-            ButtonSegment(value: 1, label: Text('1')),
-            ButtonSegment(value: 2, label: Text('2')),
-            ButtonSegment(value: 3, label: Text('3')),
+            // (each a picture of its columns; the count as a tooltip)
+            ButtonSegment(
+              value: 1,
+              icon: Icon(BrambleIcons.tbColumns1),
+              tooltip: '1 column',
+            ),
+            ButtonSegment(
+              value: 2,
+              icon: Icon(BrambleIcons.tbColumns2),
+              tooltip: '2 columns',
+            ),
+            ButtonSegment(
+              value: 3,
+              icon: Icon(BrambleIcons.tbColumns3),
+              tooltip: '3 columns',
+            ),
           ],
           selected: {layout.columns},
           showSelectedIcon: false,

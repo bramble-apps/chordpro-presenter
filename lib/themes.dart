@@ -327,14 +327,14 @@ ThemeData buildTheme(
   _buildTheme(t, brightness, oled: oled, style: style, fontFamily: fontFamily),
 );
 
-/// Every list of choices at one size: popup menus (⋯, Project…), menus
-/// and dropdown lists all in the body text dropdowns already use (Material
-/// gives menus a smaller label size), in every style.
+/// Every list of choices at one size: popup menus (⋯, Project…) and menus
+/// in Material's label size, 14, as the app's dropdowns (listTextStyle),
+/// regular weight, in every style.
 ThemeData _evenLists(ThemeData theme) {
-  // (the size dropdowns get: Material's body large, 16)
   final size = Typography.material2021(platform: theme.platform)
       .englishLike
-      .bodyLarge!;
+      .labelLarge!
+      .copyWith(fontWeight: FontWeight.w400);
   final on = theme.colorScheme.onSurface;
   final item = size.copyWith(color: on);
   return theme.copyWith(

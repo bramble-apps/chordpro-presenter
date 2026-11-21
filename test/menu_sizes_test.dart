@@ -1,3 +1,4 @@
+import 'package:bilingual_projector/eink.dart';
 import 'package:bilingual_projector/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -36,7 +37,7 @@ void main() {
                     ),
                   ],
                 ),
-                DropdownButton<int>(
+                AppDropdown<int>(
                   value: 1,
                   onChanged: (_) {},
                   items: const [
@@ -58,6 +59,7 @@ void main() {
       await tester.pumpAndSettle();
       final list = _size(tester, 'Solfège');
       expect(menu, list, reason: 'popup $menu, dropdown $list');
+      expect(list, 14, reason: 'the smaller, menu size');
     });
   }
 }

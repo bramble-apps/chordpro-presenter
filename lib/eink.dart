@@ -759,6 +759,8 @@ class AppDropdown<T> extends StatelessWidget {
         isDense: isDense,
         isExpanded: isExpanded,
         underline: underline,
+        // (the list's text the size of the app's menus)
+        style: listTextStyle(context),
         // (the app's light caret, as its own dropdowns)
         icon: const Padding(
           padding: EdgeInsets.only(left: 4),
@@ -815,7 +817,7 @@ class _AppDropdownFieldState<T> extends State<AppDropdownField<T>> {
         decoration: widget.decoration ?? const InputDecoration(),
         isDense: widget.isDense,
         isExpanded: widget.isExpanded,
-        style: widget.style,
+        style: widget.style ?? listTextStyle(context),
       );
     }
     return InputDecorator(
@@ -833,7 +835,7 @@ class _AppDropdownFieldState<T> extends State<AppDropdownField<T>> {
               },
         isExpanded: true,
         outlined: false,
-        style: widget.style,
+        style: widget.style ?? listTextStyle(context),
       ),
     );
   }
@@ -1307,4 +1309,14 @@ class _RenderArrowsLayout extends RenderBox
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
       defaultHitTestChildren(result, position: position);
+}
+
+/// The text of the app's lists of choices (dropdowns, as menus): Material's
+/// label size, 14, in the surface's text colour.
+TextStyle listTextStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  return theme.textTheme.labelLarge!.copyWith(
+    color: theme.colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+  );
 }

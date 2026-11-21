@@ -564,7 +564,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(pane(find.text('Columns')), findsOneWidget);
     expect(pane(find.text('A4')), findsOneWidget);
-    await tester.tap(pane(find.text('2')));
+    await tester.tap(pane(find.byTooltip('2 columns')));
     await tester.pumpAndSettle();
     expect(model.format.pageMode, isTrue);
     expect(model.format.columns, 2);

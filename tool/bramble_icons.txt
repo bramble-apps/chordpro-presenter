@@ -260,3 +260,6 @@ zoom_out_rounded ph:magnifying-glass-minus
 + ph:palette
 + tb:photo-video
 + tb:sparkles
++ tb:columns-1
++ tb:columns-2
++ tb:columns-3
