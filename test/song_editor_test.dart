@@ -88,4 +88,67 @@ void main() {
       reason: 'sheet',
     );
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  // The text area runs from the tabs' line to the bottom edge, scrolling
+  // as a whole: lines pass under the bar floating over its foot, and the
+  // caret on the last line is brought up clear of the bar.
+  testWidgets('the ChordPro text scrolls edge to edge, under the bar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final raw = List.generate(80, (i) => '[G]Line $i').join('\n');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => SongEditor.show(
+                context,
+                Song(title: 'Song', raw: raw),
+                tags: const [],
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final frame = tester.getRect(
+      find
+          .ancestor(of: find.byType(TabBar), matching: find.byType(Material))
+          .last,
+    );
+    final scroller = find.byType(SingleChildScrollView).last;
+    final view = tester.getRect(scroller);
+    expect(view.top, closeTo(tester.getRect(find.byType(TabBar)).bottom, .5));
+    expect(view.bottom, closeTo(frame.bottom, .5));
+    final bar = tester.getRect(find.byType(ListView).last);
+    expect(bar.bottom, lessThan(view.bottom));
+    expect(bar.top, greaterThan(view.top));
+
+    // The caret at the very end: the last line is above the bar.
+    await tester.tap(find.byType(EditableText).last);
+    await tester.pump();
+    final field = tester.state<EditableTextState>(
+      find.byType(EditableText).last,
+    );
+    field.userUpdateTextEditingValue(
+      field.textEditingValue.copyWith(
+        selection: TextSelection.collapsed(offset: raw.length),
+      ),
+      SelectionChangedCause.keyboard,
+    );
+    await tester.pumpAndSettle();
+    final editable = field.renderEditable;
+    final caret = MatrixUtils.transformRect(
+      editable.getTransformTo(null),
+      editable.getLocalRectForCaret(TextPosition(offset: raw.length)),
+    );
+    expect(caret.bottom, lessThan(bar.top));
+    expect(caret.top, greaterThan(view.top));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 }

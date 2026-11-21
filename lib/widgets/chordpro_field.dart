@@ -8,6 +8,7 @@ import 'abc_editor.dart';
 import '../chordpro.dart';
 import '../fonts.dart';
 import '../music.dart';
+import '../eink.dart';
 
 final _chordOrDirective = RegExp(r'\[[^\]\n]*\]|\{[^}\n]*\}');
 
@@ -642,6 +643,15 @@ class _ChordProFieldState extends State<ChordProField> {
             child: Stack(
               children: [
                 Positioned.fill(child: _field()),
+                // The text fades into the background under the bar (as the
+                // tags do at their edge).
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: _barHeight + _barInset + 24,
+                  child: IgnorePointer(child: _fade(context)),
+                ),
                 // The bar floats over the text area's foot.
                 Positioned(
                   left: 0,
@@ -657,17 +667,60 @@ class _ChordProFieldState extends State<ChordProField> {
     );
   }
 
+  /// The text area's background (its fill over the surface it's on), clear
+  /// at the top to solid at the foot.
+  Widget _fade(BuildContext context) {
+    final theme = Theme.of(context);
+    final surface =
+        theme.dialogTheme.backgroundColor ??
+        theme.colorScheme.surfaceContainerHigh;
+    final fill = Color.alphaBlend(
+      theme.inputDecorationTheme.fillColor ??
+          theme.colorScheme.surfaceContainerHighest,
+      surface,
+    );
+    if (isEink(context)) return const SizedBox.shrink();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [fill.withValues(alpha: 0), fill.withValues(alpha: .9), fill],
+          stops: const [0, .45, 1],
+        ),
+      ),
+    );
+  }
+
   /// The bar's height, and how far it sits up from the bottom.
   static const _barHeight = 48.0, _barInset = 6.0;
 
-  /// The text, edge to edge: no box around it, the side gaps inside it,
-  /// room left at its foot for the bar over it.
-  Widget _field() => TextField(
+  /// The text, edge to edge: no box around it. Scrolled as a whole (its
+  /// gaps with it), so lines go right up to the tabs' line and pass under
+  /// the bar floating over its foot; at the end, room to bring the last
+  /// line up above the bar. At least as tall as the room (all of it takes
+  /// a tap).
+  Widget _field() => LayoutBuilder(
+    builder: (context, box) => SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: box.maxHeight),
+        child: _text(),
+      ),
+    ),
+  );
+
+  Widget _text() => TextField(
     key: _fieldKey,
     controller: c,
     focusNode: _focus,
-    expands: true,
     maxLines: null,
+    // The caret is kept clear of the bar.
+    scrollPadding: const EdgeInsets.fromLTRB(
+      20,
+      20,
+      20,
+      _barHeight + _barInset + 20,
+    ),
     textAlignVertical: TextAlignVertical.top,
     // Bundled monospaced font so chords and lyrics line up.
     style: TextStyle(
