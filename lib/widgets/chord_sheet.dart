@@ -20,6 +20,7 @@ import '../bidi.dart';
 import 'chord_line.dart';
 import 'paged_sheet.dart';
 import 'snake_columns.dart';
+import 'song_marks.dart';
 import '../eink.dart';
 import '../bramble_icons.dart';
 
@@ -365,18 +366,26 @@ class _ChordSheetState extends State<ChordSheet>
     accidentals: SongAccidentals.of(format, song.extra).accidentals,
   );
 
-  String _detailsLine(ChordProHeader header) {
-    final tempo = song.tempo.isNotEmpty ? song.tempo : (header.tempo ?? '');
-    final time = song.timeSignature.isNotEmpty
-        ? song.timeSignature
-        : (header.time ?? '');
+  String _tempoOf(ChordProHeader header) =>
+      song.tempo.isNotEmpty ? song.tempo : (header.tempo ?? '');
+
+  String _timeOf(ChordProHeader header) => song.timeSignature.isNotEmpty
+      ? song.timeSignature
+      : (header.time ?? '');
+
+  /// The details under the title; without the key, tempo and time when
+  /// [marks] shows them (beside the title, as on printed music).
+  String _detailsLine(ChordProHeader header, {bool marks = false}) {
+    final tempo = _tempoOf(header);
+    final time = _timeOf(header);
     final shapes = widget.displayKey;
     return [
-      if (widget.soundingKey != null) 'Key ${widget.soundingKey!.name}',
+      if (!marks && widget.soundingKey != null)
+        'Key ${widget.soundingKey!.name}',
       if (widget.capo > 0)
         'Capo ${widget.capo}${shapes != null ? ' (${shapes.name} shapes)' : ''}',
-      if (tempo.isNotEmpty) '${tempo.trim()} BPM',
-      if (time.isNotEmpty) time.trim(),
+      if (!marks && tempo.isNotEmpty) '${tempo.trim()} BPM',
+      if (!marks && time.isNotEmpty) time.trim(),
       if (song.duration.isNotEmpty) song.duration,
       for (final e in song.custom.entries)
         if (e.value.trim().isNotEmpty) '${e.key}: ${e.value.trim()}',
@@ -466,11 +475,25 @@ class _ChordSheetState extends State<ChordSheet>
     final headings = format[SheetElement.headings];
     final notes = format[SheetElement.notes];
     final footer = format[SheetElement.footer];
-    final detailText = _detailsLine(header);
+    // The tempo, time signature and key as on printed music (with the
+    // details: hidden with them).
+    final detailsStyle = _style(SheetElement.details, color: secondary);
+    final titleStyle = _style(SheetElement.title);
+    final marks = details.hidden
+        ? null
+        : SongMarks(
+            tempo: _tempoOf(header),
+            time: _timeOf(header),
+            keyName: widget.soundingKey?.name,
+            size: (detailsStyle.fontSize ?? 14) * 1.05,
+            color: titleStyle.color,
+          );
+    final showMarks = marks != null && !marks.isEmpty;
+    final detailText = _detailsLine(header, marks: showMarks);
 
-    final headerTexts = <Widget>[
+    final titleTexts = <Widget>[
       if (!title.hidden && titleText.isNotEmpty)
-        Text(title.apply(titleText), style: _style(SheetElement.title)),
+        Text(title.apply(titleText), style: titleStyle),
       if (!artist.hidden)
         for (final t in [artistText, subtitleText])
           if (t.isNotEmpty)
@@ -478,11 +501,48 @@ class _ChordSheetState extends State<ChordSheet>
               artist.apply(t),
               style: _style(SheetElement.artist, color: secondary),
             ),
-      if (!details.hidden && detailText.isNotEmpty)
-        Text(
-          details.apply(detailText),
-          style: _style(SheetElement.details, color: secondary),
-        ),
+    ];
+    final detailWidget = !details.hidden && detailText.isNotEmpty
+        ? Text(details.apply(detailText), style: detailsStyle)
+        : null;
+    final headerTexts = <Widget>[
+      if (showMarks && titleTexts.isNotEmpty)
+        // Beside the title (centred on its first line) when there's room;
+        // under the artist on narrow screens (a fold's cover screen).
+        LayoutBuilder(
+          builder: (context, c) {
+            final titleBlock = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 4,
+              children: titleTexts,
+            );
+            if (c.maxWidth < 420) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [titleBlock, marks],
+              );
+            }
+            final line = (titleStyle.fontSize ?? 24) * (titleStyle.height ?? 1.2);
+            final tall = marks.size * 2.1 + 5;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: titleBlock),
+                const SizedBox(width: 16),
+                Padding(
+                  padding: EdgeInsets.only(top: ((line - tall) / 2).clamp(0, 40)),
+                  child: marks,
+                ),
+              ],
+            );
+          },
+        )
+      else ...[
+        ...titleTexts,
+        if (showMarks) marks,
+      ],
+      ?detailWidget,
     ];
     final diagrams = widget.chords;
     final stripChords = diagrams != null && diagrams.show && ChordLibrary.loaded

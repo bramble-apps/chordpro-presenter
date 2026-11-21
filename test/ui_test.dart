@@ -1,4 +1,5 @@
 import 'package:bilingual_projector/bramble_icons.dart';
+import 'package:bilingual_projector/widgets/song_marks.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
@@ -313,9 +314,22 @@ void main() {
     );
     model.setCapo(2);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Key A'), findsOneWidget);
+    // Key, tempo and time beside the title, as on printed music…
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is SongMarks &&
+            w.keyName == 'A' &&
+            w.tempo == '72' &&
+            w.time == '6/8',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('= 72'), findsOneWidget);
+    // …so the details line keeps only the rest.
+    expect(find.textContaining('Key A'), findsNothing);
+    expect(find.textContaining('72 BPM'), findsNothing);
     expect(find.textContaining('Capo 2 (G shapes)'), findsOneWidget);
-    expect(find.textContaining('72 BPM'), findsOneWidget);
     expect(find.textContaining('CCLI Song # 555'), findsOneWidget);
     // Only the open song (its neighbours are drawn beside it for swiping).
     Finder inSong(Finder f) => find.descendant(
@@ -964,7 +978,13 @@ void main() {
     expect(model.autoscroll.running, isTrue);
     await tester.pump(const Duration(milliseconds: 250)); // opens out
     expect(find.byKey(const Key('autoscroll-time')), findsOneWidget);
-    expect(find.text('0:20'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('autoscroll-time')),
+        matching: find.text('0:20'),
+      ),
+      findsOneWidget,
+    );
     await tester.tap(find.byTooltip('30 seconds more'));
     await tester.pump();
     expect(model.autoscroll.seconds, 50);
@@ -1799,8 +1819,9 @@ void main() {
     // Grouped by letter by default.
     // Headers are the only plain "B" text (no song is in the key of B).
     expect(find.text('B'), findsOneWidget);
-    // "A" appears as a header plus the key of two songs.
-    expect(find.text('A'), findsNWidgets(3));
+    // "A" appears as a header, the key of two songs, and the open song's
+    // key beside its title.
+    expect(find.text('A'), findsNWidgets(4));
 
     await tester.tap(find.byTooltip('Sort & filter'));
     await tester.pumpAndSettle();

@@ -1,4 +1,5 @@
 import 'package:bilingual_projector/chord_beats.dart';
+import 'package:bilingual_projector/widgets/song_marks.dart';
 import 'package:bilingual_projector/chordpro.dart';
 import 'package:bilingual_projector/format.dart';
 import 'package:bilingual_projector/state.dart';
@@ -118,8 +119,15 @@ void main() {
         ),
       ),
     );
-    // Beats off: plain chords; turned on here, dots appear.
-    expect(find.text('G'), findsOneWidget);
+    // Beats off: plain chords; turned on here, dots appear. (The key
+    // beside the title is a G too.)
+    expect(
+      find
+          .text('G')
+          .evaluate()
+          .where((e) => e.findAncestorWidgetOfExactType<SongMarks>() == null),
+      hasLength(1),
+    );
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
     expect(find.text('G••••'), findsOneWidget);

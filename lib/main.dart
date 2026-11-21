@@ -36,6 +36,12 @@ Future<void> main() async {
       'Tabler Icons',
     ], await rootBundle.loadString('assets/fonts/LICENSE-tabler.txt'));
   });
+  // The tempo, time signature and key: Abril Fatface (SIL Open Font Licence).
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Abril Fatface',
+    ], await rootBundle.loadString('assets/fonts/LICENSE-abrilfatface.txt'));
+  });
   // Desktop app: the projector window runs its own app.
   if (!kIsWeb && await runDesktopProjector()) return;
   // Installed apps: save on the device, system pickers and sharing.

@@ -91,6 +91,10 @@ flutter:
     - family: BrambleIcons
       fonts:
         - asset: assets/icons/BrambleIcons.ttf
+    # The tempo, time signature and key beside a song's title (OFL).
+    - family: AbrilFatface
+      fonts:
+        - asset: assets/display/AbrilFatface-Regular.ttf
 
   # Loaded on demand (lib/fonts.dart), not at startup.
   assets:
