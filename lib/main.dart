@@ -46,6 +46,11 @@ Future<void> main() async {
   if (!kIsWeb && await runDesktopProjector()) return;
   // Installed apps: save on the device, system pickers and sharing.
   if (!kIsWeb) await setUpNativeIO();
+  // Phones: the app runs under the status and navigation bars (edge to
+  // edge); the main screen keeps its controls clear of them.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
 
   if (currentView() == 'projector') {
     runApp(

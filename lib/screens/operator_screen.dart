@@ -992,7 +992,11 @@ class _OperatorScreenState extends State<OperatorScreen>
                     : narrow && _showFormat
                     ? Drawer(width: 320, child: SafeArea(child: _formatPane()))
                     : null,
-                body: SafeArea(
+                // The system bars see-through, their icons readable on
+                // the page that runs under them (Android).
+                body: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: _systemBars(context),
+                  child: SafeArea(
                   child: Stack(
                     children: [
                       Row(
@@ -1115,6 +1119,7 @@ class _OperatorScreenState extends State<OperatorScreen>
                       ),
                     ],
                   ),
+                ),
                 ),
               );
             },
@@ -2202,6 +2207,9 @@ class _OperatorScreenState extends State<OperatorScreen>
           // it, and clear the bottom one at the end. (E-ink: framed by the
           // bars as before.)
           final fullBleed = !presenting && !eink;
+          // The status bar and the navigation bar (Android, a phone's notch…):
+          // the page runs on under them, the toolbars stay clear of them.
+          final bars = MediaQueryData.fromView(View.of(context)).padding;
           final scheme = Theme.of(context).colorScheme;
           final behind = pane > 0
               ? scheme.surfaceContainerHigh
@@ -2252,15 +2260,20 @@ class _OperatorScreenState extends State<OperatorScreen>
                               : 16,
                         ),
                   child: fullBleed
-                      ? SheetInsets(
-                          framed: false,
-                          inset: EdgeInsets.fromLTRB(
-                            16,
-                            top,
-                            16,
-                            pane > 0 ? 16 : band,
+                      ? _UnderSystemBars(
+                          top: bars.top,
+                          bottom: pane > 0 ? 0 : bars.bottom,
+                          child: SheetInsets(
+                            framed: false,
+                            inset: EdgeInsets.fromLTRB(
+                              16,
+                              top + bars.top,
+                              16,
+                              (pane > 0 ? 16 : band) +
+                                  (pane > 0 ? 0 : bars.bottom),
+                            ),
+                            child: sheetArea,
                           ),
-                          child: sheetArea,
                         )
                       : sheetArea ??
                             PresentationView(
@@ -3365,4 +3378,47 @@ class _NotesSlide extends Curve {
     }
     return 1;
   }
+}
+
+/// The system bars for the screen: see-through, with icons dark on a light
+/// theme and light on a dark one (the page runs on under them).
+SystemUiOverlayStyle _systemBars(BuildContext context) {
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  return SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+    statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+    statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+    systemNavigationBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+  );
+}
+
+/// [child] drawn [top] higher and [bottom] lower than its place: under the
+/// status bar and the navigation bar, outside the safe area the rest keeps.
+/// (Taps reach it inside its place as before.)
+class _UnderSystemBars extends StatelessWidget {
+  final double top, bottom;
+  final Widget child;
+  const _UnderSystemBars({
+    required this.top,
+    required this.bottom,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => top == 0 && bottom == 0
+      ? child
+      : Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: -top,
+              bottom: -bottom,
+              child: child,
+            ),
+          ],
+        );
 }
