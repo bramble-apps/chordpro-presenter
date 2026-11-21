@@ -2580,7 +2580,7 @@ void main() {
     await tester.tap(find.text('Metronome'));
     await tester.pumpAndSettle();
     expect(model.settings.showMetronome, isFalse);
-    await tester.tap(find.text('Done'));
+    await tester.tap(find.byTooltip('Done'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Start metronome'), findsNothing);
     model.updateSettings((s) => s.showMetronome = true);

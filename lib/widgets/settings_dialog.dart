@@ -35,17 +35,31 @@ class SettingsDialog extends StatelessWidget {
         // Phones: almost the full screen, so two style cards fit a row.
         final screen = MediaQuery.sizeOf(context).width;
         final compact = screen < 600;
+        final side = compact ? 16.0 : 24.0;
         return AlertDialog(
-          title: const Text('Settings'),
+          // The list runs to the dialog's foot (scrolling under its rounded
+          // edge); done with the round ✓ at the top, as in the song editor.
+          clipBehavior: Clip.antiAlias,
+          title: Row(
+            children: [
+              const Expanded(child: Text('Settings')),
+              IconButton.filled(
+                tooltip: 'Done',
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(BrambleIcons.check),
+              ),
+            ],
+          ),
           insetPadding: compact
               ? const EdgeInsets.symmetric(horizontal: 10, vertical: 20)
               : const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-          contentPadding: compact
-              ? const EdgeInsets.fromLTRB(16, 12, 16, 0)
-              : const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          titlePadding: compact
-              ? const EdgeInsets.fromLTRB(16, 16, 16, 0)
-              : null,
+          // (its top and sides the same: the ✓ as far from the corner as the
+          // title is from the edge)
+          contentPadding: EdgeInsets.fromLTRB(side, 12, side, 0),
+          titlePadding: EdgeInsets.fromLTRB(side, side, side, 0),
           content: SizedBox(
             width: compact ? screen - 20 - 32 : 460,
             child: _Sections(
@@ -322,12 +336,6 @@ class SettingsDialog extends StatelessWidget {
               ],
             ),
           ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Done'),
-            ),
-          ],
         );
       },
     );
@@ -526,6 +534,9 @@ class _SectionsState extends State<_Sections> {
   Widget build(BuildContext context) {
     if (!isEink(context)) {
       return SingleChildScrollView(
+        // (room at the end, inside the scroll: the last setting clears
+        // the dialog's foot)
+        padding: const EdgeInsets.only(bottom: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: widget.children,
