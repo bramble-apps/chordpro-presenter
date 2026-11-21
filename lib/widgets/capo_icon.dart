@@ -5,18 +5,25 @@ import 'package:flutter/material.dart';
 class CapoIcon extends StatelessWidget {
   final double size;
   final Color? color;
-  const CapoIcon({super.key, this.size = 20, this.color});
+
+  /// How far the capo has slid down towards the next fret (0–1; hover).
+  final double slide;
+  const CapoIcon({super.key, this.size = 20, this.color, this.slide = 0});
 
   @override
   Widget build(BuildContext context) => CustomPaint(
     size: Size.square(size),
-    painter: _CapoPainter(color ?? IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface),
+    painter: _CapoPainter(
+      color ?? IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface,
+      slide,
+    ),
   );
 }
 
 class _CapoPainter extends CustomPainter {
   final Color color;
-  _CapoPainter(this.color);
+  final double slide;
+  _CapoPainter(this.color, this.slide);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -31,7 +38,7 @@ class _CapoPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
     // the capo bar across the strings
-    const bar = (top: 8.6, bottom: 12.6);
+    final bar = (top: 8.6 + 2 * slide, bottom: 12.6 + 2 * slide);
     // five strings, from the nut to below the fret, behind the bar
     for (final x in [6.0, 9.0, 12.0, 15.0, 18.0]) {
       canvas.drawLine(Offset(x * k, 4 * k), Offset(x * k, (bar.top - 1.4) * k), line);
@@ -51,5 +58,5 @@ class _CapoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CapoPainter o) => o.color != color;
+  bool shouldRepaint(_CapoPainter o) => o.color != color || o.slide != slide;
 }

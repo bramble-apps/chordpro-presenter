@@ -4,8 +4,7 @@
 import 'package:flutter/material.dart';
 
 import 'state.dart';
-import 'widgets/edit_song_icon.dart';
-import 'bramble_icons.dart';
+import 'widgets/motion_icon.dart';
 
 class ToolbarItem {
   final String id;
@@ -14,22 +13,19 @@ class ToolbarItem {
   const ToolbarItem(this.id, this.label, this.icon);
 }
 
+// (each icon moves a little on hover: widgets/motion_icon.dart)
 const List<ToolbarItem> toolbarItems = [
-  ToolbarItem('share', 'Share / export', Icon(BrambleIcons.export)),
-  ToolbarItem('sticky', 'Add sticky note', Icon(BrambleIcons.tbNote)),
-  ToolbarItem('insert', 'Insert picture', Icon(BrambleIcons.tbPhotoPlus)),
-  ToolbarItem('annotate', 'Annotate', Icon(BrambleIcons.penNib)),
-  ToolbarItem('edit', 'Edit song', EditSongIcon()),
-  ToolbarItem('structure', 'Song structure', Icon(BrambleIcons.tbListTree)),
-  ToolbarItem('format', 'Format', Icon(BrambleIcons.paintBrush)),
-  ToolbarItem('present', 'Presentation mode', Icon(BrambleIcons.squaresFour)),
-  ToolbarItem(
-    'preview',
-    'Projector preview',
-    Icon(BrambleIcons.tbPictureInPicture),
-  ),
-  ToolbarItem('projector', 'Project', Icon(BrambleIcons.projectorScreen)),
-  ToolbarItem('settings', 'Settings', Icon(BrambleIcons.slidersHorizontal)),
+  ToolbarItem('share', 'Share / export', MotionIcon(IconMotion.share)),
+  ToolbarItem('sticky', 'Add sticky note', MotionIcon(IconMotion.sticky)),
+  ToolbarItem('insert', 'Insert picture', MotionIcon(IconMotion.insert)),
+  ToolbarItem('annotate', 'Annotate', MotionIcon(IconMotion.annotate)),
+  ToolbarItem('edit', 'Edit song', MotionIcon(IconMotion.editSong)),
+  ToolbarItem('structure', 'Song structure', MotionIcon(IconMotion.structure)),
+  ToolbarItem('format', 'Format', MotionIcon(IconMotion.format)),
+  ToolbarItem('present', 'Presentation mode', MotionIcon(IconMotion.present)),
+  ToolbarItem('preview', 'Projector preview', MotionIcon(IconMotion.preview)),
+  ToolbarItem('projector', 'Project', MotionIcon(IconMotion.projector)),
+  ToolbarItem('settings', 'Settings', MotionIcon(IconMotion.settings)),
 ];
 
 ToolbarItem toolbarItem(String id) =>

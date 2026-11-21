@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 class EditSongIcon extends StatelessWidget {
   final double? size;
   final Color? color;
-  const EditSongIcon({super.key, this.size, this.color});
+
+  /// How far the brackets have opened round the cursor (0–1; hover).
+  final double open;
+  const EditSongIcon({super.key, this.size, this.color, this.open = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +20,7 @@ class EditSongIcon extends StatelessWidget {
       child: CustomPaint(
         painter: _EditSongPainter(
           color ?? theme.color ?? Theme.of(context).colorScheme.onSurface,
+          open,
         ),
       ),
     );
@@ -25,7 +29,8 @@ class EditSongIcon extends StatelessWidget {
 
 class _EditSongPainter extends CustomPainter {
   final Color color;
-  const _EditSongPainter(this.color);
+  final double open;
+  const _EditSongPainter(this.color, this.open);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -38,22 +43,24 @@ class _EditSongPainter extends CustomPainter {
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
+    // (opening: each bracket out by up to 1.6)
+    final o = 1.6 * open;
     // [
     canvas.drawPath(
       Path()
-        ..moveTo(7.8, 6.5)
-        ..lineTo(4.6, 6.5)
-        ..lineTo(4.6, 17.5)
-        ..lineTo(7.8, 17.5),
+        ..moveTo(7.8 - o, 6.5)
+        ..lineTo(4.6 - o, 6.5)
+        ..lineTo(4.6 - o, 17.5)
+        ..lineTo(7.8 - o, 17.5),
       pen,
     );
     // ]
     canvas.drawPath(
       Path()
-        ..moveTo(16.2, 6.5)
-        ..lineTo(19.4, 6.5)
-        ..lineTo(19.4, 17.5)
-        ..lineTo(16.2, 17.5),
+        ..moveTo(16.2 + o, 6.5)
+        ..lineTo(19.4 + o, 6.5)
+        ..lineTo(19.4 + o, 17.5)
+        ..lineTo(16.2 + o, 17.5),
       pen,
     );
     // The text cursor (an I-beam), taller than the brackets.
@@ -67,5 +74,6 @@ class _EditSongPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_EditSongPainter old) => old.color != color;
+  bool shouldRepaint(_EditSongPainter old) =>
+      old.color != color || old.open != open;
 }

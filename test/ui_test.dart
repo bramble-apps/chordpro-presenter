@@ -1,4 +1,5 @@
 import 'package:bilingual_projector/bramble_icons.dart';
+import 'package:bilingual_projector/widgets/motion_icon.dart';
 import 'package:bilingual_projector/widgets/song_marks.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -1677,7 +1678,9 @@ void main() {
     bool on() => tester
         .widget<IconButton>(
           find.ancestor(
-            of: find.byIcon(BrambleIcons.paintBrush),
+            of: find.byWidgetPredicate(
+              (w) => w is MotionIcon && w.motion == IconMotion.format,
+            ),
             matching: find.byType(IconButton),
           ),
         )
@@ -3013,18 +3016,17 @@ void _toolbarMenuColourTests() {
       tester,
     ) async {
       final model = await pumpApp(tester);
-      Color? colourOf(String tooltip) => tester
-          .widget<RichText>(
-            find
-                .descendant(
-                  of: find.byTooltip(tooltip),
-                  matching: find.byType(RichText),
-                )
-                .first,
-          )
-          .text
-          .style
-          ?.color;
+      // (the colour the icon is drawn in)
+      Color? colourOf(String tooltip) => IconTheme.of(
+        tester.element(
+          find
+              .descendant(
+                of: find.byTooltip(tooltip),
+                matching: find.byType(MotionIcon),
+              )
+              .first,
+        ),
+      ).color;
       for (final mode in [ThemeModeSetting.light, ThemeModeSetting.dark]) {
         model.updateSettings(
           (s) => s

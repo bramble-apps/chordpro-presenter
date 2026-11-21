@@ -31,6 +31,7 @@ import '../widgets/media_pip.dart';
 import '../widgets/media_pane.dart';
 import '../media_library.dart' show mimeOfName;
 import '../widgets/metronome_icon.dart';
+import '../widgets/motion_icon.dart';
 import '../widgets/presentation_view.dart';
 import '../widgets/projection_view.dart';
 import '../widgets/format_pane.dart';
@@ -41,7 +42,6 @@ import '../widgets/song_editor.dart';
 import '../widgets/structure_editor.dart';
 import '../widgets/sidebar_icon.dart';
 import '../widgets/ink_layer.dart';
-import '../widgets/capo_icon.dart';
 import '../widgets/capo_neck.dart';
 import '../widgets/key_finder.dart';
 import '../widgets/key_wheel.dart';
@@ -1422,16 +1422,17 @@ class _OperatorScreenState extends State<OperatorScreen>
   Widget _projectionMenu() {
     final scheme = Theme.of(context).colorScheme;
     final on = model.projecting;
-    return PopupMenuButton<String>(
-      tooltip: on ? 'Projecting' : 'Project',
-      iconColor: _barIconColor(context),
-      icon: Icon(
-        on ? BrambleIcons.television : BrambleIcons.projectorScreen,
-        color: on ? scheme.primary : null,
+    return MotionHover(
+      child: PopupMenuButton<String>(
+        tooltip: on ? 'Projecting' : 'Project',
+        iconColor: _barIconColor(context),
+        icon: on
+            ? Icon(BrambleIcons.television, color: scheme.primary)
+            : const MotionIcon(IconMotion.projector),
+        onSelected: _projectionChoice,
+        constraints: _menuWidth,
+        itemBuilder: (_) => _projectionItems(),
       ),
-      onSelected: _projectionChoice,
-      constraints: _menuWidth,
-      itemBuilder: (_) => _projectionItems(),
     );
   }
 
@@ -1798,11 +1799,14 @@ class _OperatorScreenState extends State<OperatorScreen>
         if (_toolShown(id, song))
           id == 'projector'
               ? _projectionMenu()
-              : IconButton(
-                  tooltip: _toolLabel(id),
-                  isSelected: _toolSelected(id),
-                  icon: toolbarItem(id).icon,
-                  onPressed: _toolAction(id, narrow, song),
+              // (the whole button starts its icon's motion)
+              : MotionHover(
+                  child: IconButton(
+                    tooltip: _toolLabel(id),
+                    isSelected: _toolSelected(id),
+                    icon: toolbarItem(id).icon,
+                    onPressed: _toolAction(id, narrow, song),
+                  ),
                 ),
       if (more.isNotEmpty) _overflowMenu(more, narrow, song),
     ];
@@ -1814,7 +1818,7 @@ class _OperatorScreenState extends State<OperatorScreen>
       builder: (context) => PopupMenuButton<String>(
         tooltip: 'More',
         iconColor: _barIconColor(context),
-        icon: const Icon(BrambleIcons.dotsThreeCircle),
+        icon: const MotionIcon(IconMotion.more),
         // Wide enough that labels stay on one line.
         constraints: const BoxConstraints(minWidth: 220, maxWidth: 320),
         // Below the toolbar, not over it.
@@ -1867,39 +1871,45 @@ class _OperatorScreenState extends State<OperatorScreen>
     if (song != null &&
         model.settings.showPlayer &&
         song.audioUrl.trim().isNotEmpty)
-      IconButton(
-        tooltip: canPlayInApp(song.audioUrl)
-            ? 'Play reference recording'
-            : 'Open reference recording',
-        isSelected: _pipUrl == song.audioUrl.trim(),
-        icon: const Icon(BrambleIcons.tbPlayerPlay),
-        onPressed: () => _play(song),
+      MotionHover(
+        child: IconButton(
+          tooltip: canPlayInApp(song.audioUrl)
+              ? 'Play reference recording'
+              : 'Open reference recording',
+          isSelected: _pipUrl == song.audioUrl.trim(),
+          icon: const MotionIcon(IconMotion.play),
+          onPressed: () => _play(song),
+        ),
       ),
     if (song != null &&
         model.settings.showAutoscroll &&
         !model.settings.presentationMode)
       _AutoscrollButton(autoscroll: model.autoscroll),
     if (model.settings.showTuner)
-      IconButton(
-        tooltip: 'Tuner',
-        isSelected: _tunerOpen,
-        icon: const Icon(BrambleIcons.waveform),
-        onPressed: () => setState(() {
-          _tunerOpen = !_tunerOpen;
-          _tunerFull = false;
-        }),
+      MotionHover(
+        child: IconButton(
+          tooltip: 'Tuner',
+          isSelected: _tunerOpen,
+          icon: const MotionIcon(IconMotion.tuner),
+          onPressed: () => setState(() {
+            _tunerOpen = !_tunerOpen;
+            _tunerFull = false;
+          }),
+        ),
       ),
     if (model.settings.showPads)
       ListenableBuilder(
         listenable: model.pads,
-        builder: (context, _) => IconButton(
-          tooltip: model.pads.playing ? 'Pads (playing)' : 'Pads',
-          isSelected: _padsOpen || model.pads.playing,
-          icon: const Icon(BrambleIcons.waves),
-          onPressed: () => setState(() {
-            _padsOpen = !_padsOpen;
-            _padsFull = false;
-          }),
+        builder: (context, _) => MotionHover(
+          child: IconButton(
+            tooltip: model.pads.playing ? 'Pads (playing)' : 'Pads',
+            isSelected: _padsOpen || model.pads.playing,
+            icon: const MotionIcon(IconMotion.pads),
+            onPressed: () => setState(() {
+              _padsOpen = !_padsOpen;
+              _padsFull = false;
+            }),
+          ),
         ),
       ),
     if (gospelizerEnabled &&
@@ -1910,13 +1920,13 @@ class _OperatorScreenState extends State<OperatorScreen>
     if (song != null) _KeyButton(model: model),
     if (song != null) _CapoButton(model: model),
     if (model.projectorActive)
-      IconButton(
-        tooltip: model.blackout ? 'Show lyrics again (B)' : 'Blackout (B)',
-        isSelected: model.blackout,
-        icon: Icon(
-          model.blackout ? BrambleIcons.eyeSlash : BrambleIcons.eyeSlash,
+      MotionHover(
+        child: IconButton(
+          tooltip: model.blackout ? 'Show lyrics again (B)' : 'Blackout (B)',
+          isSelected: model.blackout,
+          icon: const MotionIcon(IconMotion.blackout),
+          onPressed: model.toggleBlackout,
         ),
-        onPressed: model.toggleBlackout,
       ),
     if (model.projectorActive)
       ValueListenableBuilder<int>(
@@ -2426,19 +2436,24 @@ class _MetronomeButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                tooltip: m.running ? 'Stop metronome' : 'Start metronome',
-                isSelected: m.running,
-                onPressed: m.toggle,
-                icon: TweenAnimationBuilder<double>(
-                  tween: Tween(
-                    end: !m.running || m.beat < 0
-                        ? 0
-                        : (m.beat.isEven ? 1 : -1),
-                  ),
-                  duration: Duration(milliseconds: m.running ? beatMs : 200),
-                  curve: Curves.easeInOutSine,
-                  builder: (context, swing, _) => MetronomeIcon(swing: swing),
+              MotionHover(
+                child: IconButton(
+                  tooltip: m.running ? 'Stop metronome' : 'Start metronome',
+                  isSelected: m.running,
+                  onPressed: m.toggle,
+                  // (running: swinging with the beat; stopped: a preview
+                  // swing while the pointer is over)
+                  icon: m.running
+                      ? TweenAnimationBuilder<double>(
+                          tween: Tween(
+                            end: m.beat < 0 ? 0 : (m.beat.isEven ? 1 : -1),
+                          ),
+                          duration: Duration(milliseconds: beatMs),
+                          curve: Curves.easeInOutSine,
+                          builder: (context, swing, _) =>
+                              MetronomeIcon(swing: swing),
+                        )
+                      : const MotionIcon(IconMotion.metronome),
                 ),
               ),
               if (m.running) ...[
@@ -2680,16 +2695,15 @@ class _AutoscrollButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                tooltip: a.running ? 'Pause autoscroll' : 'Autoscroll',
-                isSelected: a.running,
-                icon: Icon(
-                  a.running
-                      ? BrambleIcons.pause
-                      : BrambleIcons.caretDoubleDown,
-                  color: a.running ? scheme.primary : null,
+              MotionHover(
+                child: IconButton(
+                  tooltip: a.running ? 'Pause autoscroll' : 'Autoscroll',
+                  isSelected: a.running,
+                  icon: a.running
+                      ? Icon(BrambleIcons.pause, color: scheme.primary)
+                      : const MotionIcon(IconMotion.autoscroll),
+                  onPressed: a.toggle,
                 ),
-                onPressed: a.toggle,
               ),
               if (a.running) _AutoscrollTime(autoscroll: a),
             ],
@@ -2855,7 +2869,8 @@ class _KeyButton extends StatelessWidget {
     ];
 
     // The theme's icon button, so hover / press look like the others.
-    return Builder(
+    return MotionHover(
+      child: Builder(
       builder: (context) => IconButton(
         tooltip: setSpecific ? 'Change key (this setlist only)' : 'Change key',
         padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
@@ -2868,8 +2883,8 @@ class _KeyButton extends StatelessWidget {
         icon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              BrambleIcons.musicNote,
+            MotionIcon(
+              IconMotion.note,
               size: 18,
               color: setSpecific ? scheme.tertiary : null,
             ),
@@ -2892,6 +2907,7 @@ class _KeyButton extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -3054,7 +3070,8 @@ class _CapoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final capo = model.currentCapo;
     final scheme = Theme.of(context).colorScheme;
-    return Builder(
+    return MotionHover(
+      child: Builder(
       builder: (context) => IconButton(
         tooltip: model.editingSetSpecific ? 'Capo (this setlist only)' : 'Capo',
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -3077,7 +3094,7 @@ class _CapoButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // (the same colour as the toolbar's other icons, capo or not)
-            const CapoIcon(size: 22),
+            const MotionIcon(IconMotion.capo, size: 22),
             if (capo > 0) ...[
               const SizedBox(width: 4),
               Text(
@@ -3092,6 +3109,7 @@ class _CapoButton extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
