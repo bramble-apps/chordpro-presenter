@@ -95,6 +95,7 @@ Finder keyButton(String k) => find.byWidgetPredicate(
 );
 
 void main() {
+  _toolbarMenuColourTests();
   // Chord shapes, loaded for real once (screens use them as they open).
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -2981,6 +2982,41 @@ void main() {
     await tester.pump();
     expect(pos.pixels, 130);
   });
+}
+
+// The toolbar's menu buttons (Project, ⋯) draw their icons in the same
+// colour as the buttons beside them, in each style, light and dark.
+void _toolbarMenuColourTests() {
+  for (final style in UiStyle.values) {
+    testWidgets('toolbar menu icons match the others (${style.name})', (
+      tester,
+    ) async {
+      final model = await pumpApp(tester);
+      Color? colourOf(String tooltip) => tester
+          .widget<RichText>(
+            find
+                .descendant(
+                  of: find.byTooltip(tooltip),
+                  matching: find.byType(RichText),
+                )
+                .first,
+          )
+          .text
+          .style
+          ?.color;
+      for (final mode in [ThemeModeSetting.light, ThemeModeSetting.dark]) {
+        model.updateSettings(
+          (s) => s
+            ..uiStyle = style
+            ..mode = mode,
+        );
+        await tester.pumpAndSettle();
+        final share = colourOf('Share / export');
+        expect(share, isNotNull);
+        expect(colourOf('Project'), share, reason: '${style.name} $mode');
+      }
+    });
+  }
 }
 
 abstract final class _StickyWidths {

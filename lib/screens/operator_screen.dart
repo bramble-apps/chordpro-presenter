@@ -1406,11 +1406,20 @@ class _OperatorScreenState extends State<OperatorScreen>
     }
   }
 
+  /// The toolbar's icon colour, for its menu buttons too (a menu button
+  /// would take the text colour, brighter than the buttons beside it).
+  static Color _barIconColor(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.iconButtonTheme.style?.foregroundColor?.resolve(const {}) ??
+        theme.colorScheme.onSurfaceVariant;
+  }
+
   Widget _projectionMenu() {
     final scheme = Theme.of(context).colorScheme;
     final on = model.projecting;
     return PopupMenuButton<String>(
       tooltip: on ? 'Projecting' : 'Project',
+      iconColor: _barIconColor(context),
       icon: Icon(
         on ? BrambleIcons.television : BrambleIcons.projectorScreen,
         color: on ? scheme.primary : null,
@@ -1799,6 +1808,7 @@ class _OperatorScreenState extends State<OperatorScreen>
     return Builder(
       builder: (context) => PopupMenuButton<String>(
         tooltip: 'More',
+        iconColor: _barIconColor(context),
         icon: const Icon(BrambleIcons.dotsThreeCircle),
         // Wide enough that labels stay on one line.
         constraints: const BoxConstraints(minWidth: 220, maxWidth: 320),
