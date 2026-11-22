@@ -618,9 +618,10 @@ class _SidebarState extends State<Sidebar> {
     }
     final (_, counts, keys) = _keyCounts!;
     final eink = isEink(context);
+    // (anything other than the usual: by title, grouped by letter)
     final active =
         _sort != _Sort.title ||
-        _grouped ||
+        !_grouped ||
         _keyFilter != null ||
         (eink && _tagFilter.isNotEmpty);
     final tags = [...model.tags]..sort((a, b) => a.name.compareTo(b.name));
@@ -634,11 +635,13 @@ class _SidebarState extends State<Sidebar> {
         visualDensity: VisualDensity.compact,
         iconSize: 20,
         style: hoverOnlyHighlight(context),
-        color: scheme.onSurfaceVariant,
+        // (sorted or filtered: the funnel in the accent colour, no dot on
+        // its corner; e-ink, with no colour: the dot)
+        color: active && !eink ? scheme.primary : scheme.onSurfaceVariant,
         icon: Badge(
-          isLabelVisible: active,
+          isLabelVisible: active && eink,
           smallSize: 6,
-          backgroundColor: eink ? scheme.onSurface : scheme.primary,
+          backgroundColor: scheme.onSurface,
           child: const Icon(BrambleIcons.funnelSimple),
         ),
         onPressed: () =>
