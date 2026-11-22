@@ -2210,37 +2210,6 @@ class _OperatorScreenState extends State<OperatorScreen>
           // The status bar and the navigation bar (Android, a phone's notch…):
           // the page runs on under them, the toolbars stay clear of them.
           final bars = MediaQueryData.fromView(View.of(context)).padding;
-          final scheme = Theme.of(context).colorScheme;
-          final behind = pane > 0
-              ? scheme.surfaceContainerHigh
-              : scheme.surface;
-          Widget halo(double right, double? top, double? bottom, Size size) =>
-              Positioned(
-                right: right,
-                top: top,
-                bottom: bottom,
-                width: size.width,
-                height: size.height,
-                child: IgnorePointer(
-                  // (moving with the toolbar it's round)
-                  child: _GlideRight(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        inkR(size.height / 2),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: behind.withValues(alpha: 0.9),
-                          blurRadius: 24,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                  ),
-                  ),
-                ),
-              );
           return Stack(
             children: [
               Positioned.fill(
@@ -2283,13 +2252,8 @@ class _OperatorScreenState extends State<OperatorScreen>
                 ),
               ),
               if (pane > 0) _bottomPane(pane),
-              // A soft halo around the toolbar while presenting, so the slides
-              // and media behind it don't run into its edges. (Over the
-              // sheet: just the toolbars' own shadow.)
-              if (presenting &&
-                  bottomBarSize.value != Size.zero &&
-                  !isEink(context))
-                halo(barPad, null, barPad, bottomBarSize.value),
+              // (Presenting too: just the toolbars' own shadow, as over the
+              // sheet; no glow round them.)
               // E-ink: a plain plate instead (nothing shows round the
               // toolbar's edges, nothing is half hidden behind it).
               if (presenting &&
