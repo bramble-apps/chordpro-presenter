@@ -249,10 +249,10 @@ Future<List<DisplayInfo>> listDisplays() async {
 }
 
 /// Opens the projector window filling the given display.
-void openProjectorOn(DisplayInfo d) {
+void openProjectorOn(DisplayInfo d, {String? show}) {
   web.window.open(
-    '?view=projector',
-    'bilingual_projector_display',
+    projectorLink(show),
+    projectorWindowName(show),
     'popup=yes,left=${d.left},top=${d.top},width=${d.width},height=${d.height}',
   );
 }
@@ -263,10 +263,19 @@ bool get isMac => web.window.navigator.platform.toLowerCase().contains('mac');
 /// Which screen this browser window should show (`?view=projector`).
 String currentView() => Uri.base.queryParameters['view'] ?? 'operator';
 
-void openProjectorWindow() {
+/// The projector window's link; [show]: kept on one view ('stage' /
+/// 'lyrics') whatever the Format pane says.
+String projectorLink(String? show) =>
+    show == null ? '?view=projector' : '?view=projector&show=$show';
+
+/// (A window per view, so the stage view opens beside the lyrics.)
+String projectorWindowName(String? show) =>
+    show == null ? 'bilingual_projector_display' : 'bilingual_projector_$show';
+
+void openProjectorWindow({String? show}) {
   web.window.open(
-    '?view=projector',
-    'bilingual_projector_display',
+    projectorLink(show),
+    projectorWindowName(show),
     'popup=yes,width=1280,height=800',
   );
 }

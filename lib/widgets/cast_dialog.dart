@@ -248,6 +248,20 @@ class _CastDialogState extends State<CastDialog> {
                               icon: const Icon(BrambleIcons.copy, size: 16),
                               label: const Text('Copy link'),
                             ),
+                            // The same screen kept on the stage view (the
+                            // band's chords) while the others show lyrics.
+                            TextButton.icon(
+                              onPressed: () => Clipboard.setData(
+                                ClipboardData(
+                                  text: '${_relay!['url']}&show=stage',
+                                ),
+                              ),
+                              icon: const Icon(
+                                BrambleIcons.musicNotesSimple,
+                                size: 16,
+                              ),
+                              label: const Text('Copy stage view link'),
+                            ),
                           ],
                         ),
                       ),
@@ -284,12 +298,25 @@ class _CastDialogState extends State<CastDialog> {
                       subtitle: Text(
                         '${d.width}×${d.height}${d.primary ? ' · this screen' : ''}',
                       ),
-                      trailing: TextButton(
-                        onPressed: () => openProjectorOn(d),
-                        child: const Text('Open projector here'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () => openProjectorOn(d, show: 'stage'),
+                            child: const Text('Stage view'),
+                          ),
+                          TextButton(
+                            onPressed: () => openProjectorOn(d),
+                            child: const Text('Open projector here'),
+                          ),
+                        ],
                       ),
                     ),
-                  note('Then press F in the projector window for fullscreen.'),
+                  note(
+                    'Then press F in the projector window for fullscreen. '
+                    '"Stage view" opens a second window that stays on the '
+                    'band\'s chords, beside the lyrics on another display.',
+                  ),
                 ] else
                   note(
                     'Open the projector window (▶), drag it onto the other '

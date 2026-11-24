@@ -99,7 +99,10 @@ Future<void> main() async {
 Future<void> secondaryDisplayMain() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setUpProjectorIO();
-  final model = ProjectorModel();
+  // (A screen kept on the stage view while another shows the lyrics.)
+  final model = ProjectorModel(
+    pinned: ProjectorModel.pinnedViewNamed(await externalProjectorShow()),
+  );
   runApp(
     MaterialApp(
       title: 'ChordPro Presenter',

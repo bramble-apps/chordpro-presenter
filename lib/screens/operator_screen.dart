@@ -1326,6 +1326,14 @@ class _OperatorScreenState extends State<OperatorScreen>
         child: _menuRow(BrambleIcons.arrowSquareOut, 'Open projector window'),
       ),
       PopupMenuItem(
+        value: 'stage',
+        child: _menuRow(
+          BrambleIcons.musicNotesSimple,
+          'Open stage view window',
+          subtitle: 'The band\'s chords on another screen, beside the lyrics',
+        ),
+      ),
+      PopupMenuItem(
         value: 'cast',
         child: _menuRow(
           model.casting ? BrambleIcons.screencastFill : BrambleIcons.screencast,
@@ -1404,6 +1412,8 @@ class _OperatorScreenState extends State<OperatorScreen>
     switch (choice) {
       case 'window':
         model.startProjection();
+      case 'stage':
+        model.startProjection(show: 'stage');
       case 'cast':
         await showAppDialog<void>(
           context: context,

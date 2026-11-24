@@ -21,6 +21,8 @@ class DesktopWindowFrame extends StatelessWidget {
 
 Widget externalProjector(ProjectorModel model, Widget child) => child;
 
+Future<String?> externalProjectorShow() async => null;
+
 class NativeDisplaySection extends StatelessWidget {
   final PresenterModel model;
   const NativeDisplaySection({super.key, required this.model});

@@ -305,6 +305,52 @@ void main() {
     projector.dispose();
   });
 
+  // A second screen for the band: it stays on the stage view while the
+  // projector (and the Format pane) are on the lyrics.
+  testWidgets('a screen kept on the stage view beside the lyrics', (
+    tester,
+  ) async {
+    final m = await pumpApp(tester);
+    expect(m.projection.view, ProjectionView.lyrics);
+    m.blackout = true;
+    m.broadcastState();
+    final state = ((m.sync as dynamic).sent as List<Map<String, dynamic>>)
+        .lastWhere((x) => x['type'] == 'state');
+
+    final lyrics = ProjectorModel()..start();
+    final stage = ProjectorModel(pinned: ProjectionView.stage)..start();
+    for (final p in [lyrics, stage]) {
+      (p.sync as dynamic).receive(state);
+    }
+    await tester.pump();
+    expect(lyrics.projectionData.settings.view, ProjectionView.lyrics);
+    expect(stage.projectionData.settings.view, ProjectionView.stage);
+    expect(stage.projectionData.stage, isNotNull);
+    // The audience's screen goes black; the band keeps its chords.
+    expect(lyrics.blackout, isTrue);
+    expect(stage.blackout, isFalse);
+
+    // The preview stays a model of the lyrics screen, not the band's.
+    final size = m.projectorSize;
+    (m.sync as dynamic).receive({
+      'type': 'alive',
+      'w': 800.0,
+      'h': 480.0,
+      'show': 'stage',
+    });
+    await tester.pump();
+    expect(m.projectorSize, size);
+    expect(m.projectorActive, isTrue);
+    (m.sync as dynamic).receive({'type': 'alive', 'w': 1024.0, 'h': 768.0});
+    await tester.pump();
+    expect(m.projectorSize, const Size(1024, 768));
+    expect(ProjectorModel.pinnedViewNamed('stage'), ProjectionView.stage);
+    expect(ProjectorModel.pinnedViewNamed(null), isNull);
+    lyrics.dispose();
+    stage.dispose();
+    await closeProjector(tester, m);
+  });
+
   testWidgets('stage text stays dark on white inside a dark window', (
     tester,
   ) async {

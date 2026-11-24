@@ -1221,6 +1221,10 @@ class PresenterModel extends SlideState {
   Size projectorSize = const Size(1280, 720);
 
   void _projectorSizeFrom(Map<String, dynamic> msg) {
+    // A screen kept on the other view (the band's stage view beside the
+    // lyrics): the preview isn't a model of that one.
+    final show = msg['show'];
+    if (show != null && show != shownProjection.view.name) return;
     final w = (msg['w'] as num?)?.toDouble();
     final h = (msg['h'] as num?)?.toDouble();
     if (w == null || h == null || w < 50 || h < 50) return;
@@ -2281,9 +2285,11 @@ class PresenterModel extends SlideState {
   bool get projecting => projectorActive || casting;
 
   /// Opens the projector window (and wakes screens that were stopped).
-  void startProjection() {
+  /// [show]: a window kept on one view ('stage': the band's chords beside
+  /// the lyrics); else it follows the Format pane.
+  void startProjection({String? show}) {
     sync.send({'type': 'start'});
-    openProjectorWindow();
+    openProjectorWindow(show: show);
   }
 
   /// Stops every projection: closes projector windows, blanks other
@@ -3649,7 +3655,8 @@ class PresenterModel extends SlideState {
       'name': '${set.name} copy',
       'date': DateTime.now().toIso8601String(),
       'entries': [
-        for (final e in j['entries'] as List) {...e as Map<String, dynamic>, 'id': null},
+        for (final e in j['entries'] as List)
+          {...e as Map<String, dynamic>, 'id': null},
       ],
       'extra': {
         for (final x in ((j['extra'] as Map<String, dynamic>?) ?? {}).entries)
@@ -4537,6 +4544,29 @@ class ImportOptions {
 class ProjectorModel extends SlideState {
   final ProjectionSettings projection = ProjectionSettings();
 
+  /// This screen always shows one view (the stage view for the band, say,
+  /// while the projector shows the lyrics), whatever the operator's
+  /// Format pane says; null: it follows that setting. From the window's
+  /// link (`show=stage`) or the screen it was put on.
+  final ProjectionView? pinned;
+
+  ProjectorModel({ProjectionView? pinned})
+    : pinned = pinned ?? pinnedViewNamed(Uri.base.queryParameters['show']) {
+    if (this.pinned case final v?) projection.view = v;
+  }
+
+  static ProjectionView? pinnedViewNamed(String? name) => switch (name) {
+    'stage' => ProjectionView.stage,
+    'lyrics' => ProjectionView.lyrics,
+    _ => null,
+  };
+
+  /// (Sent with hello / alive: the operator's preview follows the size of
+  /// the screen showing what it shows.)
+  Map<String, dynamic> get _pinMsg => {
+    if (pinned case final v?) 'show': v.name,
+  };
+
   Timer? _alive;
 
   @override
@@ -4614,7 +4644,7 @@ class ProjectorModel extends SlideState {
   void reportSize(Size size) {
     if (size == _size) return;
     _size = size;
-    sync.send({'type': 'alive', ...?_sizeMsg});
+    sync.send({'type': 'alive', ...?_sizeMsg, ..._pinMsg});
   }
 
   void start() {
@@ -4627,7 +4657,14 @@ class ProjectorModel extends SlideState {
           transitionDuration = (msg['transitionDuration'] as num).toDouble();
           final pj = msg['projection'];
           if (pj is Map<String, dynamic>) projection.updateFrom(pj);
-          blackout = msg['blackout'] as bool? ?? false;
+          final shared = projection.view;
+          if (pinned case final v?) projection.view = v;
+          // The band's own screen keeps its chords through a blackout of
+          // the audience's screen.
+          blackout =
+              (msg['blackout'] as bool? ?? false) &&
+              !(pinned == ProjectionView.stage &&
+                  shared != ProjectionView.stage);
           stage = StageData.fromJson(msg['stage']);
           countdown = CountdownState.fromJson(msg['timer']);
           live = LiveMedia.fromJson(msg['live']);
@@ -4699,12 +4736,12 @@ class ProjectorModel extends SlideState {
   bool stopped = false;
 
   void _startAlive() {
-    sync.send({'type': 'hello', ...?_sizeMsg});
+    sync.send({'type': 'hello', ...?_sizeMsg, ..._pinMsg});
     // Tell the operator window this projector is still open (and its size).
     _alive?.cancel();
     _alive = Timer.periodic(
       const Duration(seconds: 2),
-      (_) => sync.send({'type': 'alive', ...?_sizeMsg}),
+      (_) => sync.send({'type': 'alive', ...?_sizeMsg, ..._pinMsg}),
     );
   }
 }

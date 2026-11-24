@@ -133,7 +133,7 @@ SlideCaster? get browserCaster => null;
 /// YouTube recordings open in the browser (desktop app: no web player).
 bool get youTubeInBrowser => NativeIO.youTubeInBrowser;
 
-void openProjectorWindow() => NativeIO.openProjector?.call();
+void openProjectorWindow({String? show}) => NativeIO.openProjector?.call();
 
 void toggleFullscreen() => NativeIO.toggleFullscreen?.call();
 
@@ -372,7 +372,7 @@ bool displayListSupported = false;
 
 Future<List<DisplayInfo>> listDisplays() async => [];
 
-void openProjectorOn(DisplayInfo d) {}
+void openProjectorOn(DisplayInfo d, {String? show}) {}
 
 bool isMac = true;
 

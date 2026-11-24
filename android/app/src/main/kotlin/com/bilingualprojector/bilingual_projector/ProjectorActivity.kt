@@ -11,17 +11,30 @@ import io.flutter.embedding.android.FlutterActivity
 /**
  * The projector as its own window on another screen: used for Samsung DeX
  * and Android desktop mode (Pixel), where that screen is a desktop rather
- * than a plain second display. It shows the projector engine that
- * [ExternalDisplay] keeps running.
+ * than a plain second display. It shows the projector that
+ * [ExternalDisplay] started for that screen.
  */
 class ProjectorActivity : FlutterActivity() {
-    override fun getCachedEngineId(): String = ExternalDisplay.ENGINE_ID
+    private val display: Int
+        get() = intent.getIntExtra(ExternalDisplay.EXTRA_DISPLAY, -1)
 
-    // The projector keeps running if this window is closed and reopened.
-    override fun shouldDestroyEngineWithHost(): Boolean = false
+    // (False when Android brings the window back after the app was
+    // closed: there's no projector to show any more.)
+    private var live = false
+
+    override fun getCachedEngineId(): String? =
+        if (live) ExternalDisplay.engineId(display) else null
+
+    // ExternalDisplay ends the projector once this window has gone.
+    override fun shouldDestroyEngineWithHost(): Boolean = !live
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ExternalDisplay.ensureEngine(this)
+        live = ExternalDisplay.has(display)
+        if (!live) {
+            super.onCreate(null)
+            finish()
+            return
+        }
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         // Full screen: no status or navigation bars over the slides.
@@ -39,11 +52,11 @@ class ProjectorActivity : FlutterActivity() {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         }
-        ExternalDisplay.projectorWindowOpened(this)
+        ExternalDisplay.projectorWindowOpened(this, display)
     }
 
     override fun onDestroy() {
-        ExternalDisplay.projectorWindowClosed(this)
         super.onDestroy()
+        ExternalDisplay.projectorWindowClosed(this)
     }
 }
